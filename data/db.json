@@ -552,6 +552,13 @@
   ],
   "auditLogs": [
     {
+      "id": "log-1792172202954-294",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-16T17:36:42.954Z",
+      "ip": "::ffff:127.0.0.1"
+    },
+    {
       "id": "log-1791911624453-501",
       "action": "Device Image Uploaded",
       "details": "Uploaded device_test_logo_1791911624453.png (0 KB) from device",
@@ -765,7 +772,8 @@
       "bb2c7abeb316bf06bcf65c967803d95641f62294b5f8a157ac25c73c4552e0bc",
       "64d188c4a9c3394c23f7300944de94fa186bb54480d804479d24927991d4b0fc",
       "c91dff08122df261e74789e550a69b80e291b6eaf85822ca726ac0d0a0ffbd84",
-      "d9a269f26583340bfc027a9ae56204825c2cf0dfec0ba3dcb4e05ca7a94d00f2"
+      "d9a269f26583340bfc027a9ae56204825c2cf0dfec0ba3dcb4e05ca7a94d00f2",
+      "jahid.YWRtaW46MTc5MjE3MjIwMjk1Mw.5a48ccce93e2f94740af4159f0a29a9918b6048da5f5b72024e15df6c6621518"
     ]
   }
 }

@@ -155,6 +155,19 @@ export async function adminLogout(): Promise<void> {
   }
 }
 
+async function checkAdminResponse(res: Response, fallbackError: string): Promise<Response> {
+  if (res.status === 401) {
+    clearAdminToken();
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Unauthorized: Admin session expired. Please log in again.');
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || fallbackError);
+  }
+  return res;
+}
+
 export async function fetchAdminOverview(): Promise<{
   stats: {
     totalCourses: number;
@@ -170,13 +183,13 @@ export async function fetchAdminOverview(): Promise<{
   topLinks: SocialLink[];
 }> {
   const res = await fetch('/api/admin/overview', { headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to load admin overview');
+  await checkAdminResponse(res, 'Failed to load admin overview');
   return res.json();
 }
 
 export async function fetchAdminSubmissions(): Promise<AccountSubmission[]> {
   const res = await fetch('/api/admin/submissions', { headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch submissions');
+  await checkAdminResponse(res, 'Failed to fetch submissions');
   return res.json();
 }
 

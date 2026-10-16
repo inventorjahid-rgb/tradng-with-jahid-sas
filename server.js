@@ -522,6 +522,39 @@ var UPLOADS_DIR = (() => {
   }
 })();
 app.use("/uploads", express.static(UPLOADS_DIR));
+var ADMIN_SECRET = process.env.ADMIN_SECRET || "jahid_vip_master_secret_2026_trading";
+function createAdminToken(username) {
+  const timestamp = Date.now();
+  const payload = `${username}:${timestamp}`;
+  const hmac = crypto.createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
+  const b64 = Buffer.from(payload).toString("base64url");
+  return `jahid.${b64}.${hmac}`;
+}
+function verifyAdminToken(token) {
+  if (!token || typeof token !== "string") return false;
+  if (token.startsWith("jahid.")) {
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const [, b64, signature] = parts;
+      try {
+        const payload = Buffer.from(b64, "base64url").toString("utf-8");
+        const [, tsStr] = payload.split(":");
+        const timestamp = parseInt(tsStr, 10);
+        const maxAge = 30 * 24 * 60 * 60 * 1e3;
+        if (isNaN(timestamp) || Date.now() - timestamp > maxAge || Date.now() < timestamp - 6e4) {
+          return false;
+        }
+        const expectedSig = crypto.createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
+        if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+          return true;
+        }
+      } catch {
+        return false;
+      }
+    }
+  }
+  return false;
+}
 async function requireAdmin(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -529,13 +562,19 @@ async function requireAdmin(req, res, next) {
     return;
   }
   const token = authHeader.split(" ")[1];
-  const data = await db.get();
-  const adminAuth = data.adminAuth;
-  if (!adminAuth.sessionTokens.includes(token)) {
-    res.status(401).json({ error: "Unauthorized: Invalid or expired admin session token" });
+  if (!token) {
+    res.status(401).json({ error: "Unauthorized: Admin authentication token required" });
     return;
   }
-  next();
+  if (verifyAdminToken(token)) {
+    return next();
+  }
+  const data = await db.get();
+  const adminAuth = data.adminAuth;
+  if (adminAuth && Array.isArray(adminAuth.sessionTokens) && adminAuth.sessionTokens.includes(token)) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized: Invalid or expired admin session token" });
 }
 var api = express.Router();
 api.get("/public/data", async (_req, res) => {
@@ -765,7 +804,7 @@ api.post("/admin/login", async (req, res) => {
   try {
     const data = await db.get();
     if (username === data.adminAuth.username && password === data.adminAuth.passwordHash) {
-      const token = crypto.randomBytes(32).toString("hex");
+      const token = createAdminToken(username);
       await db.update((d) => {
         d.adminAuth.sessionTokens.push(token);
         if (d.adminAuth.sessionTokens.length > 20) {

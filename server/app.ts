@@ -48,6 +48,43 @@ export const UPLOADS_DIR = (() => {
 })();
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'jahid_vip_master_secret_2026_trading';
+
+export function createAdminToken(username: string): string {
+  const timestamp = Date.now();
+  const payload = `${username}:${timestamp}`;
+  const hmac = crypto.createHmac('sha256', ADMIN_SECRET).update(payload).digest('hex');
+  const b64 = Buffer.from(payload).toString('base64url');
+  return `jahid.${b64}.${hmac}`;
+}
+
+export function verifyAdminToken(token: string): boolean {
+  if (!token || typeof token !== 'string') return false;
+  if (token.startsWith('jahid.')) {
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const [, b64, signature] = parts;
+      try {
+        const payload = Buffer.from(b64, 'base64url').toString('utf-8');
+        const [, tsStr] = payload.split(':');
+        const timestamp = parseInt(tsStr, 10);
+        // Valid for 30 days
+        const maxAge = 30 * 24 * 60 * 60 * 1000;
+        if (isNaN(timestamp) || Date.now() - timestamp > maxAge || Date.now() < timestamp - 60000) {
+          return false;
+        }
+        const expectedSig = crypto.createHmac('sha256', ADMIN_SECRET).update(payload).digest('hex');
+        if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+          return true;
+        }
+      } catch {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
 // Helper for admin auth middleware
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -56,13 +93,24 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return;
   }
   const token = authHeader.split(' ')[1];
-  const data = await db.get();
-  const adminAuth = data.adminAuth;
-  if (!adminAuth.sessionTokens.includes(token)) {
-    res.status(401).json({ error: 'Unauthorized: Invalid or expired admin session token' });
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized: Admin authentication token required' });
     return;
   }
-  next();
+
+  // 1. Check stateless cryptographic token (100% reliable across all Vercel serverless containers)
+  if (verifyAdminToken(token)) {
+    return next();
+  }
+
+  // 2. Check in-memory/db sessionTokens for backwards compatibility
+  const data = await db.get();
+  const adminAuth = data.adminAuth;
+  if (adminAuth && Array.isArray(adminAuth.sessionTokens) && adminAuth.sessionTokens.includes(token)) {
+    return next();
+  }
+
+  res.status(401).json({ error: 'Unauthorized: Invalid or expired admin session token' });
 }
 
 // Create dedicated API Router
@@ -362,7 +410,7 @@ api.post('/admin/login', async (req: Request, res: Response) => {
       username === data.adminAuth.username &&
       password === data.adminAuth.passwordHash
     ) {
-      const token = crypto.randomBytes(32).toString('hex');
+      const token = createAdminToken(username);
       await db.update(d => {
         d.adminAuth.sessionTokens.push(token);
         if (d.adminAuth.sessionTokens.length > 20) {

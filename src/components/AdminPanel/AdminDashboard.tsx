@@ -167,6 +167,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const checkAuth = async () => {
     setCheckingAuth(true);
     const valid = await verifyAdminSession();
+    if (!valid) {
+      clearAdminToken();
+    }
     setIsAuthenticated(valid);
     setCheckingAuth(false);
     if (valid) {
@@ -205,8 +208,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setSettingsForm(publicData.settings || {});
         setAnimationsForm(publicData.animations || {});
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading admin data:', err);
+      if (err?.message && (err.message.includes('Unauthorized') || err.message.includes('token') || err.message.includes('401'))) {
+        clearAdminToken();
+        setIsAuthenticated(false);
+      }
     } finally {
       setLoading(false);
     }
