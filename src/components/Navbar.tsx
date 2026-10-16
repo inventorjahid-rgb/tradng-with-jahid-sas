@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg';
+                    (e.target as HTMLImageElement).src = '/images/trading_with_jahid_logo_1791908793141.jpg';
                   }}
                 />
               </div>

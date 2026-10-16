@@ -27,6 +27,53 @@ export const ImageUploadWidget: React.FC<ImageUploadWidgetProps> = ({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (file.type === 'application/pdf') {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 1280;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > MAX_DIM) {
+          height = Math.round((height * MAX_DIM) / width);
+          width = MAX_DIM;
+        } else if (height > MAX_DIM) {
+          width = Math.round((width * MAX_DIM) / height);
+          height = MAX_DIM;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(format, 0.85);
+        resolve(dataUrl);
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
   const handleFileChange = async (file: File) => {
     if (!file) return;
     const isImage = file.type.startsWith('image/');
@@ -40,10 +87,16 @@ export const ImageUploadWidget: React.FC<ImageUploadWidgetProps> = ({
     try {
       setIsUploading(true);
       setErrorMsg('');
-      const result = await uploadImage(file);
-      onChange(result.url);
+      const compressedDataUrl = await compressImage(file);
+      onChange(compressedDataUrl);
+
+      try {
+        await uploadImage(file);
+      } catch (err) {
+        console.warn('Backend upload notice:', err);
+      }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to upload image from device');
+      setErrorMsg(err.message || 'Failed to process image from device');
     } finally {
       setIsUploading(false);
     }

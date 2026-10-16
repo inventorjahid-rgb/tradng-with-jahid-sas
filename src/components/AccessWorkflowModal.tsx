@@ -156,7 +156,7 @@ export const AccessWorkflowModal: React.FC<AccessWorkflowModalProps> = ({
                 alt="Trading With Jahid"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg';
+                  (e.target as HTMLImageElement).src = '/images/trading_with_jahid_logo_1791908793141.jpg';
                 }}
               />
             </div>

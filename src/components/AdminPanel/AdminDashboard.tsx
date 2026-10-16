@@ -268,7 +268,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 alt="Logo"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg';
+                  (e.target as HTMLImageElement).src = '/images/trading_with_jahid_logo_1791908793141.jpg';
                 }}
               />
             </div>
@@ -335,7 +335,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     alt="Trading With Jahid Logo"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg';
+                      (e.target as HTMLImageElement).src = '/images/trading_with_jahid_logo_1791908793141.jpg';
                     }}
                   />
                 </div>
@@ -1069,7 +1069,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           category: 'Binary Trading Course',
                           shortDesc: '',
                           fullDesc: '',
-                          coverImage: '/src/assets/images/binary_course_cover_1791906598444.jpg',
+                          coverImage: '/images/binary_course_cover_1791906598444.jpg',
                           accessMode: 'new_account',
                           registrationUrl: 'https://pocketoption.com',
                           joinUrl: 'https://t.me/tradewithjahid',
@@ -1286,7 +1286,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           outcome: 'WIN',
                           riskReward: '1:3.5 RR',
                           profitPercentage: '+3.5%',
-                          screenshotUrl: '/src/assets/images/forex_course_cover_1791906599347.jpg',
+                          screenshotUrl: '/images/forex_course_cover_1791906599347.jpg',
                           date: 'October 2026',
                           educationalNote: 'Clean FVG mitigation with 8 pip stop loss.',
                           published: true,
@@ -1376,7 +1376,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         author: 'Jahid Hossain',
                         description: '',
                         pdfUrl: '',
-                        coverImage: '/src/assets/images/binary_course_cover_1791906598444.jpg',
+                        coverImage: '/images/binary_course_cover_1791906598444.jpg',
                         published: true,
                         order: books.length + 1
                       })}
@@ -1462,7 +1462,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         title: '',
                         category: 'Institutional Strategy',
                         description: '',
-                        imageUrl: '/src/assets/images/hero_trading_terminal_1791906597313.jpg',
+                        imageUrl: '/images/hero_trading_terminal_1791906597313.jpg',
                         winRate: '85% Win Rate',
                         published: true,
                         order: strategies.length + 1

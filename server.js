@@ -47,9 +47,9 @@ var INITIAL_DATA = {
     coursesTitlePrimary: "Comprehensive Courses,",
     coursesTitleHighlight: "Algorithmic Bots & Signals",
     coursesSubtitle: "Eliminate guesswork with institutional methodologies. Select a course or service below to review the curriculum and initiate verified access.",
-    profileImageUrl: "/src/assets/images/jahid_profile_avatar_1791906596676.jpg",
-    logoUrl: "/src/assets/images/trading_with_jahid_logo_1791908793141.jpg",
-    heroBannerUrl: "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+    profileImageUrl: "/images/jahid_profile_avatar_1791906596676.jpg",
+    logoUrl: "/images/trading_with_jahid_logo_1791908793141.jpg",
+    heroBannerUrl: "/images/hero_trading_terminal_1791906597313.jpg",
     telegramCommunityUrl: "https://t.me/tradewithjahid",
     telegramAdminUrl: "https://t.me/tradewithjahid",
     contactEmail: "mentor@tradewithjahid.com",
@@ -96,7 +96,7 @@ var INITIAL_DATA = {
       category: "Binary Trading Course",
       shortDesc: "Master 1-minute to 5-minute candlestick momentum, rejection zones, and volume spread analysis.",
       fullDesc: "A complete masterclass in high-frequency binary options trading. Learn price action patterns, Bollinger squeeze breakouts, false breakout filters, and strict martingale/compounding math.",
-      coverImage: "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      coverImage: "/images/binary_course_cover_1791906598444.jpg",
       accessMode: "new_account",
       registrationUrl: "https://pocketoption.com/register?utm_source=jahid_vip",
       joinUrl: "https://t.me/+JahidBinaryVipPortal",
@@ -124,7 +124,7 @@ var INITIAL_DATA = {
       category: "Forex Institutional",
       shortDesc: "Trade institutional order blocks, mitigation blocks, and liquidity sweeps with 1:5 risk-reward precision.",
       fullDesc: "Comprehensive institutional Forex mentorship. Discover how market makers engineer liquidity, how to spot high-timeframe order blocks, and how to execute swing and intraday trades with extreme accuracy.",
-      coverImage: "/src/assets/images/forex_course_cover_1791906599347.jpg",
+      coverImage: "/images/forex_course_cover_1791906599347.jpg",
       accessMode: "existing_id",
       registrationUrl: "https://exness.com/register?utm_source=jahid_vip",
       joinUrl: "https://t.me/+JahidForexSMC",
@@ -152,7 +152,7 @@ var INITIAL_DATA = {
       category: "Telegram VIP Signals",
       shortDesc: "Real-time high-probability Binary & Forex signal alerts with entry timing, stop loss, and TP targets.",
       fullDesc: "Get direct VIP Telegram broadcast alerts delivered right when setups form. Each signal includes thorough technical breakdown, risk level, and expiration/target parameters.",
-      coverImage: "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      coverImage: "/images/hero_trading_terminal_1791906597313.jpg",
       accessMode: "existing_id",
       registrationUrl: "https://t.me/tradewithjahid",
       joinUrl: "https://t.me/+JahidVipSignalsChannel",
@@ -179,7 +179,7 @@ var INITIAL_DATA = {
       category: "Quantitative Bot",
       shortDesc: "Automated binary and synthetic index execution bot engineered for disciplined algorithmic compounding.",
       fullDesc: "Our proprietary Alpha Engine bot removes emotion entirely. Powered by trend-following momentum indicators and strict volatility filters.",
-      coverImage: "/src/assets/images/trading_bot_cover_1791906598974.jpg",
+      coverImage: "/images/trading_bot_cover_1791906598974.jpg",
       accessMode: "new_account",
       registrationUrl: "https://deriv.com/signup?utm_source=jahid_vip",
       joinUrl: "https://t.me/+JahidBotAccess",
@@ -283,7 +283,7 @@ var INITIAL_DATA = {
       outcome: "WIN",
       riskReward: "1:4.8 RR",
       profitPercentage: "+4.8%",
-      screenshotUrl: "/src/assets/images/forex_course_cover_1791906599347.jpg",
+      screenshotUrl: "/images/forex_course_cover_1791906599347.jpg",
       date: "October 2026",
       educationalNote: "Asian session highs were swept at London Open followed by a clean 5-minute Market Structure Shift (MSS). Entered on the Fair Value Gap retest with 7 pip stop loss.",
       published: true,
@@ -297,7 +297,7 @@ var INITIAL_DATA = {
       outcome: "WIN",
       riskReward: "88% Payout",
       profitPercentage: "+88%",
-      screenshotUrl: "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      screenshotUrl: "/images/binary_course_cover_1791906598444.jpg",
       date: "October 2026",
       educationalNote: "Volatility contraction preceded a strong rejection candle touching the lower deviation band. Entered 1-minute CALL option immediately upon rejection confirmation.",
       published: true,
@@ -311,7 +311,7 @@ var INITIAL_DATA = {
       outcome: "WIN",
       riskReward: "1:5.5 RR",
       profitPercentage: "+5.5%",
-      screenshotUrl: "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      screenshotUrl: "/images/hero_trading_terminal_1791906597313.jpg",
       date: "September 2026",
       educationalNote: "Institutional daily demand mitigation into previous week's discount level. Clear bullish engulfing confirmation on the 15-minute timeframe.",
       published: true,
@@ -325,7 +325,7 @@ var INITIAL_DATA = {
       outcome: "PROFIT",
       riskReward: "Automated",
       profitPercentage: "+24.6% Month",
-      screenshotUrl: "/src/assets/images/trading_bot_cover_1791906598974.jpg",
+      screenshotUrl: "/images/trading_bot_cover_1791906598974.jpg",
       date: "September 2026",
       educationalNote: "Dual-engine algorithmic execution filtering choppy market conditions with strict daily loss cap of 2.5% max equity risk.",
       published: true,
@@ -339,7 +339,7 @@ var INITIAL_DATA = {
       author: "Jahid Hossain",
       description: "Master 60-second to 5-minute binary price action, order flow exhaustion, and false breakout filters.",
       pdfUrl: "/uploads/institutional_candlestick_psychology.pdf",
-      coverImage: "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      coverImage: "/images/binary_course_cover_1791906598444.jpg",
       published: true,
       order: 1,
       createdAt: "2026-01-10T10:00:00Z"
@@ -350,7 +350,7 @@ var INITIAL_DATA = {
       author: "Jahid Hossain",
       description: "Comprehensive guide to institutional fair value gaps, liquidity sweeps, market structure shifts, and 1:5 RR setups.",
       pdfUrl: "/uploads/smc_forex_liquidity_manual.pdf",
-      coverImage: "/src/assets/images/forex_course_cover_1791906599347.jpg",
+      coverImage: "/images/forex_course_cover_1791906599347.jpg",
       published: true,
       order: 2,
       createdAt: "2026-01-12T10:00:00Z"
@@ -361,7 +361,7 @@ var INITIAL_DATA = {
       author: "Jahid Hossain",
       description: "Mathematical framework for protecting capital, avoiding emotional tilt, and scaling accounts systematically.",
       pdfUrl: "/uploads/risk_management_compound_handbook.pdf",
-      coverImage: "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      coverImage: "/images/hero_trading_terminal_1791906597313.jpg",
       published: true,
       order: 3,
       createdAt: "2026-01-15T10:00:00Z"
@@ -373,7 +373,7 @@ var INITIAL_DATA = {
       title: "London Session Sweep & Mitigation Strategy",
       category: "Forex Institutional",
       description: "Identify key Asia session highs/sweeps, wait for market structure break (MSB), and enter on 15m order block mitigation.",
-      imageUrl: "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      imageUrl: "/images/hero_trading_terminal_1791906597313.jpg",
       winRate: "86.4% Win Rate",
       published: true,
       order: 1,
@@ -384,7 +384,7 @@ var INITIAL_DATA = {
       title: "1-Minute Binary Bollinger Squeeze Rejection",
       category: "Binary Options",
       description: "Look for volatility contraction on Bollinger Bands paired with RSI divergence and wick rejection at major support/resistance.",
-      imageUrl: "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      imageUrl: "/images/binary_course_cover_1791906598444.jpg",
       winRate: "82.1% Payout Accuracy",
       published: true,
       order: 2,
@@ -395,7 +395,7 @@ var INITIAL_DATA = {
       title: "Algorithmic Trend Following Bot Setup",
       category: "Quantitative Bot",
       description: "Multi-timeframe moving average crossover combined with ATR trailing stop limits for hands-free trend capture.",
-      imageUrl: "/src/assets/images/trading_bot_cover_1791906598974.jpg",
+      imageUrl: "/images/trading_bot_cover_1791906598974.jpg",
       winRate: "79.8% Net ROI",
       published: true,
       order: 3,
@@ -522,6 +522,9 @@ var UPLOADS_DIR = (() => {
   }
 })();
 app.use("/uploads", express.static(UPLOADS_DIR));
+var IMAGES_DIR = path2.resolve(process.cwd(), "public/images");
+app.use("/images", express.static(IMAGES_DIR));
+app.use("/src/assets/images", express.static(IMAGES_DIR));
 var ADMIN_SECRET = process.env.ADMIN_SECRET || "jahid_vip_master_secret_2026_trading";
 function createAdminToken(username) {
   const timestamp = Date.now();
@@ -1003,7 +1006,7 @@ api.post("/admin/courses", requireAdmin, async (req, res) => {
     category: courseData.category || "Trading Course",
     shortDesc: courseData.shortDesc || "",
     fullDesc: courseData.fullDesc || "",
-    coverImage: courseData.coverImage || "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+    coverImage: courseData.coverImage || "/images/hero_trading_terminal_1791906597313.jpg",
     accessMode: courseData.accessMode || "new_account",
     registrationUrl: courseData.registrationUrl || "https://pocketoption.com/register?utm_source=jahid_vip",
     joinUrl: courseData.joinUrl || "https://t.me/tradewithjahid",
@@ -1158,7 +1161,7 @@ api.post("/admin/portfolio", requireAdmin, async (req, res) => {
     outcome: p.outcome || "WIN",
     riskReward: p.riskReward || "1:3 RR",
     profitPercentage: p.profitPercentage || "+3.0%",
-    screenshotUrl: p.screenshotUrl || "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+    screenshotUrl: p.screenshotUrl || "/images/hero_trading_terminal_1791906597313.jpg",
     date: p.date || "Recent",
     educationalNote: p.educationalNote || "",
     published: p.published !== void 0 ? p.published : true,
@@ -1228,7 +1231,7 @@ api.post("/admin/books", requireAdmin, async (req, res) => {
     author: b.author || "Jahid Hossain",
     description: b.description || "",
     pdfUrl: b.pdfUrl || "",
-    coverImage: b.coverImage || "/src/assets/images/binary_course_cover_1791906598444.jpg",
+    coverImage: b.coverImage || "/images/binary_course_cover_1791906598444.jpg",
     published: b.published !== void 0 ? b.published : true,
     order: b.order || 99,
     createdAt: (/* @__PURE__ */ new Date()).toISOString()
@@ -1296,7 +1299,7 @@ api.post("/admin/strategies", requireAdmin, async (req, res) => {
     title: s.title,
     category: s.category || "Institutional Strategy",
     description: s.description || "",
-    imageUrl: s.imageUrl || "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+    imageUrl: s.imageUrl || "/images/hero_trading_terminal_1791906597313.jpg",
     winRate: s.winRate || "80% Win Rate",
     published: s.published !== void 0 ? s.published : true,
     order: s.order || 99,
@@ -1401,8 +1404,12 @@ api.post("/admin/upload-image", requireAdmin, async (req, res) => {
     const cleanBase = (fileName || "device_upload").replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
     const uniqueName = `${cleanBase}_${Date.now()}.${ext}`;
     const targetPath = path2.join(UPLOADS_DIR, uniqueName);
-    fs2.writeFileSync(targetPath, buffer);
-    const publicUrl = `/uploads/${uniqueName}`;
+    try {
+      fs2.writeFileSync(targetPath, buffer);
+    } catch (e) {
+      console.warn("Could not write uploaded file to disk:", e);
+    }
+    const publicUrl = dataUrl;
     await db.logAction("Device Image Uploaded", `Uploaded ${uniqueName} (${Math.round(buffer.length / 1024)} KB) from device`);
     res.json({
       success: true,
@@ -1441,13 +1448,13 @@ api.delete("/admin/media-library/:fileName", requireAdmin, async (req, res) => {
     }
     await db.update((d) => {
       if (d.settings.logoUrl && d.settings.logoUrl.includes(safeName)) {
-        d.settings.logoUrl = "/src/assets/images/trading_with_jahid_logo_1791908793141.jpg";
+        d.settings.logoUrl = "/images/trading_with_jahid_logo_1791908793141.jpg";
       }
       if (d.settings.profileImageUrl && d.settings.profileImageUrl.includes(safeName)) {
-        d.settings.profileImageUrl = "/src/assets/images/jahid_profile_avatar_1791906596676.jpg";
+        d.settings.profileImageUrl = "/images/jahid_profile_avatar_1791906596676.jpg";
       }
       if (d.settings.heroBannerUrl && d.settings.heroBannerUrl.includes(safeName)) {
-        d.settings.heroBannerUrl = "/src/assets/images/hero_trading_terminal_1791906597313.jpg";
+        d.settings.heroBannerUrl = "/images/hero_trading_terminal_1791906597313.jpg";
       }
     });
     await db.logAction("Media Deleted", `Deleted uploaded file: ${safeName}`);
@@ -1472,13 +1479,13 @@ api.delete("/admin/media-library-all", requireAdmin, async (_req, res) => {
     }
     await db.update((d) => {
       if (d.settings.logoUrl && d.settings.logoUrl.startsWith("/uploads/")) {
-        d.settings.logoUrl = "/src/assets/images/trading_with_jahid_logo_1791908793141.jpg";
+        d.settings.logoUrl = "/images/trading_with_jahid_logo_1791908793141.jpg";
       }
       if (d.settings.profileImageUrl && d.settings.profileImageUrl.startsWith("/uploads/")) {
-        d.settings.profileImageUrl = "/src/assets/images/jahid_profile_avatar_1791906596676.jpg";
+        d.settings.profileImageUrl = "/images/jahid_profile_avatar_1791906596676.jpg";
       }
       if (d.settings.heroBannerUrl && d.settings.heroBannerUrl.startsWith("/uploads/")) {
-        d.settings.heroBannerUrl = "/src/assets/images/hero_trading_terminal_1791906597313.jpg";
+        d.settings.heroBannerUrl = "/images/hero_trading_terminal_1791906597313.jpg";
       }
     });
     await db.logAction("Media Library Cleared", `Deleted ${deletedCount} uploaded media files`);

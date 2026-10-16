@@ -86,7 +86,7 @@ export const CommunitySection: React.FC<CommunitySectionProps> = ({ settings }) 
                     <div className="relative w-12 h-12 rounded-full overflow-hidden p-[2px] bg-lux-gradient shrink-0">
                       <div className="w-full h-full rounded-full overflow-hidden bg-[#040604]">
                         <img
-                          src={settings.logoUrl || '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg'}
+                          src={settings.logoUrl || '/images/trading_with_jahid_logo_1791908793141.jpg'}
                           alt="Trading With Jahid Official Logo"
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"

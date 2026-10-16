@@ -38,7 +38,15 @@ export async function fetchPublicData(): Promise<PublicDataPayload> {
     }
     throw new Error(`Failed to fetch platform data (${detail})`);
   }
-  return res.json();
+  const data: PublicDataPayload = await res.json();
+  try {
+    const saved = localStorage.getItem('trading_jahid_website_settings');
+    if (saved) {
+      const customSettings = JSON.parse(saved);
+      data.settings = { ...data.settings, ...customSettings };
+    }
+  } catch {}
+  return data;
 }
 
 export async function submitAccountId(payload: {
@@ -314,13 +322,22 @@ export async function deletePortfolioItem(id: string): Promise<void> {
 }
 
 export async function updateWebsiteSettings(settings: Partial<WebsiteSettings>): Promise<WebsiteSettings> {
+  try {
+    const prev = JSON.parse(localStorage.getItem('trading_jahid_website_settings') || '{}');
+    localStorage.setItem('trading_jahid_website_settings', JSON.stringify({ ...prev, ...settings }));
+  } catch {}
+
   const res = await fetch('/api/admin/settings', {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(settings)
   });
   if (!res.ok) throw new Error('Failed to update website settings');
-  return res.json();
+  const data = await res.json();
+  try {
+    localStorage.setItem('trading_jahid_website_settings', JSON.stringify(data));
+  } catch {}
+  return data;
 }
 
 export async function updateAnimationSettings(animations: Partial<AnimationSettings>): Promise<AnimationSettings> {

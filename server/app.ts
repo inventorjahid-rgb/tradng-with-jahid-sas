@@ -47,6 +47,9 @@ export const UPLOADS_DIR = (() => {
   }
 })();
 app.use('/uploads', express.static(UPLOADS_DIR));
+const IMAGES_DIR = path.resolve(process.cwd(), 'public/images');
+app.use('/images', express.static(IMAGES_DIR));
+app.use('/src/assets/images', express.static(IMAGES_DIR));
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'jahid_vip_master_secret_2026_trading';
 
@@ -648,7 +651,7 @@ api.post('/admin/courses', requireAdmin, async (req: Request, res: Response) => 
     category: courseData.category || 'Trading Course',
     shortDesc: courseData.shortDesc || '',
     fullDesc: courseData.fullDesc || '',
-    coverImage: courseData.coverImage || '/src/assets/images/hero_trading_terminal_1791906597313.jpg',
+    coverImage: courseData.coverImage || '/images/hero_trading_terminal_1791906597313.jpg',
     accessMode: courseData.accessMode || 'new_account',
     registrationUrl: courseData.registrationUrl || 'https://pocketoption.com/register?utm_source=jahid_vip',
     joinUrl: courseData.joinUrl || 'https://t.me/tradewithjahid',
@@ -831,7 +834,7 @@ api.post('/admin/portfolio', requireAdmin, async (req: Request, res: Response) =
     outcome: p.outcome || 'WIN',
     riskReward: p.riskReward || '1:3 RR',
     profitPercentage: p.profitPercentage || '+3.0%',
-    screenshotUrl: p.screenshotUrl || '/src/assets/images/hero_trading_terminal_1791906597313.jpg',
+    screenshotUrl: p.screenshotUrl || '/images/hero_trading_terminal_1791906597313.jpg',
     date: p.date || 'Recent',
     educationalNote: p.educationalNote || '',
     published: p.published !== undefined ? p.published : true,
@@ -915,7 +918,7 @@ api.post('/admin/books', requireAdmin, async (req: Request, res: Response) => {
     author: b.author || 'Jahid Hossain',
     description: b.description || '',
     pdfUrl: b.pdfUrl || '',
-    coverImage: b.coverImage || '/src/assets/images/binary_course_cover_1791906598444.jpg',
+    coverImage: b.coverImage || '/images/binary_course_cover_1791906598444.jpg',
     published: b.published !== undefined ? b.published : true,
     order: b.order || 99,
     createdAt: new Date().toISOString()
@@ -997,7 +1000,7 @@ api.post('/admin/strategies', requireAdmin, async (req: Request, res: Response) 
     title: s.title,
     category: s.category || 'Institutional Strategy',
     description: s.description || '',
-    imageUrl: s.imageUrl || '/src/assets/images/hero_trading_terminal_1791906597313.jpg',
+    imageUrl: s.imageUrl || '/images/hero_trading_terminal_1791906597313.jpg',
     winRate: s.winRate || '80% Win Rate',
     published: s.published !== undefined ? s.published : true,
     order: s.order || 99,
@@ -1130,9 +1133,14 @@ api.post('/admin/upload-image', requireAdmin, async (req: Request, res: Response
     const uniqueName = `${cleanBase}_${Date.now()}.${ext}`;
     const targetPath = path.join(UPLOADS_DIR, uniqueName);
 
-    fs.writeFileSync(targetPath, buffer);
+    try {
+      fs.writeFileSync(targetPath, buffer);
+    } catch (e) {
+      console.warn('Could not write uploaded file to disk:', e);
+    }
 
-    const publicUrl = `/uploads/${uniqueName}`;
+    // Return the self-contained dataUrl so the image is 100% persistent and never disappears on serverless restarts!
+    const publicUrl = dataUrl;
     await db.logAction('Device Image Uploaded', `Uploaded ${uniqueName} (${Math.round(buffer.length / 1024)} KB) from device`);
 
     res.json({
@@ -1181,13 +1189,13 @@ api.delete('/admin/media-library/:fileName', requireAdmin, async (req: Request, 
     // Always ensure settings don't point to a deleted file
     await db.update(d => {
       if (d.settings.logoUrl && d.settings.logoUrl.includes(safeName)) {
-        d.settings.logoUrl = '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg';
+        d.settings.logoUrl = '/images/trading_with_jahid_logo_1791908793141.jpg';
       }
       if (d.settings.profileImageUrl && d.settings.profileImageUrl.includes(safeName)) {
-        d.settings.profileImageUrl = '/src/assets/images/jahid_profile_avatar_1791906596676.jpg';
+        d.settings.profileImageUrl = '/images/jahid_profile_avatar_1791906596676.jpg';
       }
       if (d.settings.heroBannerUrl && d.settings.heroBannerUrl.includes(safeName)) {
-        d.settings.heroBannerUrl = '/src/assets/images/hero_trading_terminal_1791906597313.jpg';
+        d.settings.heroBannerUrl = '/images/hero_trading_terminal_1791906597313.jpg';
       }
     });
 
@@ -1215,13 +1223,13 @@ api.delete('/admin/media-library-all', requireAdmin, async (_req: Request, res: 
     // Reset settings if pointing to uploads
     await db.update(d => {
       if (d.settings.logoUrl && d.settings.logoUrl.startsWith('/uploads/')) {
-        d.settings.logoUrl = '/src/assets/images/trading_with_jahid_logo_1791908793141.jpg';
+        d.settings.logoUrl = '/images/trading_with_jahid_logo_1791908793141.jpg';
       }
       if (d.settings.profileImageUrl && d.settings.profileImageUrl.startsWith('/uploads/')) {
-        d.settings.profileImageUrl = '/src/assets/images/jahid_profile_avatar_1791906596676.jpg';
+        d.settings.profileImageUrl = '/images/jahid_profile_avatar_1791906596676.jpg';
       }
       if (d.settings.heroBannerUrl && d.settings.heroBannerUrl.startsWith('/uploads/')) {
-        d.settings.heroBannerUrl = '/src/assets/images/hero_trading_terminal_1791906597313.jpg';
+        d.settings.heroBannerUrl = '/images/hero_trading_terminal_1791906597313.jpg';
       }
     });
 
