@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "AppConfig": {
+      "title": "AppConfig",
+      "type": "object",
+      "properties": {
+        "settings": { "type": "object" },
+        "animations": { "type": "object" },
+        "adminAuth": { "type": "object" }
+      }
+    },
+    "Course": {
+      "title": "Course",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "slug": { "type": "string" },
+        "title": { "type": "string" },
+        "published": { "type": "boolean" },
+        "order": { "type": "number" }
+      }
+    },
+    "SocialLink": {
+      "title": "SocialLink",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      }
+    },
+    "Submission": {
+      "title": "Submission",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "accountId": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/config/app": { "schema": "AppConfig" },
+    "/courses/{courseId}": { "schema": "Course" },
+    "/links/{linkId}": { "schema": "SocialLink" },
+    "/submissions/{subId}": { "schema": "Submission" },
+    "/users/{userId}": { "schema": "User" }
+  }
+}

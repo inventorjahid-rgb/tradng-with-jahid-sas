@@ -1,0 +1,6 @@
+{
+  "name": "Trading With Jahid",
+  "description": "Premium trading education platform by Jahid featuring Binary & Forex courses, trading signals, algorithmic bots, account verification workflows, and VIP community access.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

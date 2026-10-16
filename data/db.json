@@ -1,0 +1,771 @@
+{
+  "settings": {
+    "brandName": "Trading With Jahid",
+    "tagline": "Institutional Precision. High-Probability Trading Education.",
+    "heroTitle": "Trading With Jahid",
+    "heroSubtitle": "Institutional-grade Binary & Forex trading education, high-probability algorithmic signals, quantitative bots, and an exclusive community of elite traders.",
+    "heroTitlePrimary": "Master The Markets With",
+    "heroTitleHighlight": "Professional Precision",
+    "heroBadgeText": "Elite Trading Mastery & VIP Signals",
+    "coursesBadgeText": "Trading Curriculum & Tools · Structured Path",
+    "coursesTitlePrimary": "Comprehensive Courses,",
+    "coursesTitleHighlight": "Algorithmic Bots & Signals",
+    "coursesSubtitle": "Eliminate guesswork with institutional methodologies. Select a course or service below to review the curriculum and initiate verified access.",
+    "profileImageUrl": "/src/assets/images/jahid_profile_avatar_1791906596676.jpg",
+    "logoUrl": "/src/assets/images/trading_with_jahid_logo_1791908793141.jpg",
+    "heroBannerUrl": "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+    "telegramCommunityUrl": "https://t.me/tradewithjahid",
+    "telegramAdminUrl": "https://t.me/tradewithjahid",
+    "contactEmail": "mentor@tradewithjahid.com",
+    "whatsappUrl": "https://wa.me/message/TRADINGWITHJAHID",
+    "primaryColor": "#00D084",
+    "secondaryColor": "#087F5B",
+    "accentGold": "#D4AF37",
+    "bgColor": "#080B0A",
+    "aboutBio": "Professional financial trader, market technician, and trading mentor with over 7 years of specialized expertise in high-frequency Binary price action, institutional Forex order flow, and quantitative algorithmic strategies. My mission is to guide disciplined traders toward real consistency without gambling or false promises.",
+    "aboutJourney": "Starting with small capital and navigating market volatility taught me that emotional discipline and mathematical edge always beat hype. Over the past 7 years, I developed systematic rule-based setups that transform everyday traders into calculated market operators.",
+    "aboutExpertise": [
+      "Binary Options Candlestick Psychology & Rejection Trading",
+      "Institutional Forex Liquidity (SMC & Order Block Dynamics)",
+      "High-Frequency Risk Management & Capital Preservation",
+      "Algorithmic Trading Bot Deployment & Backtesting",
+      "Live Market Tape Reading & Session Volatility Exploitation"
+    ],
+    "aboutStats": [
+      {
+        "label": "Community Members",
+        "value": "14,800+"
+      },
+      {
+        "label": "Live Trading Hours",
+        "value": "1,200+"
+      },
+      {
+        "label": "Course Graduates",
+        "value": "3,400+"
+      },
+      {
+        "label": "Verified Win Rate",
+        "value": "84.2%"
+      }
+    ],
+    "footerDisclaimer": "Trading With Jahid is an independent educational academy. We do not provide financial advice, broker services, or guarantee profits. All content is for educational and training purposes.",
+    "riskNotice": "High Risk Warning: Trading Forex, Binary Options, and derivative financial contracts carries a high level of risk to your capital. You should never trade with funds you cannot afford to lose. Past performance of any system or mentor is not indicative of future results."
+  },
+  "animations": {
+    "enable3D": true,
+    "enableParticles": true,
+    "enableCharts": true,
+    "enableCursor": true,
+    "enableScroll": true,
+    "intensity": "high",
+    "speed": 0.5,
+    "particleDensity": 20,
+    "backgroundStyle": "matte_obsidian",
+    "enableOnMobile": true
+  },
+  "courses": [
+    {
+      "id": "course-binary",
+      "slug": "binary",
+      "title": "Binary Trading Mastery",
+      "category": "Binary Trading Course",
+      "shortDesc": "Master 1-minute to 5-minute candlestick momentum, rejection zones, and volume spread analysis.",
+      "fullDesc": "A complete masterclass in high-frequency binary options trading. Learn price action patterns, Bollinger squeeze breakouts, false breakout filters, and strict martingale/compounding math.",
+      "coverImage": "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      "accessMode": "new_account",
+      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_vip",
+      "joinUrl": "https://t.me/+JahidBinaryVipPortal",
+      "modules": [
+        "Candlestick Anatomy, Wick Rejections & Key S/R Zones",
+        "Volume Spread Analysis (VSA) for 60-Second Expirations",
+        "Dynamic Indicator Confluence: Bollinger Bands & RSI 14/7",
+        "Mathematical Money Management: Compound vs Fixed Risk",
+        "Eliminating Emotional Trading & Over-trading Traps"
+      ],
+      "requirements": "Register a fresh account via our partner link and submit your Broker Account ID for activation.",
+      "faqs": [
+        {
+          "question": "Is this suitable for beginners?",
+          "answer": "Yes, we teach from foundational candlestick reading up to institutional setups."
+        },
+        {
+          "question": "Which brokers are supported?",
+          "answer": "Pocket Option, Quotex, and Deriv are fully supported."
+        }
+      ],
+      "published": true,
+      "featured": true,
+      "order": 1,
+      "createdAt": "2026-01-10T10:00:00Z"
+    },
+    {
+      "id": "course-forex",
+      "slug": "forex",
+      "title": "Forex Institutional Order Flow",
+      "category": "Forex Trading Course",
+      "shortDesc": "Trade currency pairs using institutional liquidity concepts, fair value gaps, and supply/demand mechanics.",
+      "fullDesc": "Learn how central banks, hedge funds, and market makers position in global foreign exchange markets. Focus on liquidity sweeps, imbalance fills, London/NY session kill zones, and 1:3 minimum risk-to-reward ratios.",
+      "coverImage": "/src/assets/images/forex_course_cover_1791906599347.jpg",
+      "accessMode": "new_account",
+      "registrationUrl": "https://one.exness-track.com/a/jahidforex",
+      "joinUrl": "https://t.me/+JahidForexInstitutionalVip",
+      "modules": [
+        "Macro Economics, Interest Rates & Currency Drivers",
+        "Smart Money Concepts (SMC): Liquidity Pools & FVG",
+        "London Open & New York Session Kill Zone Setups",
+        "Prop Firm Challenge Rules & Maximum Drawdown Protection",
+        "Advanced Risk Calculations & Position Sizing Spreadsheets"
+      ],
+      "requirements": "Exness or XM Trading Account ID with active funded balance.",
+      "faqs": [
+        {
+          "question": "Can I use this for Prop Firms?",
+          "answer": "Yes, our risk rules are specifically tailored for FTMO, FundedNext, and other prop firms."
+        }
+      ],
+      "published": true,
+      "featured": true,
+      "order": 2,
+      "createdAt": "2026-01-12T10:00:00Z"
+    },
+    {
+      "id": "service-signals",
+      "slug": "signals",
+      "title": "VIP Trading Signals",
+      "category": "Trading Signals",
+      "shortDesc": "Real-time daily alerts for Binary and Forex setups with entry point, expiration/SL, and TP levels.",
+      "fullDesc": "Instant Telegram notifications featuring curated institutional setups with precise entry timing, clear risk parameters, and live session updates directly from Jahid.",
+      "coverImage": "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      "accessMode": "existing_id",
+      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_signals",
+      "joinUrl": "https://t.me/+JahidVipSignalsPrivate",
+      "modules": [
+        "Daily 5 to 10 High-Probability Alerts",
+        "Live Pre-News Volatility Warnings",
+        "Stop-Loss, Take-Profit & Break-Even Guidance",
+        "Weekly Performance Breakdown & Journal"
+      ],
+      "requirements": "Active trader account ID verification required.",
+      "faqs": [
+        {
+          "question": "What times are signals distributed?",
+          "answer": "Signals are posted during London (08:00–12:00 UTC) and New York (13:00–17:00 UTC) sessions."
+        }
+      ],
+      "published": true,
+      "featured": true,
+      "order": 3,
+      "createdAt": "2026-01-15T10:00:00Z"
+    },
+    {
+      "id": "service-bots",
+      "slug": "bots",
+      "title": "Automated Quantitative Bots",
+      "category": "Trading Bots",
+      "shortDesc": "Cloud-hosted algorithmic execution bots for Binary and MetaTrader with automated risk guardrails.",
+      "fullDesc": "Deploy high-speed algorithmic trading bots configured with strict stop limits, martingale caps, and API connection to your terminal for hands-off execution.",
+      "coverImage": "/src/assets/images/trading_bot_cover_1791906598974.jpg",
+      "accessMode": "new_account",
+      "registrationUrl": "https://deriv.com/signup?referrer=jahid_bot",
+      "joinUrl": "https://t.me/+JahidQuantBotDeployment",
+      "modules": [
+        "Cloud Server Setup & API Webhook Integration",
+        "Trend Following & Mean-Reversion Dual Engine",
+        "Dynamic Drawdown Circuit Breakers",
+        "Preset Conservative, Balanced & Aggressive Profiles"
+      ],
+      "requirements": "Authorized Deriv or MT5 Account ID.",
+      "faqs": [
+        {
+          "question": "Do I need coding knowledge to use the bot?",
+          "answer": "No, the bot comes with pre-compiled web configurations and detailed step-by-step setup guides."
+        }
+      ],
+      "published": true,
+      "featured": true,
+      "order": 4,
+      "createdAt": "2026-01-18T10:00:00Z"
+    },
+    {
+      "id": "service-classes",
+      "slug": "classes",
+      "title": "Live Interactive Trading Classes",
+      "category": "Live Trading Classes",
+      "shortDesc": "Join weekly live screen-sharing market breakdown sessions, live chart analysis, and trader Q&A.",
+      "fullDesc": "Experience live market analysis with Jahid. Watch live setups unfold, ask questions in real-time, review community charts, and analyze trade execution together.",
+      "coverImage": "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      "accessMode": "existing_id",
+      "registrationUrl": "https://t.me/tradewithjahid",
+      "joinUrl": "https://t.me/+JahidLiveClassPrivateZoom",
+      "modules": [
+        "3x Weekly Live Trading Stream",
+        "Live Interactive Chart Teardowns",
+        "Open Voice Q&A and Trade Journal Audits",
+        "Full HD Archive of All Historical Sessions"
+      ],
+      "requirements": "Registered account ID or active VIP community membership.",
+      "faqs": [
+        {
+          "question": "What if I miss a live class?",
+          "answer": "All classes are recorded in 4K resolution and uploaded within 2 hours to the private archive."
+        }
+      ],
+      "published": true,
+      "featured": true,
+      "order": 5,
+      "createdAt": "2026-01-20T10:00:00Z"
+    },
+    {
+      "id": "service-community",
+      "slug": "community",
+      "title": "VIP Traders Elite Community",
+      "category": "Trading Community",
+      "shortDesc": "Join 14,000+ disciplined traders sharing charts, daily setups, psychology support, and market insights.",
+      "fullDesc": "An active, supportive brotherhood of serious traders. Share your charts, receive feedback from Jahid and veteran traders, and avoid retail pitfalls.",
+      "coverImage": "/src/assets/images/jahid_profile_avatar_1791906596676.jpg",
+      "accessMode": "existing_id",
+      "registrationUrl": "https://t.me/tradewithjahid",
+      "joinUrl": "https://t.me/tradewithjahid",
+      "modules": [
+        "Daily Chart Analysis Channels",
+        "Psychology & Mindset Accountability",
+        "Weekly Giveaway & Trading Resource Drops",
+        "Direct Access to Jahid's Public Insights"
+      ],
+      "requirements": "Free to join public group; VIP channel requires verified account ID.",
+      "faqs": [
+        {
+          "question": "Is the Telegram community free?",
+          "answer": "The main community is completely free at https://t.me/tradewithjahid. The VIP room requires a verified account ID."
+        }
+      ],
+      "published": true,
+      "featured": true,
+      "order": 6,
+      "createdAt": "2026-01-22T10:00:00Z"
+    }
+  ],
+  "links": [
+    {
+      "id": "link-tg-community",
+      "title": "Telegram Trading Community",
+      "category": "Telegram Group",
+      "url": "https://t.me/tradewithjahid",
+      "description": "Join 14,800+ active members for daily market charts, discussions, and updates.",
+      "iconName": "Send",
+      "buttonLabel": "Join Community",
+      "displayLocations": [
+        "navbar",
+        "hero",
+        "social_section",
+        "community_page",
+        "footer",
+        "floating"
+      ],
+      "order": 1,
+      "isActive": true,
+      "isFeatured": true,
+      "openInNewTab": true,
+      "clickCount": 1422,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "lastClickedAt": "2026-10-13T16:37:03.752Z"
+    },
+    {
+      "id": "link-tg-admin",
+      "title": "Contact Jahid (Telegram Admin)",
+      "category": "Telegram Admin / Direct Contact",
+      "url": "https://t.me/tradewithjahid",
+      "description": "Direct official inquiry for 1-on-1 mentorship, bot setup, and verification support.",
+      "iconName": "MessageCircle",
+      "buttonLabel": "Contact Admin",
+      "displayLocations": [
+        "hero",
+        "social_section",
+        "contact_page",
+        "footer",
+        "floating"
+      ],
+      "order": 2,
+      "isActive": true,
+      "isFeatured": true,
+      "openInNewTab": true,
+      "clickCount": 890,
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "link-youtube",
+      "title": "YouTube Channel (Daily Breakdowns)",
+      "category": "YouTube Channel",
+      "url": "https://youtube.com/@tradingwithjahid",
+      "description": "Weekly live trading sessions, strategy guides, and market commentary.",
+      "iconName": "Youtube",
+      "buttonLabel": "Subscribe",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 3,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 655,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "lastClickedAt": "2026-10-13T16:37:10.409Z"
+    },
+    {
+      "id": "link-facebook",
+      "title": "Facebook Official Page",
+      "category": "Facebook Page",
+      "url": "https://facebook.com/tradingwithjahid",
+      "description": "Follow announcements, educational snippets, and trade recaps.",
+      "iconName": "Facebook",
+      "buttonLabel": "Follow Page",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 4,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 312,
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "link-whatsapp",
+      "title": "WhatsApp Priority Desk",
+      "category": "WhatsApp Direct Contact",
+      "url": "https://wa.me/message/TRADINGWITHJAHID",
+      "description": "Priority chat for payment verification, course access, and technical questions.",
+      "iconName": "PhoneCall",
+      "buttonLabel": "Chat on WhatsApp",
+      "displayLocations": [
+        "social_section",
+        "contact_page",
+        "floating"
+      ],
+      "order": 5,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 440,
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "link-discord",
+      "title": "Discord Community Hub",
+      "category": "Discord Server",
+      "url": "https://discord.gg/tradewithjahid",
+      "description": "Voice rooms for market hours, chart sharing channels, and automated bot logs.",
+      "iconName": "Users",
+      "buttonLabel": "Join Discord",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 6,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 285,
+      "createdAt": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "SUB-8721",
+      "courseId": "course-forex",
+      "courseTitle": "Forex Institutional Order Flow",
+      "accountId": "EX-998811",
+      "telegramHandle": "@trader_live",
+      "userEmail": "live@test.com",
+      "status": "Rejected",
+      "reviewNotes": "Account ID not found under partner link.",
+      "createdAt": "2026-10-13T16:08:23.504Z",
+      "updatedAt": "2026-10-13T16:19:48.397Z"
+    },
+    {
+      "id": "SUB-8021",
+      "courseId": "course-binary",
+      "courseTitle": "Binary Trading Mastery",
+      "accountId": "PO-9941824",
+      "telegramHandle": "@alex_trader_ny",
+      "userEmail": "alex.trade@gmail.com",
+      "status": "Rejected",
+      "reviewNotes": "Account ID not found under partner link.",
+      "createdAt": "2026-10-12T14:20:00Z",
+      "updatedAt": "2026-10-13T16:19:49.395Z"
+    },
+    {
+      "id": "SUB-8022",
+      "courseId": "course-forex",
+      "courseTitle": "Forex Institutional Order Flow",
+      "accountId": "EX-4889102",
+      "telegramHandle": "@samuel_fx",
+      "userEmail": "samuel.fx@outlook.com",
+      "status": "Rejected",
+      "reviewNotes": "Account ID not found under partner link.",
+      "createdAt": "2026-10-13T07:15:00Z",
+      "updatedAt": "2026-10-13T16:19:50.095Z"
+    },
+    {
+      "id": "SUB-8023",
+      "courseId": "service-signals",
+      "courseTitle": "VIP Trading Signals",
+      "accountId": "QX-1049281",
+      "telegramHandle": "@rahul_invest",
+      "userEmail": "rahul@yahoo.com",
+      "status": "Rejected",
+      "reviewNotes": "Account ID not found under partner link.",
+      "createdAt": "2026-10-13T08:02:00Z",
+      "updatedAt": "2026-10-13T16:19:51.375Z"
+    }
+  ],
+  "portfolio": [
+    {
+      "id": "port-1",
+      "title": "EUR/USD London Killzone Liquidity Sweep",
+      "instrument": "Forex",
+      "pair": "EUR/USD",
+      "outcome": "WIN",
+      "riskReward": "1:4.8 RR",
+      "profitPercentage": "+4.8%",
+      "screenshotUrl": "/src/assets/images/forex_course_cover_1791906599347.jpg",
+      "date": "October 2026",
+      "educationalNote": "Asian session highs were swept at London Open followed by a clean 5-minute Market Structure Shift (MSS). Entered on the Fair Value Gap retest with 7 pip stop loss.",
+      "published": true,
+      "order": 1
+    },
+    {
+      "id": "port-2",
+      "title": "USD/JPY 60-Second Bollinger Squeeze Breakout",
+      "instrument": "Binary",
+      "pair": "USD/JPY",
+      "outcome": "WIN",
+      "riskReward": "88% Payout",
+      "profitPercentage": "+88%",
+      "screenshotUrl": "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      "date": "October 2026",
+      "educationalNote": "Volatility contraction preceded a strong rejection candle touching the lower deviation band. Entered 1-minute CALL option immediately upon rejection confirmation.",
+      "published": true,
+      "order": 2
+    },
+    {
+      "id": "port-3",
+      "title": "Gold (XAU/USD) Daily Order Block Bounce",
+      "instrument": "Forex",
+      "pair": "XAU/USD",
+      "outcome": "WIN",
+      "riskReward": "1:5.5 RR",
+      "profitPercentage": "+5.5%",
+      "screenshotUrl": "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      "date": "September 2026",
+      "educationalNote": "Institutional daily demand mitigation into previous week's discount level. Clear bullish engulfing confirmation on the 15-minute timeframe.",
+      "published": true,
+      "order": 3
+    },
+    {
+      "id": "port-4",
+      "title": "Alpha Engine Quant Bot Forward Run",
+      "instrument": "Bot",
+      "pair": "Deriv Synthetic / Vol 75",
+      "outcome": "PROFIT",
+      "riskReward": "Automated",
+      "profitPercentage": "+24.6% Month",
+      "screenshotUrl": "/src/assets/images/trading_bot_cover_1791906598974.jpg",
+      "date": "September 2026",
+      "educationalNote": "Dual-engine algorithmic execution filtering choppy market conditions with strict daily loss cap of 2.5% max equity risk.",
+      "published": true,
+      "order": 4
+    }
+  ],
+  "books": [
+    {
+      "id": "book-1",
+      "title": "Institutional Candlestick Psychology & Wick Dynamics",
+      "author": "Jahid Hossain",
+      "description": "Master 60-second to 5-minute binary price action, order flow exhaustion, and false breakout filters.",
+      "pdfUrl": "/uploads/institutional_candlestick_psychology.pdf",
+      "coverImage": "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      "published": true,
+      "order": 1,
+      "createdAt": "2026-01-10T10:00:00Z"
+    },
+    {
+      "id": "book-2",
+      "title": "Smart Money Concepts & Forex Liquidity Manual",
+      "author": "Jahid Hossain",
+      "description": "Comprehensive guide to institutional fair value gaps, liquidity sweeps, market structure shifts, and 1:5 RR setups.",
+      "pdfUrl": "/uploads/smc_forex_liquidity_manual.pdf",
+      "coverImage": "/src/assets/images/forex_course_cover_1791906599347.jpg",
+      "published": true,
+      "order": 2,
+      "createdAt": "2026-01-12T10:00:00Z"
+    },
+    {
+      "id": "book-3",
+      "title": "Advanced Risk Management & Compound Growth Handbook",
+      "author": "Jahid Hossain",
+      "description": "Mathematical framework for protecting capital, avoiding emotional tilt, and scaling accounts systematically.",
+      "pdfUrl": "/uploads/risk_management_compound_handbook.pdf",
+      "coverImage": "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      "published": true,
+      "order": 3,
+      "createdAt": "2026-01-15T10:00:00Z"
+    }
+  ],
+  "strategies": [
+    {
+      "id": "strat-1",
+      "title": "London Session Sweep & Mitigation Strategy",
+      "category": "Forex Institutional",
+      "description": "Identify key Asia session highs/sweeps, wait for market structure break (MSB), and enter on 15m order block mitigation.",
+      "imageUrl": "/src/assets/images/hero_trading_terminal_1791906597313.jpg",
+      "winRate": "86.4% Win Rate",
+      "published": true,
+      "order": 1,
+      "createdAt": "2026-01-10T10:00:00Z"
+    },
+    {
+      "id": "strat-2",
+      "title": "1-Minute Binary Bollinger Squeeze Rejection",
+      "category": "Binary Options",
+      "description": "Look for volatility contraction on Bollinger Bands paired with RSI divergence and wick rejection at major support/resistance.",
+      "imageUrl": "/src/assets/images/binary_course_cover_1791906598444.jpg",
+      "winRate": "82.1% Payout Accuracy",
+      "published": true,
+      "order": 2,
+      "createdAt": "2026-01-12T10:00:00Z"
+    },
+    {
+      "id": "strat-3",
+      "title": "Algorithmic Trend Following Bot Setup",
+      "category": "Quantitative Bot",
+      "description": "Multi-timeframe moving average crossover combined with ATR trailing stop limits for hands-free trend capture.",
+      "imageUrl": "/src/assets/images/trading_bot_cover_1791906598974.jpg",
+      "winRate": "79.8% Net ROI",
+      "published": true,
+      "order": 3,
+      "createdAt": "2026-01-15T10:00:00Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log-1791911624453-501",
+      "action": "Device Image Uploaded",
+      "details": "Uploaded device_test_logo_1791911624453.png (0 KB) from device",
+      "timestamp": "2026-10-13T17:13:44.453Z"
+    },
+    {
+      "id": "log-1791911624437-481",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T17:13:44.437Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1791911574696-316",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T17:12:54.696Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1791911392941-315",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:09:52.941Z"
+    },
+    {
+      "id": "log-1791911376858-6",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:09:36.858Z"
+    },
+    {
+      "id": "log-1791911360512-136",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:09:20.512Z"
+    },
+    {
+      "id": "log-1791911347670-673",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:09:07.670Z"
+    },
+    {
+      "id": "log-1791911341101-531",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:09:01.101Z"
+    },
+    {
+      "id": "log-1791911332893-498",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:08:52.893Z"
+    },
+    {
+      "id": "log-1791911321301-763",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:08:41.301Z"
+    },
+    {
+      "id": "log-1791911306702-191",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:08:26.702Z"
+    },
+    {
+      "id": "log-1791911288204-631",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:08:08.204Z"
+    },
+    {
+      "id": "log-1791911272686-940",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T17:07:52.686Z"
+    },
+    {
+      "id": "log-1791909939339-57",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T16:45:39.339Z"
+    },
+    {
+      "id": "log-1791909930746-941",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T16:45:30.746Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1791909930635-730",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T16:45:30.635Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1791909672255-455",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T16:41:12.255Z"
+    },
+    {
+      "id": "log-1791909658976-732",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T16:40:58.976Z"
+    },
+    {
+      "id": "log-1791909591328-373",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T16:39:51.328Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1791908522000-843",
+      "action": "Settings Updated",
+      "details": "Website brand settings updated",
+      "timestamp": "2026-10-13T16:22:02.000Z"
+    },
+    {
+      "id": "log-1791908504184-695",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T16:21:44.184Z"
+    },
+    {
+      "id": "log-1791908501035-643",
+      "action": "Animation Settings Updated",
+      "details": "Visual effects & animation config updated",
+      "timestamp": "2026-10-13T16:21:41.035Z"
+    },
+    {
+      "id": "log-1791908391376-349",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8023 updated to Rejected",
+      "timestamp": "2026-10-13T16:19:51.376Z"
+    },
+    {
+      "id": "log-1791908390095-478",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8022 updated to Rejected",
+      "timestamp": "2026-10-13T16:19:50.095Z"
+    },
+    {
+      "id": "log-1791908389396-671",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8021 updated to Rejected",
+      "timestamp": "2026-10-13T16:19:49.396Z"
+    },
+    {
+      "id": "log-1791908388397-818",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8721 updated to Rejected",
+      "timestamp": "2026-10-13T16:19:48.397Z"
+    },
+    {
+      "id": "log-1791908386034-244",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8721 updated to Approved",
+      "timestamp": "2026-10-13T16:19:46.034Z"
+    },
+    {
+      "id": "log-1791908385149-202",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8022 updated to Approved",
+      "timestamp": "2026-10-13T16:19:45.149Z"
+    },
+    {
+      "id": "log-1791908383218-250",
+      "action": "Submission Status Update",
+      "details": "Submission SUB-8023 updated to Approved",
+      "timestamp": "2026-10-13T16:19:43.218Z"
+    },
+    {
+      "id": "log-1791908355118-62",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T16:19:15.118Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1791907703504-621",
+      "action": "Account ID Submission",
+      "details": "New submission SUB-8721 for \"Forex Institutional Order Flow\" with ID EX-998811",
+      "timestamp": "2026-10-13T16:08:23.504Z"
+    },
+    {
+      "id": "log-1791907665238-370",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-13T16:07:45.238Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1",
+      "action": "System Initialization",
+      "details": "Trading With Jahid master system started with institutional configuration.",
+      "timestamp": "2026-10-13T08:00:00Z"
+    }
+  ],
+  "adminAuth": {
+    "username": "admin",
+    "passwordHash": "jahidvip2026",
+    "sessionTokens": [
+      "b23871bb24fea1d64a65a888af5b7f4fe75edaa946b4dd0e10e2bccf2099d556",
+      "bb2c7abeb316bf06bcf65c967803d95641f62294b5f8a157ac25c73c4552e0bc",
+      "64d188c4a9c3394c23f7300944de94fa186bb54480d804479d24927991d4b0fc",
+      "c91dff08122df261e74789e550a69b80e291b6eaf85822ca726ac0d0a0ffbd84",
+      "d9a269f26583340bfc027a9ae56204825c2cf0dfec0ba3dcb4e05ca7a94d00f2"
+    ]
+  }
+}
