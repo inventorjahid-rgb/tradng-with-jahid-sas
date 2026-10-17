@@ -1145,6 +1145,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 onConfirm: async () => {
                                   setCourses(prev => prev.filter(c => c.id !== course.id));
                                   await deleteCourse(course.id);
+                                  // Wait for Firestore consistency
+                                  await new Promise(resolve => setTimeout(resolve, 1000));
                                   await loadAllAdminData();
                                   notifySaved(`Deleted ${course.title}`);
                                 }
@@ -1250,6 +1252,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     onConfirm: async () => {
                                       setLinks(prev => prev.filter(l => l.id !== link.id));
                                       await deleteLink(link.id);
+                                      await new Promise(resolve => setTimeout(resolve, 1000));
                                       await loadAllAdminData();
                                       notifySaved(`Deleted ${link.title}`);
                                     }
@@ -1346,6 +1349,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   onConfirm: async () => {
                                     setPortfolio(prev => prev.filter(p => p.id !== item.id));
                                     await deletePortfolioItem(item.id);
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
                                     await loadAllAdminData();
                                     notifySaved('Deleted trade');
                                   }
@@ -1434,6 +1438,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   onConfirm: async () => {
                                     setBooks(prev => prev.filter(b => b.id !== book.id));
                                     await deleteBook(book.id);
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
                                     await loadAllAdminData();
                                     notifySaved('Deleted book');
                                   }
@@ -1517,6 +1522,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   onConfirm: async () => {
                                     setStrategies(prev => prev.filter(s => s.id !== strat.id));
                                     await deleteStrategy(strat.id);
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
                                     await loadAllAdminData();
                                     notifySaved('Deleted strategy');
                                   }

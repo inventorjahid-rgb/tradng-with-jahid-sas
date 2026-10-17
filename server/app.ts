@@ -719,13 +719,16 @@ api.put('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) 
 
 api.delete('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  console.log(`[DEBUG] Attempting to delete course: ${id}`);
   try {
     await db.update(d => {
       d.courses = (d.courses || []).filter(c => c.id !== id);
     });
     await db.logAction('Course Deleted', `Course ${id} was deleted`);
+    console.log(`[DEBUG] Successfully deleted course: ${id}`);
     res.json({ success: true });
   } catch (err) {
+    console.error(`[DEBUG] Failed to delete course: ${id}`, err);
     res.status(500).json({ error: 'Failed to delete course' });
   }
 });
