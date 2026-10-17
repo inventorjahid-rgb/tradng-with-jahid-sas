@@ -4,22 +4,29 @@ import { fileURLToPath } from 'url';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 let firestoreDb: any = null;
 try {
-  const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
-  if (fs.existsSync(configPath)) {
-    const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    if (configData.apiKey && configData.projectId) {
-      const app = initializeApp(configData, 'server-app-db');
-      firestoreDb = getFirestore(app, configData.firestoreDatabaseId);
+  const configPaths = [
+    path.resolve(__dirname, 'firebase-applet-config.json'),
+    path.resolve(process.cwd(), 'firebase-applet-config.json'),
+    path.resolve(__dirname, '../firebase-applet-config.json')
+  ];
+  for (const configPath of configPaths) {
+    if (fs.existsSync(configPath)) {
+      const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (configData.apiKey && configData.projectId) {
+        const app = initializeApp(configData, 'server-app-db');
+        firestoreDb = getFirestore(app, configData.firestoreDatabaseId);
+        break;
+      }
     }
   }
 } catch (e) {
   console.warn('Warning: Could not initialize Firebase in server/db.ts:', e);
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const LOCAL_DATA_PATH = path.resolve(process.cwd(), 'data/db.json');
 const TMP_DATA_PATH = path.resolve('/tmp', 'trading_jahid_db.json');
