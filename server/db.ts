@@ -659,15 +659,29 @@ class Database {
         updatedAt: new Date().toISOString()
       });
     } catch (e) {
-      console.error('Error: Failed to save database to Firestore:', e);
-      throw e;
+      console.warn('Warning: Failed to save database to Firestore (persisted locally):', e);
     }
   }
 
   private loadFromFile(): DatabaseSchema {
     try {
-      if (fs.existsSync(DATA_FILE_PATH)) {
-        const fileContent = fs.readFileSync(DATA_FILE_PATH, 'utf-8');
+      let targetPath = DATA_FILE_PATH;
+      try {
+        const localExists = fs.existsSync(LOCAL_DATA_PATH);
+        const tmpExists = fs.existsSync(TMP_DATA_PATH);
+        if (localExists && tmpExists) {
+          const localStat = fs.statSync(LOCAL_DATA_PATH);
+          const tmpStat = fs.statSync(TMP_DATA_PATH);
+          targetPath = tmpStat.mtime > localStat.mtime ? TMP_DATA_PATH : LOCAL_DATA_PATH;
+        } else if (tmpExists) {
+          targetPath = TMP_DATA_PATH;
+        } else if (localExists) {
+          targetPath = LOCAL_DATA_PATH;
+        }
+      } catch {}
+
+      if (fs.existsSync(targetPath)) {
+        const fileContent = fs.readFileSync(targetPath, 'utf-8');
         const parsed = JSON.parse(fileContent);
         return {
           ...INITIAL_DATA,
@@ -693,15 +707,26 @@ class Database {
   }
 
   private async saveToFile(data: DatabaseSchema) {
+    const jsonStr = JSON.stringify(data, null, 2);
     try {
-      const dir = path.dirname(DATA_FILE_PATH);
+      const dir = path.dirname(LOCAL_DATA_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(data, null, 2), 'utf-8');
+      fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, 'utf-8');
     } catch (e) {
-      console.warn('Warning: Could not save data to file (read-only filesystem):', e);
+      console.warn('Warning: Could not save data to LOCAL_DATA_PATH:', e);
     }
+
+    try {
+      if (!fs.existsSync('/tmp')) {
+        fs.mkdirSync('/tmp', { recursive: true });
+      }
+      fs.writeFileSync(TMP_DATA_PATH, jsonStr, 'utf-8');
+    } catch (e) {
+      console.warn('Warning: Could not save data to TMP_DATA_PATH:', e);
+    }
+
     await this.saveToFirestore(data);
   }
 
