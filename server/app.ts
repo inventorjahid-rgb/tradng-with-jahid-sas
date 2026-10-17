@@ -1139,8 +1139,8 @@ api.post('/admin/upload-image', requireAdmin, async (req: Request, res: Response
       console.warn('Could not write uploaded file to disk:', e);
     }
 
-    // Return the self-contained dataUrl so the image is 100% persistent and never disappears on serverless restarts!
-    const publicUrl = dataUrl;
+    // Return static URL pointing to the uploaded file on disk/tmp
+    const publicUrl = `/uploads/${uniqueName}`;
     await db.logAction('Device Image Uploaded', `Uploaded ${uniqueName} (${Math.round(buffer.length / 1024)} KB) from device`);
 
     res.json({

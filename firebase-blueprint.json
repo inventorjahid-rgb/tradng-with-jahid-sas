@@ -52,6 +52,7 @@
     }
   },
   "firestore": {
+    "/app_state/{docId}": { "schema": "AppConfig", "description": "Master database persistence" },
     "/config/app": { "schema": "AppConfig" },
     "/courses/{courseId}": { "schema": "Course" },
     "/links/{linkId}": { "schema": "SocialLink" },

@@ -1,6 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+
+let firestoreDb: any = null;
+try {
+  const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+  if (fs.existsSync(configPath)) {
+    const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    if (configData.apiKey && configData.projectId) {
+      const app = initializeApp(configData, 'server-app-db');
+      firestoreDb = getFirestore(app, configData.firestoreDatabaseId);
+    }
+  }
+} catch (e) {
+  console.warn('Warning: Could not initialize Firebase in server/db.ts:', e);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -578,6 +594,73 @@ class Database {
 
   constructor() {
     this.data = this.loadFromFile();
+    this.syncFromFirestore();
+  }
+
+  private async syncFromFirestore() {
+    if (!firestoreDb) return;
+    try {
+      const docRef = doc(firestoreDb, 'app_state', 'main');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const parsed = JSON.parse(snap.data().payloadString || '{}');
+        this.data = {
+          ...INITIAL_DATA,
+          ...parsed,
+          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
+          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
+          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
+          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
+          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
+          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
+          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
+          settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}) },
+          animations: { ...INITIAL_DATA.animations, ...(parsed.animations || {}) },
+          adminAuth: { ...INITIAL_DATA.adminAuth, ...(parsed.adminAuth || {}) }
+        };
+        this.saveToFile(this.data);
+      } else {
+        await this.saveToFirestore(this.data);
+      }
+    } catch (e) {
+      console.warn('Warning: Failed to sync database from Firestore:', e);
+    }
+  }
+
+  private async saveToFirestore(data: DatabaseSchema) {
+    if (!firestoreDb) return;
+    try {
+      const cloned = JSON.parse(JSON.stringify(data));
+      if (cloned.auditLogs && cloned.auditLogs.length > 30) {
+        cloned.auditLogs = cloned.auditLogs.slice(0, 30);
+      }
+      // If any URL starts with data:, replace with default fallback to keep document size < 1MB
+      if (cloned.settings?.logoUrl?.startsWith('data:')) {
+        cloned.settings.logoUrl = '/images/trading_with_jahid_logo_1791908793141.jpg';
+      }
+      if (cloned.settings?.profileImageUrl?.startsWith('data:')) {
+        cloned.settings.profileImageUrl = '/images/jahid_profile_avatar_1791906596676.jpg';
+      }
+      if (cloned.settings?.heroBannerUrl?.startsWith('data:')) {
+        cloned.settings.heroBannerUrl = '/images/hero_trading_terminal_1791906597313.jpg';
+      }
+
+      const payloadString = JSON.stringify(cloned);
+      if (payloadString.length > 950000) {
+        console.warn('Warning: Database payload size exceeds 950KB. Trimming items.');
+        if (cloned.courses) cloned.courses = cloned.courses.slice(0, 20);
+        if (cloned.portfolio) cloned.portfolio = cloned.portfolio.slice(0, 20);
+        if (cloned.submissions) cloned.submissions = cloned.submissions.slice(0, 50);
+      }
+
+      const docRef = doc(firestoreDb, 'app_state', 'main');
+      await setDoc(docRef, {
+        payloadString: JSON.stringify(cloned),
+        updatedAt: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Warning: Failed to save database to Firestore:', e);
+    }
   }
 
   private loadFromFile(): DatabaseSchema {
@@ -618,6 +701,7 @@ class Database {
     } catch (e) {
       console.warn('Warning: Could not save data to file (read-only filesystem):', e);
     }
+    this.saveToFirestore(data);
   }
 
   public async get(): Promise<DatabaseSchema> {

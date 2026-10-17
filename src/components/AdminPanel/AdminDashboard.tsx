@@ -373,9 +373,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     required
                     className="w-full px-4 py-2.5 bg-[#080B0A] border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:border-[#00D084]"
                   />
-                  <div className="text-[11px] text-neutral-400 mt-1 font-mono">
-                    Default: <code className="text-[#00D084]">admin</code> / <code className="text-[#00D084]">jahidvip2026</code>
-                  </div>
                 </div>
 
                 <button
