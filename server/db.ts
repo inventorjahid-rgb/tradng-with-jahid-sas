@@ -659,7 +659,8 @@ class Database {
         updatedAt: new Date().toISOString()
       });
     } catch (e) {
-      console.warn('Warning: Failed to save database to Firestore:', e);
+      console.error('Error: Failed to save database to Firestore:', e);
+      throw e;
     }
   }
 
