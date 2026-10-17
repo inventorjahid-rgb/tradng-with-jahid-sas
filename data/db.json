@@ -66,64 +66,6 @@
   },
   "courses": [
     {
-      "id": "service-signals",
-      "slug": "signals",
-      "title": "VIP Trading Signals",
-      "category": "Trading Signals",
-      "shortDesc": "Real-time daily alerts for Binary and Forex setups with entry point, expiration/SL, and TP levels.",
-      "fullDesc": "Instant Telegram notifications featuring curated institutional setups with precise entry timing, clear risk parameters, and live session updates directly from Jahid.",
-      "coverImage": "/images/hero_trading_terminal_1791906597313.jpg",
-      "accessMode": "existing_id",
-      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_signals",
-      "joinUrl": "https://t.me/+JahidVipSignalsPrivate",
-      "modules": [
-        "Daily 5 to 10 High-Probability Alerts",
-        "Live Pre-News Volatility Warnings",
-        "Stop-Loss, Take-Profit & Break-Even Guidance",
-        "Weekly Performance Breakdown & Journal"
-      ],
-      "requirements": "Active trader account ID verification required.",
-      "faqs": [
-        {
-          "question": "What times are signals distributed?",
-          "answer": "Signals are posted during London (08:00–12:00 UTC) and New York (13:00–17:00 UTC) sessions."
-        }
-      ],
-      "published": true,
-      "featured": true,
-      "order": 3,
-      "createdAt": "2026-01-15T10:00:00Z"
-    },
-    {
-      "id": "service-bots",
-      "slug": "bots",
-      "title": "Automated Quantitative Bots",
-      "category": "Trading Bots",
-      "shortDesc": "Cloud-hosted algorithmic execution bots for Binary and MetaTrader with automated risk guardrails.",
-      "fullDesc": "Deploy high-speed algorithmic trading bots configured with strict stop limits, martingale caps, and API connection to your terminal for hands-off execution.",
-      "coverImage": "/images/trading_bot_cover_1791906598974.jpg",
-      "accessMode": "new_account",
-      "registrationUrl": "https://deriv.com/signup?referrer=jahid_bot",
-      "joinUrl": "https://t.me/+JahidQuantBotDeployment",
-      "modules": [
-        "Cloud Server Setup & API Webhook Integration",
-        "Trend Following & Mean-Reversion Dual Engine",
-        "Dynamic Drawdown Circuit Breakers",
-        "Preset Conservative, Balanced & Aggressive Profiles"
-      ],
-      "requirements": "Authorized Deriv or MT5 Account ID.",
-      "faqs": [
-        {
-          "question": "Do I need coding knowledge to use the bot?",
-          "answer": "No, the bot comes with pre-compiled web configurations and detailed step-by-step setup guides."
-        }
-      ],
-      "published": true,
-      "featured": true,
-      "order": 4,
-      "createdAt": "2026-01-18T10:00:00Z"
-    },
-    {
       "id": "service-classes",
       "slug": "classes",
       "title": "Live Interactive Trading Classes",
@@ -442,17 +384,6 @@
   ],
   "strategies": [
     {
-      "id": "strat-1",
-      "title": "London Session Sweep & Mitigation Strategy",
-      "category": "Forex Institutional",
-      "description": "Identify key Asia session highs/sweeps, wait for market structure break (MSB), and enter on 15m order block mitigation.",
-      "imageUrl": "/images/hero_trading_terminal_1791906597313.jpg",
-      "winRate": "86.4% Win Rate",
-      "published": true,
-      "order": 1,
-      "createdAt": "2026-01-10T10:00:00Z"
-    },
-    {
       "id": "strat-2",
       "title": "1-Minute Binary Bollinger Squeeze Rejection",
       "category": "Binary Options",
@@ -476,6 +407,42 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log-1792245397937-746",
+      "action": "Course Deleted",
+      "details": "Course course-1792245397487 was deleted",
+      "timestamp": "2026-10-17T13:56:37.937Z"
+    },
+    {
+      "id": "log-1792245397561-867",
+      "action": "Course Created",
+      "details": "Course \"Test Course to Delete\" created",
+      "timestamp": "2026-10-17T13:56:37.561Z"
+    },
+    {
+      "id": "log-1792245365856-249",
+      "action": "Course Deleted",
+      "details": "Course undefined was deleted",
+      "timestamp": "2026-10-17T13:56:05.856Z"
+    },
+    {
+      "id": "log-1792245325856-144",
+      "action": "Course Deleted",
+      "details": "Course service-bots was deleted",
+      "timestamp": "2026-10-17T13:55:25.856Z"
+    },
+    {
+      "id": "log-1792245079736-720",
+      "action": "Course Deleted",
+      "details": "Course service-signals was deleted",
+      "timestamp": "2026-10-17T13:51:19.736Z"
+    },
+    {
+      "id": "log-1792244763014-257",
+      "action": "Strategy Deleted",
+      "details": "Strategy strat-1 deleted",
+      "timestamp": "2026-10-17T13:46:03.014Z"
+    },
     {
       "id": "log-1792242620690-691",
       "action": "Course Deleted",
@@ -651,18 +618,6 @@
       "action": "Submission Status Update",
       "details": "Submission SUB-8023 updated to Rejected",
       "timestamp": "2026-10-13T16:19:51.376Z"
-    },
-    {
-      "id": "log-1791908390095-478",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8022 updated to Rejected",
-      "timestamp": "2026-10-13T16:19:50.095Z"
-    },
-    {
-      "id": "log-1791908389396-671",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8021 updated to Rejected",
-      "timestamp": "2026-10-13T16:19:49.396Z"
     }
   ],
   "adminAuth": {

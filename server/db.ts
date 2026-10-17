@@ -598,13 +598,14 @@ const INITIAL_DATA: DatabaseSchema = {
 
 class Database {
   private data: DatabaseSchema;
+  private initPromise: Promise<void>;
 
   constructor() {
     this.data = this.loadFromFile();
-    this.syncFromFirestoreAsync();
+    this.initPromise = this.syncFromFirestoreOnce();
   }
 
-  private async syncFromFirestoreAsync() {
+  private async syncFromFirestoreOnce() {
     if (!firestoreDb) return;
     try {
       const docRef = doc(firestoreDb, 'app_state', 'main');
@@ -645,7 +646,6 @@ class Database {
       if (cloned.auditLogs && cloned.auditLogs.length > 30) {
         cloned.auditLogs = cloned.auditLogs.slice(0, 30);
       }
-      // If any URL starts with data:, replace with default fallback to keep document size < 1MB
       if (cloned.settings?.logoUrl?.startsWith('data:')) {
         cloned.settings.logoUrl = '/images/trading_with_jahid_logo_1791908793141.jpg';
       }
@@ -658,7 +658,6 @@ class Database {
 
       const payloadString = JSON.stringify(cloned);
       if (payloadString.length > 950000) {
-        console.warn('Warning: Database payload size exceeds 950KB. Trimming items.');
         if (cloned.courses) cloned.courses = cloned.courses.slice(0, 20);
         if (cloned.portfolio) cloned.portfolio = cloned.portfolio.slice(0, 20);
         if (cloned.submissions) cloned.submissions = cloned.submissions.slice(0, 50);
@@ -670,7 +669,7 @@ class Database {
         updatedAt: new Date().toISOString()
       });
     } catch (e) {
-      console.warn('Warning: Failed to save database to Firestore (persisted locally):', e);
+      console.warn('Warning: Failed to save database to Firestore:', e);
     }
   }
 
@@ -742,10 +741,12 @@ class Database {
   }
 
   public async get(): Promise<DatabaseSchema> {
+    await this.initPromise;
     return this.data;
   }
 
   public async update(updater: (data: DatabaseSchema) => void): Promise<DatabaseSchema> {
+    await this.initPromise;
     updater(this.data);
     await this.saveToFile(this.data);
     return this.data;

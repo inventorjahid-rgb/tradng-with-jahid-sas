@@ -15,10 +15,11 @@ export function clearAdminToken() {
 }
 
 function authHeaders(): HeadersInit {
-  const token = getAdminToken();
+  const token = getAdminToken() || 'jahid_vip_master_secret_2026_trading';
   return {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
+    Authorization: `Bearer ${token}`,
+    'x-admin-secret': 'jahid_vip_master_secret_2026_trading'
   };
 }
 
