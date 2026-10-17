@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 var firestoreDb = null;
@@ -440,37 +440,66 @@ var INITIAL_DATA = {
 };
 var Database = class {
   constructor() {
+    this.syncPromise = null;
     this.data = this.loadFromFile();
-    this.syncFromFirestore();
+    this.syncPromise = this.initFirestoreSync();
   }
-  async syncFromFirestore() {
-    if (!firestoreDb) return;
-    try {
-      const docRef = doc(firestoreDb, "app_state", "main");
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const parsed = JSON.parse(snap.data().payloadString || "{}");
-        this.data = {
-          ...INITIAL_DATA,
-          ...parsed,
-          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
-          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
-          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
-          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
-          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
-          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
-          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
-          settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
-          animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
-          adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
-        };
-        this.saveToFile(this.data);
-      } else {
-        await this.saveToFirestore(this.data);
+  initFirestoreSync() {
+    if (!firestoreDb) return Promise.resolve();
+    return new Promise((resolve) => {
+      let isFirst = true;
+      try {
+        const docRef = doc(firestoreDb, "app_state", "main");
+        onSnapshot(docRef, (snap) => {
+          if (snap.exists()) {
+            try {
+              const parsed = JSON.parse(snap.data().payloadString || "{}");
+              this.data = {
+                ...INITIAL_DATA,
+                ...parsed,
+                courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
+                links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
+                submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
+                portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
+                books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
+                strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
+                auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
+                settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
+                animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
+                adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
+              };
+              try {
+                const jsonStr = JSON.stringify(this.data, null, 2);
+                fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
+                fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
+              } catch {
+              }
+            } catch (err) {
+              console.warn("Warning: Failed to parse Firestore snapshot:", err);
+            }
+          }
+          if (isFirst) {
+            isFirst = false;
+            resolve();
+          }
+        }, (err) => {
+          console.warn("Warning: Firestore onSnapshot error:", err);
+          if (isFirst) {
+            isFirst = false;
+            resolve();
+          }
+        });
+      } catch (err) {
+        console.warn("Warning: Failed to attach Firestore onSnapshot listener:", err);
+        resolve();
       }
-    } catch (e) {
-      console.warn("Warning: Failed to sync database from Firestore:", e);
-    }
+      setTimeout(() => {
+        if (isFirst) {
+          isFirst = false;
+          resolve();
+        }
+      }, 2500);
+    });
   }
   async saveToFirestore(data) {
     if (!firestoreDb) return;
@@ -567,9 +596,15 @@ var Database = class {
     await this.saveToFirestore(data);
   }
   async get() {
+    if (this.syncPromise) {
+      await this.syncPromise;
+    }
     return this.data;
   }
   async update(updater) {
+    if (this.syncPromise) {
+      await this.syncPromise;
+    }
     updater(this.data);
     await this.saveToFile(this.data);
     return this.data;

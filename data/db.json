@@ -66,36 +66,6 @@
   },
   "courses": [
     {
-      "id": "course-forex",
-      "slug": "forex",
-      "title": "Forex Institutional Order Flow",
-      "category": "Forex Trading Course",
-      "shortDesc": "Trade currency pairs using institutional liquidity concepts, fair value gaps, and supply/demand mechanics.",
-      "fullDesc": "Learn how central banks, hedge funds, and market makers position in global foreign exchange markets. Focus on liquidity sweeps, imbalance fills, London/NY session kill zones, and 1:3 minimum risk-to-reward ratios.",
-      "coverImage": "/images/forex_course_cover_1791906599347.jpg",
-      "accessMode": "new_account",
-      "registrationUrl": "https://one.exness-track.com/a/jahidforex",
-      "joinUrl": "https://t.me/+JahidForexInstitutionalVip",
-      "modules": [
-        "Macro Economics, Interest Rates & Currency Drivers",
-        "Smart Money Concepts (SMC): Liquidity Pools & FVG",
-        "London Open & New York Session Kill Zone Setups",
-        "Prop Firm Challenge Rules & Maximum Drawdown Protection",
-        "Advanced Risk Calculations & Position Sizing Spreadsheets"
-      ],
-      "requirements": "Exness or XM Trading Account ID with active funded balance.",
-      "faqs": [
-        {
-          "question": "Can I use this for Prop Firms?",
-          "answer": "Yes, our risk rules are specifically tailored for FTMO, FundedNext, and other prop firms."
-        }
-      ],
-      "published": true,
-      "featured": true,
-      "order": 2,
-      "createdAt": "2026-01-12T10:00:00Z"
-    },
-    {
       "id": "service-signals",
       "slug": "signals",
       "title": "VIP Trading Signals",
@@ -507,6 +477,12 @@
   ],
   "auditLogs": [
     {
+      "id": "log-1792242620690-691",
+      "action": "Course Deleted",
+      "details": "Course course-forex was deleted",
+      "timestamp": "2026-10-17T13:10:20.690Z"
+    },
+    {
       "id": "log-1792223497057-90",
       "action": "Book Deleted",
       "details": "Book book-2 deleted",
@@ -687,12 +663,6 @@
       "action": "Submission Status Update",
       "details": "Submission SUB-8021 updated to Rejected",
       "timestamp": "2026-10-13T16:19:49.396Z"
-    },
-    {
-      "id": "log-1791908388397-818",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8721 updated to Rejected",
-      "timestamp": "2026-10-13T16:19:48.397Z"
     }
   ],
   "adminAuth": {
