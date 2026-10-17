@@ -66,40 +66,6 @@
   },
   "courses": [
     {
-      "id": "course-binary",
-      "slug": "binary",
-      "title": "Binary Trading Mastery",
-      "category": "Binary Trading Course",
-      "shortDesc": "Master 1-minute to 5-minute candlestick momentum, rejection zones, and volume spread analysis.",
-      "fullDesc": "A complete masterclass in high-frequency binary options trading. Learn price action patterns, Bollinger squeeze breakouts, false breakout filters, and strict martingale/compounding math.",
-      "coverImage": "/images/binary_course_cover_1791906598444.jpg",
-      "accessMode": "new_account",
-      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_vip",
-      "joinUrl": "https://t.me/+JahidBinaryVipPortal",
-      "modules": [
-        "Candlestick Anatomy, Wick Rejections & Key S/R Zones",
-        "Volume Spread Analysis (VSA) for 60-Second Expirations",
-        "Dynamic Indicator Confluence: Bollinger Bands & RSI 14/7",
-        "Mathematical Money Management: Compound vs Fixed Risk",
-        "Eliminating Emotional Trading & Over-trading Traps"
-      ],
-      "requirements": "Register a fresh account via our partner link and submit your Broker Account ID for activation.",
-      "faqs": [
-        {
-          "question": "Is this suitable for beginners?",
-          "answer": "Yes, we teach from foundational candlestick reading up to institutional setups."
-        },
-        {
-          "question": "Which brokers are supported?",
-          "answer": "Pocket Option, Quotex, and Deriv are fully supported."
-        }
-      ],
-      "published": true,
-      "featured": true,
-      "order": 1,
-      "createdAt": "2026-01-10T10:00:00Z"
-    },
-    {
       "id": "course-forex",
       "slug": "forex",
       "title": "Forex Institutional Order Flow",
@@ -493,17 +459,6 @@
       "createdAt": "2026-01-10T10:00:00Z"
     },
     {
-      "id": "book-2",
-      "title": "Smart Money Concepts & Forex Liquidity Manual",
-      "author": "Jahid Hossain",
-      "description": "Comprehensive guide to institutional fair value gaps, liquidity sweeps, market structure shifts, and 1:5 RR setups.",
-      "pdfUrl": "/uploads/smc_forex_liquidity_manual.pdf",
-      "coverImage": "/images/forex_course_cover_1791906599347.jpg",
-      "published": true,
-      "order": 2,
-      "createdAt": "2026-01-12T10:00:00Z"
-    },
-    {
       "id": "book-3",
       "title": "Advanced Risk Management & Compound Growth Handbook",
       "author": "Jahid Hossain",
@@ -551,6 +506,26 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log-1792223497057-90",
+      "action": "Book Deleted",
+      "details": "Book book-2 deleted",
+      "timestamp": "2026-10-17T07:51:37.057Z"
+    },
+    {
+      "id": "log-1792223462776-837",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-17T07:51:02.776Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792223462358-695",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-17T07:51:02.358Z",
+      "ip": "127.0.0.1"
+    },
     {
       "id": "log-1792172202954-294",
       "action": "Admin Login",
@@ -718,50 +693,6 @@
       "action": "Submission Status Update",
       "details": "Submission SUB-8721 updated to Rejected",
       "timestamp": "2026-10-13T16:19:48.397Z"
-    },
-    {
-      "id": "log-1791908386034-244",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8721 updated to Approved",
-      "timestamp": "2026-10-13T16:19:46.034Z"
-    },
-    {
-      "id": "log-1791908385149-202",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8022 updated to Approved",
-      "timestamp": "2026-10-13T16:19:45.149Z"
-    },
-    {
-      "id": "log-1791908383218-250",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8023 updated to Approved",
-      "timestamp": "2026-10-13T16:19:43.218Z"
-    },
-    {
-      "id": "log-1791908355118-62",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T16:19:15.118Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1791907703504-621",
-      "action": "Account ID Submission",
-      "details": "New submission SUB-8721 for \"Forex Institutional Order Flow\" with ID EX-998811",
-      "timestamp": "2026-10-13T16:08:23.504Z"
-    },
-    {
-      "id": "log-1791907665238-370",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T16:07:45.238Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1",
-      "action": "System Initialization",
-      "details": "Trading With Jahid master system started with institutional configuration.",
-      "timestamp": "2026-10-13T08:00:00Z"
     }
   ],
   "adminAuth": {
@@ -773,7 +704,9 @@
       "64d188c4a9c3394c23f7300944de94fa186bb54480d804479d24927991d4b0fc",
       "c91dff08122df261e74789e550a69b80e291b6eaf85822ca726ac0d0a0ffbd84",
       "d9a269f26583340bfc027a9ae56204825c2cf0dfec0ba3dcb4e05ca7a94d00f2",
-      "jahid.YWRtaW46MTc5MjE3MjIwMjk1Mw.5a48ccce93e2f94740af4159f0a29a9918b6048da5f5b72024e15df6c6621518"
+      "jahid.YWRtaW46MTc5MjE3MjIwMjk1Mw.5a48ccce93e2f94740af4159f0a29a9918b6048da5f5b72024e15df6c6621518",
+      "jahid.YWRtaW46MTc5MjIyMzQ2MDY3Mw.9c1b3821ae937c45be20b1b1083cb806fee5dd36d3c56a7c08068fc50029c401",
+      "jahid.YWRtaW46MTc5MjIyMzQ2MjQ2NA.592b88a01ab410f41216eba81ef52a8498460dbadb67b09285e0c58713f6d8c2"
     ]
   }
 }

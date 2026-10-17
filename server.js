@@ -9,8 +9,30 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
+var firestoreDb = null;
+try {
+  const configPaths = [
+    path.resolve(__dirname, "firebase-applet-config.json"),
+    path.resolve(process.cwd(), "firebase-applet-config.json"),
+    path.resolve(__dirname, "../firebase-applet-config.json")
+  ];
+  for (const configPath of configPaths) {
+    if (fs.existsSync(configPath)) {
+      const configData = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      if (configData.apiKey && configData.projectId) {
+        const app2 = initializeApp(configData, "server-app-db");
+        firestoreDb = getFirestore(app2, configData.firestoreDatabaseId);
+        break;
+      }
+    }
+  }
+} catch (e) {
+  console.warn("Warning: Could not initialize Firebase in server/db.ts:", e);
+}
 var LOCAL_DATA_PATH = path.resolve(process.cwd(), "data/db.json");
 var TMP_DATA_PATH = path.resolve("/tmp", "trading_jahid_db.json");
 function getDbFilePath() {
@@ -419,11 +441,88 @@ var INITIAL_DATA = {
 var Database = class {
   constructor() {
     this.data = this.loadFromFile();
+    this.syncFromFirestore();
+  }
+  async syncFromFirestore() {
+    if (!firestoreDb) return;
+    try {
+      const docRef = doc(firestoreDb, "app_state", "main");
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const parsed = JSON.parse(snap.data().payloadString || "{}");
+        this.data = {
+          ...INITIAL_DATA,
+          ...parsed,
+          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
+          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
+          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
+          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
+          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
+          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
+          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
+          settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
+          animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
+          adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
+        };
+        this.saveToFile(this.data);
+      } else {
+        await this.saveToFirestore(this.data);
+      }
+    } catch (e) {
+      console.warn("Warning: Failed to sync database from Firestore:", e);
+    }
+  }
+  async saveToFirestore(data) {
+    if (!firestoreDb) return;
+    try {
+      const cloned = JSON.parse(JSON.stringify(data));
+      if (cloned.auditLogs && cloned.auditLogs.length > 30) {
+        cloned.auditLogs = cloned.auditLogs.slice(0, 30);
+      }
+      if (cloned.settings?.logoUrl?.startsWith("data:")) {
+        cloned.settings.logoUrl = "/images/trading_with_jahid_logo_1791908793141.jpg";
+      }
+      if (cloned.settings?.profileImageUrl?.startsWith("data:")) {
+        cloned.settings.profileImageUrl = "/images/jahid_profile_avatar_1791906596676.jpg";
+      }
+      if (cloned.settings?.heroBannerUrl?.startsWith("data:")) {
+        cloned.settings.heroBannerUrl = "/images/hero_trading_terminal_1791906597313.jpg";
+      }
+      const payloadString = JSON.stringify(cloned);
+      if (payloadString.length > 95e4) {
+        console.warn("Warning: Database payload size exceeds 950KB. Trimming items.");
+        if (cloned.courses) cloned.courses = cloned.courses.slice(0, 20);
+        if (cloned.portfolio) cloned.portfolio = cloned.portfolio.slice(0, 20);
+        if (cloned.submissions) cloned.submissions = cloned.submissions.slice(0, 50);
+      }
+      const docRef = doc(firestoreDb, "app_state", "main");
+      await setDoc(docRef, {
+        payloadString: JSON.stringify(cloned),
+        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    } catch (e) {
+      console.warn("Warning: Failed to save database to Firestore (persisted locally):", e);
+    }
   }
   loadFromFile() {
     try {
-      if (fs.existsSync(DATA_FILE_PATH)) {
-        const fileContent = fs.readFileSync(DATA_FILE_PATH, "utf-8");
+      let targetPath = DATA_FILE_PATH;
+      try {
+        const localExists = fs.existsSync(LOCAL_DATA_PATH);
+        const tmpExists = fs.existsSync(TMP_DATA_PATH);
+        if (localExists && tmpExists) {
+          const localStat = fs.statSync(LOCAL_DATA_PATH);
+          const tmpStat = fs.statSync(TMP_DATA_PATH);
+          targetPath = tmpStat.mtime > localStat.mtime ? TMP_DATA_PATH : LOCAL_DATA_PATH;
+        } else if (tmpExists) {
+          targetPath = TMP_DATA_PATH;
+        } else if (localExists) {
+          targetPath = LOCAL_DATA_PATH;
+        }
+      } catch {
+      }
+      if (fs.existsSync(targetPath)) {
+        const fileContent = fs.readFileSync(targetPath, "utf-8");
         const parsed = JSON.parse(fileContent);
         return {
           ...INITIAL_DATA,
@@ -446,23 +545,33 @@ var Database = class {
     this.saveToFile(INITIAL_DATA);
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
-  saveToFile(data) {
+  async saveToFile(data) {
+    const jsonStr = JSON.stringify(data, null, 2);
     try {
-      const dir = path.dirname(DATA_FILE_PATH);
+      const dir = path.dirname(LOCAL_DATA_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+      fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
     } catch (e) {
-      console.warn("Warning: Could not save data to file (read-only filesystem):", e);
+      console.warn("Warning: Could not save data to LOCAL_DATA_PATH:", e);
     }
+    try {
+      if (!fs.existsSync("/tmp")) {
+        fs.mkdirSync("/tmp", { recursive: true });
+      }
+      fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
+    } catch (e) {
+      console.warn("Warning: Could not save data to TMP_DATA_PATH:", e);
+    }
+    await this.saveToFirestore(data);
   }
   async get() {
     return this.data;
   }
   async update(updater) {
     updater(this.data);
-    this.saveToFile(this.data);
+    await this.saveToFile(this.data);
     return this.data;
   }
   async logAction(action, details, ip) {
@@ -478,7 +587,7 @@ var Database = class {
       if (this.data.auditLogs.length > 200) {
         this.data.auditLogs.pop();
       }
-      this.saveToFile(this.data);
+      await this.saveToFile(this.data);
     } catch (e) {
       console.warn("Warning: logAction failed:", e);
     }
@@ -543,8 +652,8 @@ function verifyAdminToken(token) {
         const payload = Buffer.from(b64, "base64url").toString("utf-8");
         const [, tsStr] = payload.split(":");
         const timestamp = parseInt(tsStr, 10);
-        const maxAge = 30 * 24 * 60 * 60 * 1e3;
-        if (isNaN(timestamp) || Date.now() - timestamp > maxAge || Date.now() < timestamp - 6e4) {
+        const maxAge = 90 * 24 * 60 * 60 * 1e3;
+        if (isNaN(timestamp) || Date.now() - timestamp > maxAge || Date.now() < timestamp - 36e5) {
           return false;
         }
         const expectedSig = crypto.createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
@@ -1409,7 +1518,7 @@ api.post("/admin/upload-image", requireAdmin, async (req, res) => {
     } catch (e) {
       console.warn("Could not write uploaded file to disk:", e);
     }
-    const publicUrl = dataUrl;
+    const publicUrl = `/uploads/${uniqueName}`;
     await db.logAction("Device Image Uploaded", `Uploaded ${uniqueName} (${Math.round(buffer.length / 1024)} KB) from device`);
     res.json({
       success: true,

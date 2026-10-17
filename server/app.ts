@@ -1,9 +1,11 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
-import { db, CourseService, SocialLink, PortfolioItem, WebsiteSettings, AnimationSettings } from './db.ts';
+import { db } from './db.ts';
+import type { CourseService, SocialLink, PortfolioItem, WebsiteSettings, AnimationSettings } from './db.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
