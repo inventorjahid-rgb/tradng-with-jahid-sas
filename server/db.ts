@@ -691,7 +691,7 @@ class Database {
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
 
-  private saveToFile(data: DatabaseSchema) {
+  private async saveToFile(data: DatabaseSchema) {
     try {
       const dir = path.dirname(DATA_FILE_PATH);
       if (!fs.existsSync(dir)) {
@@ -701,7 +701,7 @@ class Database {
     } catch (e) {
       console.warn('Warning: Could not save data to file (read-only filesystem):', e);
     }
-    this.saveToFirestore(data);
+    await this.saveToFirestore(data);
   }
 
   public async get(): Promise<DatabaseSchema> {
@@ -710,7 +710,7 @@ class Database {
 
   public async update(updater: (data: DatabaseSchema) => void): Promise<DatabaseSchema> {
     updater(this.data);
-    this.saveToFile(this.data);
+    await this.saveToFile(this.data);
     return this.data;
   }
 
@@ -727,7 +727,7 @@ class Database {
       if (this.data.auditLogs.length > 200) {
         this.data.auditLogs.pop();
       }
-      this.saveToFile(this.data);
+      await this.saveToFile(this.data);
     } catch (e) {
       console.warn('Warning: logAction failed:', e);
     }
