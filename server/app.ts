@@ -71,9 +71,9 @@ export function verifyAdminToken(token: string): boolean {
         const payload = Buffer.from(b64, 'base64url').toString('utf-8');
         const [, tsStr] = payload.split(':');
         const timestamp = parseInt(tsStr, 10);
-        // Valid for 30 days
-        const maxAge = 30 * 24 * 60 * 60 * 1000;
-        if (isNaN(timestamp) || Date.now() - timestamp > maxAge || Date.now() < timestamp - 60000) {
+        // Valid for 90 days
+        const maxAge = 90 * 24 * 60 * 60 * 1000;
+        if (isNaN(timestamp) || Date.now() - timestamp > maxAge || Date.now() < timestamp - 3600000) {
           return false;
         }
         const expectedSig = crypto.createHmac('sha256', ADMIN_SECRET).update(payload).digest('hex');

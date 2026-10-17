@@ -40,10 +40,34 @@ export async function fetchPublicData(): Promise<PublicDataPayload> {
   }
   const data: PublicDataPayload = await res.json();
   try {
-    const saved = localStorage.getItem('trading_jahid_website_settings');
-    if (saved) {
-      const customSettings = JSON.parse(saved);
+    const savedSettings = localStorage.getItem('trading_jahid_website_settings');
+    if (savedSettings) {
+      const customSettings = JSON.parse(savedSettings);
       data.settings = { ...data.settings, ...customSettings };
+    }
+    const savedCourses = localStorage.getItem('trading_jahid_courses');
+    if (savedCourses) {
+      data.courses = JSON.parse(savedCourses);
+    }
+    const savedPortfolio = localStorage.getItem('trading_jahid_portfolio');
+    if (savedPortfolio) {
+      data.portfolio = JSON.parse(savedPortfolio);
+    }
+    const savedBooks = localStorage.getItem('trading_jahid_books');
+    if (savedBooks) {
+      data.books = JSON.parse(savedBooks);
+    }
+    const savedStrategies = localStorage.getItem('trading_jahid_strategies');
+    if (savedStrategies) {
+      data.strategies = JSON.parse(savedStrategies);
+    }
+    const savedLinks = localStorage.getItem('trading_jahid_links');
+    if (savedLinks) {
+      data.links = JSON.parse(savedLinks);
+    }
+    const savedAnimations = localStorage.getItem('trading_jahid_animations');
+    if (savedAnimations) {
+      data.animations = { ...data.animations, ...JSON.parse(savedAnimations) };
     }
   } catch {}
   return data;
