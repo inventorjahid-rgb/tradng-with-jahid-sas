@@ -1143,10 +1143,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 message: `Are you sure you want to permanently delete course "${course.title}"?`,
                                 confirmButtonText: 'Yes, Delete Course',
                                 onConfirm: async () => {
-                                  setCourses(prev => prev.filter(c => c.id !== course.id));
                                   await deleteCourse(course.id);
-                                  // Wait for Firestore consistency
-                                  await new Promise(resolve => setTimeout(resolve, 1000));
+                                  setCourses(prev => prev.filter(c => c.id !== course.id));
                                   await loadAllAdminData();
                                   notifySaved(`Deleted ${course.title}`);
                                 }
@@ -1250,9 +1248,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     message: `Are you sure you want to permanently delete link "${link.title}"?`,
                                     confirmButtonText: 'Yes, Delete Link',
                                     onConfirm: async () => {
+                                  await deleteLink(link.id);
                                       setLinks(prev => prev.filter(l => l.id !== link.id));
-                                      await deleteLink(link.id);
-                                      await new Promise(resolve => setTimeout(resolve, 1000));
                                       await loadAllAdminData();
                                       notifySaved(`Deleted ${link.title}`);
                                     }
@@ -1347,9 +1344,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   message: `Are you sure you want to permanently delete trade "${item.title}"?`,
                                   confirmButtonText: 'Yes, Delete Trade',
                                   onConfirm: async () => {
-                                    setPortfolio(prev => prev.filter(p => p.id !== item.id));
                                     await deletePortfolioItem(item.id);
-                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                    setPortfolio(prev => prev.filter(p => p.id !== item.id));
                                     await loadAllAdminData();
                                     notifySaved('Deleted trade');
                                   }
@@ -1436,9 +1432,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   message: `Are you sure you want to permanently delete this book?`,
                                   confirmButtonText: 'Yes, Delete Book',
                                   onConfirm: async () => {
-                                    setBooks(prev => prev.filter(b => b.id !== book.id));
                                     await deleteBook(book.id);
-                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                    setBooks(prev => prev.filter(b => b.id !== book.id));
                                     await loadAllAdminData();
                                     notifySaved('Deleted book');
                                   }
@@ -1520,9 +1515,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   message: `Are you sure you want to permanently delete this strategy?`,
                                   confirmButtonText: 'Yes, Delete Strategy',
                                   onConfirm: async () => {
-                                    setStrategies(prev => prev.filter(s => s.id !== strat.id));
                                     await deleteStrategy(strat.id);
-                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                    setStrategies(prev => prev.filter(s => s.id !== strat.id));
                                     await loadAllAdminData();
                                     notifySaved('Deleted strategy');
                                   }
