@@ -227,7 +227,7 @@ export async function deleteSubmission(id: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) throw new Error('Failed to delete submission');
+  await checkAdminResponse(res, 'Failed to delete submission');
 }
 
 export async function fetchAdminCourses(): Promise<CourseService[]> {
@@ -261,7 +261,7 @@ export async function deleteCourse(id: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) throw new Error('Failed to delete course');
+  await checkAdminResponse(res, 'Failed to delete course');
 }
 
 export async function fetchAdminLinks(): Promise<SocialLink[]> {
@@ -295,7 +295,7 @@ export async function deleteLink(id: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) throw new Error('Failed to delete link');
+  await checkAdminResponse(res, 'Failed to delete link');
 }
 
 export async function fetchAdminPortfolio(): Promise<PortfolioItem[]> {
@@ -329,7 +329,7 @@ export async function deletePortfolioItem(id: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) throw new Error('Failed to delete portfolio item');
+  await checkAdminResponse(res, 'Failed to delete portfolio item');
 }
 
 export async function updateWebsiteSettings(settings: Partial<WebsiteSettings>): Promise<WebsiteSettings> {
@@ -480,7 +480,7 @@ export async function deleteBook(id: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) throw new Error('Failed to delete book');
+  await checkAdminResponse(res, 'Failed to delete book');
 }
 
 export async function fetchAdminStrategies(): Promise<StrategyItem[]> {
@@ -514,7 +514,7 @@ export async function deleteStrategy(id: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) throw new Error('Failed to delete strategy');
+  await checkAdminResponse(res, 'Failed to delete strategy');
 }
 
 export async function banTraderId(accountId: string, reason?: string): Promise<{ success: boolean; message: string }> {
