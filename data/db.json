@@ -64,66 +64,7 @@
     "backgroundStyle": "matte_obsidian",
     "enableOnMobile": true
   },
-  "courses": [
-    {
-      "id": "service-classes",
-      "slug": "classes",
-      "title": "Live Interactive Trading Classes",
-      "category": "Live Trading Classes",
-      "shortDesc": "Join weekly live screen-sharing market breakdown sessions, live chart analysis, and trader Q&A.",
-      "fullDesc": "Experience live market analysis with Jahid. Watch live setups unfold, ask questions in real-time, review community charts, and analyze trade execution together.",
-      "coverImage": "/images/hero_trading_terminal_1791906597313.jpg",
-      "accessMode": "existing_id",
-      "registrationUrl": "https://t.me/tradewithjahid",
-      "joinUrl": "https://t.me/+JahidLiveClassPrivateZoom",
-      "modules": [
-        "3x Weekly Live Trading Stream",
-        "Live Interactive Chart Teardowns",
-        "Open Voice Q&A and Trade Journal Audits",
-        "Full HD Archive of All Historical Sessions"
-      ],
-      "requirements": "Registered account ID or active VIP community membership.",
-      "faqs": [
-        {
-          "question": "What if I miss a live class?",
-          "answer": "All classes are recorded in 4K resolution and uploaded within 2 hours to the private archive."
-        }
-      ],
-      "published": true,
-      "featured": true,
-      "order": 5,
-      "createdAt": "2026-01-20T10:00:00Z"
-    },
-    {
-      "id": "service-community",
-      "slug": "community",
-      "title": "VIP Traders Elite Community",
-      "category": "Trading Community",
-      "shortDesc": "Join 14,000+ disciplined traders sharing charts, daily setups, psychology support, and market insights.",
-      "fullDesc": "An active, supportive brotherhood of serious traders. Share your charts, receive feedback from Jahid and veteran traders, and avoid retail pitfalls.",
-      "coverImage": "/images/jahid_profile_avatar_1791906596676.jpg",
-      "accessMode": "existing_id",
-      "registrationUrl": "https://t.me/tradewithjahid",
-      "joinUrl": "https://t.me/tradewithjahid",
-      "modules": [
-        "Daily Chart Analysis Channels",
-        "Psychology & Mindset Accountability",
-        "Weekly Giveaway & Trading Resource Drops",
-        "Direct Access to Jahid's Public Insights"
-      ],
-      "requirements": "Free to join public group; VIP channel requires verified account ID.",
-      "faqs": [
-        {
-          "question": "Is the Telegram community free?",
-          "answer": "The main community is completely free at https://t.me/tradewithjahid. The VIP room requires a verified account ID."
-        }
-      ],
-      "published": true,
-      "featured": true,
-      "order": 6,
-      "createdAt": "2026-01-22T10:00:00Z"
-    }
-  ],
+  "courses": [],
   "links": [
     {
       "id": "link-tg-community",
@@ -228,25 +169,6 @@
       "isFeatured": false,
       "openInNewTab": true,
       "clickCount": 440,
-      "createdAt": "2026-01-01T00:00:00Z"
-    },
-    {
-      "id": "link-discord",
-      "title": "Discord Community Hub",
-      "category": "Discord Server",
-      "url": "https://discord.gg/tradewithjahid",
-      "description": "Voice rooms for market hours, chart sharing channels, and automated bot logs.",
-      "iconName": "Users",
-      "buttonLabel": "Join Discord",
-      "displayLocations": [
-        "social_section",
-        "footer"
-      ],
-      "order": 6,
-      "isActive": true,
-      "isFeatured": false,
-      "openInNewTab": true,
-      "clickCount": 285,
       "createdAt": "2026-01-01T00:00:00Z"
     }
   ],
@@ -358,30 +280,7 @@
       "order": 4
     }
   ],
-  "books": [
-    {
-      "id": "book-1",
-      "title": "Institutional Candlestick Psychology & Wick Dynamics",
-      "author": "Jahid Hossain",
-      "description": "Master 60-second to 5-minute binary price action, order flow exhaustion, and false breakout filters.",
-      "pdfUrl": "/uploads/institutional_candlestick_psychology.pdf",
-      "coverImage": "/images/binary_course_cover_1791906598444.jpg",
-      "published": true,
-      "order": 1,
-      "createdAt": "2026-01-10T10:00:00Z"
-    },
-    {
-      "id": "book-3",
-      "title": "Advanced Risk Management & Compound Growth Handbook",
-      "author": "Jahid Hossain",
-      "description": "Mathematical framework for protecting capital, avoiding emotional tilt, and scaling accounts systematically.",
-      "pdfUrl": "/uploads/risk_management_compound_handbook.pdf",
-      "coverImage": "/images/hero_trading_terminal_1791906597313.jpg",
-      "published": true,
-      "order": 3,
-      "createdAt": "2026-01-15T10:00:00Z"
-    }
-  ],
+  "books": [],
   "strategies": [
     {
       "id": "strat-2",
@@ -407,6 +306,55 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log-1792423907414-245",
+      "action": "Course Created",
+      "details": "Course \"Test Deletion Course\" created",
+      "timestamp": "2026-10-19T15:31:47.414Z"
+    },
+    {
+      "id": "log-1792423564433-440",
+      "action": "Link Deleted",
+      "details": "Link link-discord was deleted",
+      "timestamp": "2026-10-19T15:26:04.433Z"
+    },
+    {
+      "id": "log-1792423123578-990",
+      "action": "Book Deleted",
+      "details": "Book book-3 deleted",
+      "timestamp": "2026-10-19T15:18:43.578Z"
+    },
+    {
+      "id": "log-1792423115860-593",
+      "action": "Book Deleted",
+      "details": "Book book-1 deleted",
+      "timestamp": "2026-10-19T15:18:35.860Z"
+    },
+    {
+      "id": "log-1792423110203-579",
+      "action": "Course Deleted",
+      "details": "Course service-community was deleted",
+      "timestamp": "2026-10-19T15:18:30.203Z"
+    },
+    {
+      "id": "log-1792421152725-581",
+      "action": "Course Deleted",
+      "details": "Course service-classes was deleted",
+      "timestamp": "2026-10-19T14:45:52.725Z"
+    },
+    {
+      "id": "log-1792421131164-967",
+      "action": "Course Deleted",
+      "details": "Course service-classes was deleted",
+      "timestamp": "2026-10-19T14:45:31.164Z"
+    },
+    {
+      "id": "log-1792421125324-346",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-19T14:45:25.324Z",
+      "ip": "127.0.0.1"
+    },
     {
       "id": "log-1792245397937-746",
       "action": "Course Deleted",
@@ -549,75 +497,6 @@
       "action": "Animation Settings Updated",
       "details": "Visual effects & animation config updated",
       "timestamp": "2026-10-13T17:08:08.204Z"
-    },
-    {
-      "id": "log-1791911272686-940",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:07:52.686Z"
-    },
-    {
-      "id": "log-1791909939339-57",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T16:45:39.339Z"
-    },
-    {
-      "id": "log-1791909930746-941",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T16:45:30.746Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1791909930635-730",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T16:45:30.635Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1791909672255-455",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T16:41:12.255Z"
-    },
-    {
-      "id": "log-1791909658976-732",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T16:40:58.976Z"
-    },
-    {
-      "id": "log-1791909591328-373",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T16:39:51.328Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1791908522000-843",
-      "action": "Settings Updated",
-      "details": "Website brand settings updated",
-      "timestamp": "2026-10-13T16:22:02.000Z"
-    },
-    {
-      "id": "log-1791908504184-695",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T16:21:44.184Z"
-    },
-    {
-      "id": "log-1791908501035-643",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T16:21:41.035Z"
-    },
-    {
-      "id": "log-1791908391376-349",
-      "action": "Submission Status Update",
-      "details": "Submission SUB-8023 updated to Rejected",
-      "timestamp": "2026-10-13T16:19:51.376Z"
     }
   ],
   "adminAuth": {
@@ -631,7 +510,8 @@
       "d9a269f26583340bfc027a9ae56204825c2cf0dfec0ba3dcb4e05ca7a94d00f2",
       "jahid.YWRtaW46MTc5MjE3MjIwMjk1Mw.5a48ccce93e2f94740af4159f0a29a9918b6048da5f5b72024e15df6c6621518",
       "jahid.YWRtaW46MTc5MjIyMzQ2MDY3Mw.9c1b3821ae937c45be20b1b1083cb806fee5dd36d3c56a7c08068fc50029c401",
-      "jahid.YWRtaW46MTc5MjIyMzQ2MjQ2NA.592b88a01ab410f41216eba81ef52a8498460dbadb67b09285e0c58713f6d8c2"
+      "jahid.YWRtaW46MTc5MjIyMzQ2MjQ2NA.592b88a01ab410f41216eba81ef52a8498460dbadb67b09285e0c58713f6d8c2",
+      "jahid.YWRtaW46MTc5MjQyMTEyMzUyNQ.351e00b99a356601e58e1ae93a2eebcb4e819bb45f3f998e7b485b60ee08ec84"
     ]
   }
 }

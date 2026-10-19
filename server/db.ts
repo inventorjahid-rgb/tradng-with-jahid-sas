@@ -602,40 +602,66 @@ class Database {
 
   constructor() {
     this.data = this.loadFromFile();
-    this.initPromise = this.syncFromFirestoreOnce();
+    this.initPromise = this.syncFromFirestore();
   }
 
-  private async syncFromFirestoreOnce() {
+  private async syncFromFirestore() {
     if (!firestoreDb) return;
     try {
       const docRef = doc(firestoreDb, 'app_state', 'main');
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        const parsed = JSON.parse(snap.data().payloadString || '{}');
-        this.data = {
-          ...INITIAL_DATA,
-          ...parsed,
-          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
-          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
-          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
-          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
-          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
-          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
-          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
-          settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}) },
-          animations: { ...INITIAL_DATA.animations, ...(parsed.animations || {}) },
-          adminAuth: { ...INITIAL_DATA.adminAuth, ...(parsed.adminAuth || {}) }
-        };
-        try {
-          const jsonStr = JSON.stringify(this.data, null, 2);
-          fs.writeFileSync(TMP_DATA_PATH, jsonStr, 'utf-8');
-          fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, 'utf-8');
-        } catch {}
+        const raw = snap.data();
+        if (raw && raw.payloadString) {
+          this.applyParsedState(raw.payloadString);
+          console.log('[Database] Loaded initial state from Firestore app_state/main');
+        }
       } else {
+        console.log('[Database] Firestore document app_state/main not found. Seeding initial data.');
         await this.saveToFirestore(this.data);
       }
-    } catch (e) {
-      console.warn('Warning: Failed to sync database from Firestore at startup:', e);
+
+      // Attach continuous real-time listener so changes from any container or admin propagate immediately
+      onSnapshot(docRef, (updatedSnap) => {
+        if (updatedSnap.exists()) {
+          const raw = updatedSnap.data();
+          if (raw && raw.payloadString) {
+            this.applyParsedState(raw.payloadString);
+          }
+        }
+      }, (err) => {
+        console.warn('[Database] Realtime onSnapshot sync warning:', err.message);
+      });
+    } catch (e: any) {
+      console.warn('[Database] Failed to sync database from Firestore at startup:', e?.message || e);
+    }
+  }
+
+  private applyParsedState(payloadString: string) {
+    try {
+      const parsed = JSON.parse(payloadString || '{}');
+      this.data = {
+        ...INITIAL_DATA,
+        ...parsed,
+        courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+        links: Array.isArray(parsed.links) ? parsed.links : [],
+        submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
+        portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : [],
+        books: Array.isArray(parsed.books) ? parsed.books : [],
+        strategies: Array.isArray(parsed.strategies) ? parsed.strategies : [],
+        auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : [],
+        settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}) },
+        animations: { ...INITIAL_DATA.animations, ...(parsed.animations || {}) },
+        adminAuth: { ...INITIAL_DATA.adminAuth, ...(parsed.adminAuth || {}) }
+      };
+
+      try {
+        const jsonStr = JSON.stringify(this.data, null, 2);
+        fs.writeFileSync(TMP_DATA_PATH, jsonStr, 'utf-8');
+        fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, 'utf-8');
+      } catch {}
+    } catch (err) {
+      console.warn('[Database] Failed to parse Firestore payload:', err);
     }
   }
 
@@ -643,8 +669,8 @@ class Database {
     if (!firestoreDb) return;
     try {
       const cloned = JSON.parse(JSON.stringify(data));
-      if (cloned.auditLogs && cloned.auditLogs.length > 30) {
-        cloned.auditLogs = cloned.auditLogs.slice(0, 30);
+      if (cloned.auditLogs && cloned.auditLogs.length > 50) {
+        cloned.auditLogs = cloned.auditLogs.slice(0, 50);
       }
       if (cloned.settings?.logoUrl?.startsWith('data:')) {
         cloned.settings.logoUrl = '/images/trading_with_jahid_logo_1791908793141.jpg';
@@ -657,19 +683,15 @@ class Database {
       }
 
       const payloadString = JSON.stringify(cloned);
-      if (payloadString.length > 950000) {
-        if (cloned.courses) cloned.courses = cloned.courses.slice(0, 20);
-        if (cloned.portfolio) cloned.portfolio = cloned.portfolio.slice(0, 20);
-        if (cloned.submissions) cloned.submissions = cloned.submissions.slice(0, 50);
-      }
-
       const docRef = doc(firestoreDb, 'app_state', 'main');
       await setDoc(docRef, {
-        payloadString: JSON.stringify(cloned),
+        payloadString,
         updatedAt: new Date().toISOString()
       });
-    } catch (e) {
-      console.warn('Warning: Failed to save database to Firestore:', e);
+      console.log(`[Firestore] Saved state (${payloadString.length} bytes) to app_state/main`);
+    } catch (e: any) {
+      console.error('[Firestore] CRITICAL: Failed to save to Firestore:', e?.message || e);
+      throw e;
     }
   }
 
@@ -696,23 +718,22 @@ class Database {
         return {
           ...INITIAL_DATA,
           ...parsed,
-          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
-          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
-          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
-          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
-          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
-          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
-          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
+          courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+          links: Array.isArray(parsed.links) ? parsed.links : [],
+          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
+          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : [],
+          books: Array.isArray(parsed.books) ? parsed.books : [],
+          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : [],
+          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : [],
           settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}) },
           animations: { ...INITIAL_DATA.animations, ...(parsed.animations || {}) },
           adminAuth: { ...INITIAL_DATA.adminAuth, ...(parsed.adminAuth || {}) }
         };
       }
     } catch (e) {
-      console.warn('Warning: Error loading data from file, falling back to initial data:', e);
+      console.warn('[Database] Error loading data from file:', e);
     }
     
-    this.saveToFile(INITIAL_DATA);
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
 
@@ -747,6 +768,34 @@ class Database {
 
   public async update(updater: (data: DatabaseSchema) => void): Promise<DatabaseSchema> {
     await this.initPromise;
+
+    // Refresh from Firestore before applying mutations to avoid stale overwrites
+    if (firestoreDb) {
+      try {
+        const docRef = doc(firestoreDb, 'app_state', 'main');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const raw = snap.data();
+          if (raw && raw.payloadString) {
+            const fresh = JSON.parse(raw.payloadString);
+            if (fresh) {
+              if (Array.isArray(fresh.courses)) this.data.courses = fresh.courses;
+              if (Array.isArray(fresh.links)) this.data.links = fresh.links;
+              if (Array.isArray(fresh.portfolio)) this.data.portfolio = fresh.portfolio;
+              if (Array.isArray(fresh.books)) this.data.books = fresh.books;
+              if (Array.isArray(fresh.strategies)) this.data.strategies = fresh.strategies;
+              if (Array.isArray(fresh.submissions)) this.data.submissions = fresh.submissions;
+              if (Array.isArray(fresh.auditLogs)) this.data.auditLogs = fresh.auditLogs;
+              if (fresh.settings) this.data.settings = { ...this.data.settings, ...fresh.settings };
+              if (fresh.animations) this.data.animations = { ...this.data.animations, ...fresh.animations };
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Database] Pre-update Firestore sync note:', err);
+      }
+    }
+
     updater(this.data);
     await this.saveToFile(this.data);
     return this.data;

@@ -16,8 +16,18 @@ const app = express();
 app.use(express.json({ limit: '35mb' }));
 app.use(express.urlencoded({ limit: '35mb', extended: true }));
 
-// Disable caching for API routes
+// Enable full CORS and disable caching for API routes
 app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-secret, X-Admin-Secret, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+
   if (req.url.startsWith('/api') || req.url.startsWith('/public') || req.url.startsWith('/admin')) {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
@@ -623,7 +633,7 @@ api.post('/admin/submissions/ban-id', requireAdmin, async (req: Request, res: Re
   }
 });
 
-api.delete('/admin/submissions/:id', requireAdmin, async (req: Request, res: Response) => {
+const handleSubmissionDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await db.update(d => {
@@ -634,7 +644,9 @@ api.delete('/admin/submissions/:id', requireAdmin, async (req: Request, res: Res
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete submission' });
   }
-});
+};
+api.delete('/admin/submissions/:id', requireAdmin, handleSubmissionDelete);
+api.post('/admin/submissions/:id/delete', requireAdmin, handleSubmissionDelete);
 
 // ----------------------------------------------------
 // ADMIN COURSES & SERVICES MANAGEMENT
@@ -717,7 +729,7 @@ api.put('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) 
   }
 });
 
-api.delete('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) => {
+const handleCourseDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   console.log(`[DEBUG] Attempting to delete course: ${id}`);
   try {
@@ -731,7 +743,9 @@ api.delete('/admin/courses/:id', requireAdmin, async (req: Request, res: Respons
     console.error(`[DEBUG] Failed to delete course: ${id}`, err);
     res.status(500).json({ error: 'Failed to delete course' });
   }
-});
+};
+api.delete('/admin/courses/:id', requireAdmin, handleCourseDelete);
+api.post('/admin/courses/:id/delete', requireAdmin, handleCourseDelete);
 
 // ----------------------------------------------------
 // ADMIN SOCIAL & CUSTOM LINKS MANAGEMENT
@@ -808,7 +822,7 @@ api.put('/admin/links/:id', requireAdmin, async (req: Request, res: Response) =>
   }
 });
 
-api.delete('/admin/links/:id', requireAdmin, async (req: Request, res: Response) => {
+const handleLinkDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await db.update(d => {
@@ -819,7 +833,9 @@ api.delete('/admin/links/:id', requireAdmin, async (req: Request, res: Response)
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete link' });
   }
-});
+};
+api.delete('/admin/links/:id', requireAdmin, handleLinkDelete);
+api.post('/admin/links/:id/delete', requireAdmin, handleLinkDelete);
 
 // ----------------------------------------------------
 // ADMIN PORTFOLIO MANAGEMENT
@@ -894,7 +910,7 @@ api.put('/admin/portfolio/:id', requireAdmin, async (req: Request, res: Response
   }
 });
 
-api.delete('/admin/portfolio/:id', requireAdmin, async (req: Request, res: Response) => {
+const handlePortfolioDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await db.update(d => {
@@ -905,7 +921,9 @@ api.delete('/admin/portfolio/:id', requireAdmin, async (req: Request, res: Respo
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete portfolio item' });
   }
-});
+};
+api.delete('/admin/portfolio/:id', requireAdmin, handlePortfolioDelete);
+api.post('/admin/portfolio/:id/delete', requireAdmin, handlePortfolioDelete);
 
 // ----------------------------------------------------
 // ADMIN BOOKS MANAGEMENT (PDFS)
@@ -977,7 +995,7 @@ api.put('/admin/books/:id', requireAdmin, async (req: Request, res: Response) =>
   }
 });
 
-api.delete('/admin/books/:id', requireAdmin, async (req: Request, res: Response) => {
+const handleBookDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await db.update(d => {
@@ -988,7 +1006,9 @@ api.delete('/admin/books/:id', requireAdmin, async (req: Request, res: Response)
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete book' });
   }
-});
+};
+api.delete('/admin/books/:id', requireAdmin, handleBookDelete);
+api.post('/admin/books/:id/delete', requireAdmin, handleBookDelete);
 
 // ----------------------------------------------------
 // ADMIN STRATEGIES MANAGEMENT (PICTURES)
@@ -1060,7 +1080,7 @@ api.put('/admin/strategies/:id', requireAdmin, async (req: Request, res: Respons
   }
 });
 
-api.delete('/admin/strategies/:id', requireAdmin, async (req: Request, res: Response) => {
+const handleStrategyDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await db.update(d => {
@@ -1071,7 +1091,9 @@ api.delete('/admin/strategies/:id', requireAdmin, async (req: Request, res: Resp
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete strategy' });
   }
-});
+};
+api.delete('/admin/strategies/:id', requireAdmin, handleStrategyDelete);
+api.post('/admin/strategies/:id/delete', requireAdmin, handleStrategyDelete);
 
 // ----------------------------------------------------
 // ADMIN WEBSITE SETTINGS & ANIMATION SETTINGS
@@ -1255,7 +1277,7 @@ api.delete('/admin/media-library-all', requireAdmin, async (_req: Request, res: 
   }
 });
 
-api.delete('/admin/audit-logs', requireAdmin, async (_req: Request, res: Response) => {
+const handleAuditLogsClear = async (_req: Request, res: Response) => {
   try {
     await db.update(d => {
       d.auditLogs = [];
@@ -1265,9 +1287,11 @@ api.delete('/admin/audit-logs', requireAdmin, async (_req: Request, res: Respons
   } catch (err) {
     res.status(500).json({ error: 'Failed to clear audit logs' });
   }
-});
+};
+api.delete('/admin/audit-logs', requireAdmin, handleAuditLogsClear);
+api.post('/admin/audit-logs/clear', requireAdmin, handleAuditLogsClear);
 
-api.delete('/admin/submissions-all', requireAdmin, async (_req: Request, res: Response) => {
+const handleSubmissionsClear = async (_req: Request, res: Response) => {
   try {
     await db.update(d => {
       d.submissions = [];
@@ -1277,7 +1301,9 @@ api.delete('/admin/submissions-all', requireAdmin, async (_req: Request, res: Re
   } catch (err) {
     res.status(500).json({ error: 'Failed to clear submissions' });
   }
-});
+};
+api.delete('/admin/submissions-all', requireAdmin, handleSubmissionsClear);
+api.post('/admin/submissions/clear-all', requireAdmin, handleSubmissionsClear);
 
 // Dual mounting: Mount under both /api and / to handle stripped or unstripped rewrite paths seamlessly!
 app.use('/api', api);

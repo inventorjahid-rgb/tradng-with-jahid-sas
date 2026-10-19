@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 var firestoreDb = null;
@@ -441,48 +441,70 @@ var INITIAL_DATA = {
 var Database = class {
   constructor() {
     this.data = this.loadFromFile();
-    this.initPromise = this.syncFromFirestoreOnce();
+    this.initPromise = this.syncFromFirestore();
   }
-  async syncFromFirestoreOnce() {
+  async syncFromFirestore() {
     if (!firestoreDb) return;
     try {
       const docRef = doc(firestoreDb, "app_state", "main");
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        const parsed = JSON.parse(snap.data().payloadString || "{}");
-        this.data = {
-          ...INITIAL_DATA,
-          ...parsed,
-          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
-          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
-          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
-          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
-          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
-          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
-          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
-          settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
-          animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
-          adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
-        };
-        try {
-          const jsonStr = JSON.stringify(this.data, null, 2);
-          fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
-          fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
-        } catch {
+        const raw = snap.data();
+        if (raw && raw.payloadString) {
+          this.applyParsedState(raw.payloadString);
+          console.log("[Database] Loaded initial state from Firestore app_state/main");
         }
       } else {
+        console.log("[Database] Firestore document app_state/main not found. Seeding initial data.");
         await this.saveToFirestore(this.data);
       }
+      onSnapshot(docRef, (updatedSnap) => {
+        if (updatedSnap.exists()) {
+          const raw = updatedSnap.data();
+          if (raw && raw.payloadString) {
+            this.applyParsedState(raw.payloadString);
+          }
+        }
+      }, (err) => {
+        console.warn("[Database] Realtime onSnapshot sync warning:", err.message);
+      });
     } catch (e) {
-      console.warn("Warning: Failed to sync database from Firestore at startup:", e);
+      console.warn("[Database] Failed to sync database from Firestore at startup:", e?.message || e);
+    }
+  }
+  applyParsedState(payloadString) {
+    try {
+      const parsed = JSON.parse(payloadString || "{}");
+      this.data = {
+        ...INITIAL_DATA,
+        ...parsed,
+        courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+        links: Array.isArray(parsed.links) ? parsed.links : [],
+        submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
+        portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : [],
+        books: Array.isArray(parsed.books) ? parsed.books : [],
+        strategies: Array.isArray(parsed.strategies) ? parsed.strategies : [],
+        auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : [],
+        settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
+        animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
+        adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
+      };
+      try {
+        const jsonStr = JSON.stringify(this.data, null, 2);
+        fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
+        fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
+      } catch {
+      }
+    } catch (err) {
+      console.warn("[Database] Failed to parse Firestore payload:", err);
     }
   }
   async saveToFirestore(data) {
     if (!firestoreDb) return;
     try {
       const cloned = JSON.parse(JSON.stringify(data));
-      if (cloned.auditLogs && cloned.auditLogs.length > 30) {
-        cloned.auditLogs = cloned.auditLogs.slice(0, 30);
+      if (cloned.auditLogs && cloned.auditLogs.length > 50) {
+        cloned.auditLogs = cloned.auditLogs.slice(0, 50);
       }
       if (cloned.settings?.logoUrl?.startsWith("data:")) {
         cloned.settings.logoUrl = "/images/trading_with_jahid_logo_1791908793141.jpg";
@@ -494,18 +516,15 @@ var Database = class {
         cloned.settings.heroBannerUrl = "/images/hero_trading_terminal_1791906597313.jpg";
       }
       const payloadString = JSON.stringify(cloned);
-      if (payloadString.length > 95e4) {
-        if (cloned.courses) cloned.courses = cloned.courses.slice(0, 20);
-        if (cloned.portfolio) cloned.portfolio = cloned.portfolio.slice(0, 20);
-        if (cloned.submissions) cloned.submissions = cloned.submissions.slice(0, 50);
-      }
       const docRef = doc(firestoreDb, "app_state", "main");
       await setDoc(docRef, {
-        payloadString: JSON.stringify(cloned),
+        payloadString,
         updatedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
+      console.log(`[Firestore] Saved state (${payloadString.length} bytes) to app_state/main`);
     } catch (e) {
-      console.warn("Warning: Failed to save database to Firestore:", e);
+      console.error("[Firestore] CRITICAL: Failed to save to Firestore:", e?.message || e);
+      throw e;
     }
   }
   loadFromFile() {
@@ -531,22 +550,21 @@ var Database = class {
         return {
           ...INITIAL_DATA,
           ...parsed,
-          courses: Array.isArray(parsed.courses) ? parsed.courses : INITIAL_DATA.courses,
-          links: Array.isArray(parsed.links) ? parsed.links : INITIAL_DATA.links,
-          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : INITIAL_DATA.submissions,
-          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : INITIAL_DATA.portfolio,
-          books: Array.isArray(parsed.books) ? parsed.books : INITIAL_DATA.books,
-          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : INITIAL_DATA.strategies,
-          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : INITIAL_DATA.auditLogs,
+          courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+          links: Array.isArray(parsed.links) ? parsed.links : [],
+          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
+          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : [],
+          books: Array.isArray(parsed.books) ? parsed.books : [],
+          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : [],
+          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : [],
           settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
           animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
           adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
         };
       }
     } catch (e) {
-      console.warn("Warning: Error loading data from file, falling back to initial data:", e);
+      console.warn("[Database] Error loading data from file:", e);
     }
-    this.saveToFile(INITIAL_DATA);
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
   async saveToFile(data) {
@@ -576,6 +594,31 @@ var Database = class {
   }
   async update(updater) {
     await this.initPromise;
+    if (firestoreDb) {
+      try {
+        const docRef = doc(firestoreDb, "app_state", "main");
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const raw = snap.data();
+          if (raw && raw.payloadString) {
+            const fresh = JSON.parse(raw.payloadString);
+            if (fresh) {
+              if (Array.isArray(fresh.courses)) this.data.courses = fresh.courses;
+              if (Array.isArray(fresh.links)) this.data.links = fresh.links;
+              if (Array.isArray(fresh.portfolio)) this.data.portfolio = fresh.portfolio;
+              if (Array.isArray(fresh.books)) this.data.books = fresh.books;
+              if (Array.isArray(fresh.strategies)) this.data.strategies = fresh.strategies;
+              if (Array.isArray(fresh.submissions)) this.data.submissions = fresh.submissions;
+              if (Array.isArray(fresh.auditLogs)) this.data.auditLogs = fresh.auditLogs;
+              if (fresh.settings) this.data.settings = { ...this.data.settings, ...fresh.settings };
+              if (fresh.animations) this.data.animations = { ...this.data.animations, ...fresh.animations };
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[Database] Pre-update Firestore sync note:", err);
+      }
+    }
     updater(this.data);
     await this.saveToFile(this.data);
     return this.data;
@@ -608,6 +651,14 @@ var app = express();
 app.use(express.json({ limit: "35mb" }));
 app.use(express.urlencoded({ limit: "35mb", extended: true }));
 app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-admin-secret, X-Admin-Secret, X-Requested-With, Accept, Origin");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
   if (req.url.startsWith("/api") || req.url.startsWith("/public") || req.url.startsWith("/admin")) {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");
@@ -1097,7 +1148,7 @@ api.post("/admin/submissions/ban-id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to ban trader ID" });
   }
 });
-api.delete("/admin/submissions/:id", requireAdmin, async (req, res) => {
+var handleSubmissionDelete = async (req, res) => {
   const { id } = req.params;
   try {
     await db.update((d) => {
@@ -1108,7 +1159,9 @@ api.delete("/admin/submissions/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to delete submission" });
   }
-});
+};
+api.delete("/admin/submissions/:id", requireAdmin, handleSubmissionDelete);
+api.post("/admin/submissions/:id/delete", requireAdmin, handleSubmissionDelete);
 api.get("/admin/courses", requireAdmin, async (_req, res) => {
   try {
     const data = await db.get();
@@ -1177,7 +1230,7 @@ api.put("/admin/courses/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to update course" });
   }
 });
-api.delete("/admin/courses/:id", requireAdmin, async (req, res) => {
+var handleCourseDelete = async (req, res) => {
   const { id } = req.params;
   console.log(`[DEBUG] Attempting to delete course: ${id}`);
   try {
@@ -1191,7 +1244,9 @@ api.delete("/admin/courses/:id", requireAdmin, async (req, res) => {
     console.error(`[DEBUG] Failed to delete course: ${id}`, err);
     res.status(500).json({ error: "Failed to delete course" });
   }
-});
+};
+api.delete("/admin/courses/:id", requireAdmin, handleCourseDelete);
+api.post("/admin/courses/:id/delete", requireAdmin, handleCourseDelete);
 api.get("/admin/links", requireAdmin, async (_req, res) => {
   try {
     const data = await db.get();
@@ -1254,7 +1309,7 @@ api.put("/admin/links/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to update link" });
   }
 });
-api.delete("/admin/links/:id", requireAdmin, async (req, res) => {
+var handleLinkDelete = async (req, res) => {
   const { id } = req.params;
   try {
     await db.update((d) => {
@@ -1265,7 +1320,9 @@ api.delete("/admin/links/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to delete link" });
   }
-});
+};
+api.delete("/admin/links/:id", requireAdmin, handleLinkDelete);
+api.post("/admin/links/:id/delete", requireAdmin, handleLinkDelete);
 api.get("/admin/portfolio", requireAdmin, async (_req, res) => {
   try {
     const data = await db.get();
@@ -1326,7 +1383,7 @@ api.put("/admin/portfolio/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to update portfolio item" });
   }
 });
-api.delete("/admin/portfolio/:id", requireAdmin, async (req, res) => {
+var handlePortfolioDelete = async (req, res) => {
   const { id } = req.params;
   try {
     await db.update((d) => {
@@ -1337,7 +1394,9 @@ api.delete("/admin/portfolio/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to delete portfolio item" });
   }
-});
+};
+api.delete("/admin/portfolio/:id", requireAdmin, handlePortfolioDelete);
+api.post("/admin/portfolio/:id/delete", requireAdmin, handlePortfolioDelete);
 api.get("/admin/books", requireAdmin, async (_req, res) => {
   try {
     const data = await db.get();
@@ -1395,7 +1454,7 @@ api.put("/admin/books/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to update book" });
   }
 });
-api.delete("/admin/books/:id", requireAdmin, async (req, res) => {
+var handleBookDelete = async (req, res) => {
   const { id } = req.params;
   try {
     await db.update((d) => {
@@ -1406,7 +1465,9 @@ api.delete("/admin/books/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to delete book" });
   }
-});
+};
+api.delete("/admin/books/:id", requireAdmin, handleBookDelete);
+api.post("/admin/books/:id/delete", requireAdmin, handleBookDelete);
 api.get("/admin/strategies", requireAdmin, async (_req, res) => {
   try {
     const data = await db.get();
@@ -1464,7 +1525,7 @@ api.put("/admin/strategies/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to update strategy" });
   }
 });
-api.delete("/admin/strategies/:id", requireAdmin, async (req, res) => {
+var handleStrategyDelete = async (req, res) => {
   const { id } = req.params;
   try {
     await db.update((d) => {
@@ -1475,7 +1536,9 @@ api.delete("/admin/strategies/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to delete strategy" });
   }
-});
+};
+api.delete("/admin/strategies/:id", requireAdmin, handleStrategyDelete);
+api.post("/admin/strategies/:id/delete", requireAdmin, handleStrategyDelete);
 api.put("/admin/settings", requireAdmin, async (req, res) => {
   const updates = req.body;
   try {
@@ -1621,7 +1684,7 @@ api.delete("/admin/media-library-all", requireAdmin, async (_req, res) => {
     res.status(500).json({ error: "Failed to clear media library: " + err.message });
   }
 });
-api.delete("/admin/audit-logs", requireAdmin, async (_req, res) => {
+var handleAuditLogsClear = async (_req, res) => {
   try {
     await db.update((d) => {
       d.auditLogs = [];
@@ -1631,8 +1694,10 @@ api.delete("/admin/audit-logs", requireAdmin, async (_req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to clear audit logs" });
   }
-});
-api.delete("/admin/submissions-all", requireAdmin, async (_req, res) => {
+};
+api.delete("/admin/audit-logs", requireAdmin, handleAuditLogsClear);
+api.post("/admin/audit-logs/clear", requireAdmin, handleAuditLogsClear);
+var handleSubmissionsClear = async (_req, res) => {
   try {
     await db.update((d) => {
       d.submissions = [];
@@ -1642,7 +1707,9 @@ api.delete("/admin/submissions-all", requireAdmin, async (_req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to clear submissions" });
   }
-});
+};
+api.delete("/admin/submissions-all", requireAdmin, handleSubmissionsClear);
+api.post("/admin/submissions/clear-all", requireAdmin, handleSubmissionsClear);
 app.use("/api", api);
 app.use("/", api);
 var app_default = app;
