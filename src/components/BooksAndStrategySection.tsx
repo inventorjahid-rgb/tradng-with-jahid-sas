@@ -151,8 +151,14 @@ Official Telegram Community: https://t.me/tradewithjahid
 
         {/* TAB 1: BOOKS */}
         {activeTab === 'books' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {books.map(book => (
+          books.length === 0 ? (
+            <div className="text-center py-12 px-4 rounded-3xl border border-yellow-500/20 bg-[#0D140F]/50">
+              <BookOpen className="w-8 h-8 text-yellow-500/50 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No books or guides published yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {books.map(book => (
               <div
                 key={book.id}
                 className="group relative glass-panel rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
@@ -208,12 +214,19 @@ Official Telegram Community: https://t.me/tradewithjahid
               </div>
             ))}
           </div>
+          )
         )}
 
         {/* TAB 2: STRATEGIES */}
         {activeTab === 'strategies' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {strategies.map(strat => (
+          strategies.length === 0 ? (
+            <div className="text-center py-12 px-4 rounded-3xl border border-yellow-500/20 bg-[#0D140F]/50">
+              <FileText className="w-8 h-8 text-yellow-500/50 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No strategy playbooks published yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {strategies.map(strat => (
               <div
                 key={strat.id}
                 onClick={() => setSelectedImage(strat)}
@@ -258,6 +271,7 @@ Official Telegram Community: https://t.me/tradewithjahid
               </div>
             ))}
           </div>
+          )
         )}
 
       </div>

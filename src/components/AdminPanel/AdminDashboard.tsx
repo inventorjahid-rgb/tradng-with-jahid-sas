@@ -202,7 +202,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setMediaLibrary(media || []);
 
       // Initialize forms from overview or public
-      const res = await fetch('/api/public/data');
+      const res = await fetch(`/api/public/data?_t=${Date.now()}`);
       if (res.ok) {
         const publicData = await res.json();
         setSettingsForm(publicData.settings || {});

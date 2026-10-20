@@ -28,7 +28,7 @@ function authHeaders(): HeadersInit {
 // ------------------------------------
 
 export async function fetchPublicData(): Promise<PublicDataPayload> {
-  const res = await fetch('/api/public/data');
+  const res = await fetch(`/api/public/data?_t=${Date.now()}`);
   if (!res.ok) {
     let detail = `Status ${res.status}`;
     try {
@@ -223,15 +223,22 @@ export async function updateSubmission(id: string, updates: { status?: string; r
 }
 
 export async function deleteSubmission(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/submissions/${id}`, {
+  const encId = encodeURIComponent(id);
+  let res = await fetch(`/api/admin/submissions/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/submissions/${encId}/delete?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   await checkAdminResponse(res, 'Failed to delete submission');
 }
 
 export async function fetchAdminCourses(): Promise<CourseService[]> {
-  const res = await fetch('/api/admin/courses', { headers: authHeaders() });
+  const res = await fetch(`/api/admin/courses?_t=${Date.now()}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to fetch courses');
   return res.json();
 }
@@ -247,7 +254,7 @@ export async function createCourse(data: Partial<CourseService>): Promise<Course
 }
 
 export async function updateCourse(id: string, data: Partial<CourseService>): Promise<CourseService> {
-  const res = await fetch(`/api/admin/courses/${id}`, {
+  const res = await fetch(`/api/admin/courses/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(data)
@@ -257,15 +264,22 @@ export async function updateCourse(id: string, data: Partial<CourseService>): Pr
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/courses/${id}`, {
+  const encId = encodeURIComponent(id);
+  let res = await fetch(`/api/admin/courses/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/courses/${encId}/delete?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   await checkAdminResponse(res, 'Failed to delete course');
 }
 
 export async function fetchAdminLinks(): Promise<SocialLink[]> {
-  const res = await fetch('/api/admin/links', { headers: authHeaders() });
+  const res = await fetch(`/api/admin/links?_t=${Date.now()}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to fetch links');
   return res.json();
 }
@@ -281,7 +295,7 @@ export async function createLink(data: Partial<SocialLink>): Promise<SocialLink>
 }
 
 export async function updateLink(id: string, data: Partial<SocialLink>): Promise<SocialLink> {
-  const res = await fetch(`/api/admin/links/${id}`, {
+  const res = await fetch(`/api/admin/links/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(data)
@@ -291,15 +305,22 @@ export async function updateLink(id: string, data: Partial<SocialLink>): Promise
 }
 
 export async function deleteLink(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/links/${id}`, {
+  const encId = encodeURIComponent(id);
+  let res = await fetch(`/api/admin/links/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/links/${encId}/delete?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   await checkAdminResponse(res, 'Failed to delete link');
 }
 
 export async function fetchAdminPortfolio(): Promise<PortfolioItem[]> {
-  const res = await fetch('/api/admin/portfolio', { headers: authHeaders() });
+  const res = await fetch(`/api/admin/portfolio?_t=${Date.now()}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to fetch portfolio');
   return res.json();
 }
@@ -315,7 +336,7 @@ export async function createPortfolioItem(data: Partial<PortfolioItem>): Promise
 }
 
 export async function updatePortfolioItem(id: string, data: Partial<PortfolioItem>): Promise<PortfolioItem> {
-  const res = await fetch(`/api/admin/portfolio/${id}`, {
+  const res = await fetch(`/api/admin/portfolio/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(data)
@@ -325,10 +346,17 @@ export async function updatePortfolioItem(id: string, data: Partial<PortfolioIte
 }
 
 export async function deletePortfolioItem(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/portfolio/${id}`, {
+  const encId = encodeURIComponent(id);
+  let res = await fetch(`/api/admin/portfolio/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/portfolio/${encId}/delete?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   await checkAdminResponse(res, 'Failed to delete portfolio item');
 }
 
@@ -426,23 +454,35 @@ export async function deleteMediaFile(fileName: string): Promise<void> {
 }
 
 export async function clearAuditLogs(): Promise<void> {
-  const res = await fetch('/api/admin/audit-logs', {
+  let res = await fetch(`/api/admin/audit-logs?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/audit-logs/clear?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   if (!res.ok) throw new Error('Failed to clear audit logs');
 }
 
 export async function clearAllSubmissions(): Promise<void> {
-  const res = await fetch('/api/admin/submissions-all', {
+  let res = await fetch(`/api/admin/submissions-all?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/submissions/clear-all?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   if (!res.ok) throw new Error('Failed to clear all submissions');
 }
 
 export async function clearAllMediaFiles(): Promise<void> {
-  const res = await fetch('/api/admin/media-library-all', {
+  const res = await fetch(`/api/admin/media-library-all?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
@@ -450,7 +490,7 @@ export async function clearAllMediaFiles(): Promise<void> {
 }
 
 export async function fetchAdminBooks(): Promise<BookItem[]> {
-  const res = await fetch('/api/admin/books', { headers: authHeaders() });
+  const res = await fetch(`/api/admin/books?_t=${Date.now()}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to fetch books');
   return res.json();
 }
@@ -466,7 +506,7 @@ export async function createBook(data: Partial<BookItem>): Promise<BookItem> {
 }
 
 export async function updateBook(id: string, data: Partial<BookItem>): Promise<BookItem> {
-  const res = await fetch(`/api/admin/books/${id}`, {
+  const res = await fetch(`/api/admin/books/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(data)
@@ -476,15 +516,22 @@ export async function updateBook(id: string, data: Partial<BookItem>): Promise<B
 }
 
 export async function deleteBook(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/books/${id}`, {
+  const encId = encodeURIComponent(id);
+  let res = await fetch(`/api/admin/books/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/books/${encId}/delete?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   await checkAdminResponse(res, 'Failed to delete book');
 }
 
 export async function fetchAdminStrategies(): Promise<StrategyItem[]> {
-  const res = await fetch('/api/admin/strategies', { headers: authHeaders() });
+  const res = await fetch(`/api/admin/strategies?_t=${Date.now()}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to fetch strategies');
   return res.json();
 }
@@ -500,7 +547,7 @@ export async function createStrategy(data: Partial<StrategyItem>): Promise<Strat
 }
 
 export async function updateStrategy(id: string, data: Partial<StrategyItem>): Promise<StrategyItem> {
-  const res = await fetch(`/api/admin/strategies/${id}`, {
+  const res = await fetch(`/api/admin/strategies/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(data)
@@ -510,10 +557,17 @@ export async function updateStrategy(id: string, data: Partial<StrategyItem>): P
 }
 
 export async function deleteStrategy(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/strategies/${id}`, {
+  const encId = encodeURIComponent(id);
+  let res = await fetch(`/api/admin/strategies/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
+  if (!res.ok) {
+    res = await fetch(`/api/admin/strategies/${encId}/delete?_t=${Date.now()}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+  }
   await checkAdminResponse(res, 'Failed to delete strategy');
 }
 

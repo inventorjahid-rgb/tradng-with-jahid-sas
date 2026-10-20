@@ -635,14 +635,15 @@ api.post('/admin/submissions/ban-id', requireAdmin, async (req: Request, res: Re
 
 const handleSubmissionDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update(d => {
-      d.submissions = (d.submissions || []).filter(s => s.id !== id);
+      d.submissions = (d.submissions || []).filter(s => s.id !== targetId);
     });
-    await db.logAction('Submission Deleted', `Submission ${id} was deleted`);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete submission' });
+    await db.logAction('Submission Deleted', `Submission ${targetId} was deleted`);
+    res.json({ success: true, deletedId: targetId });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to delete submission: ' + (err?.message || err) });
   }
 };
 api.delete('/admin/submissions/:id', requireAdmin, handleSubmissionDelete);
@@ -731,17 +732,18 @@ api.put('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) 
 
 const handleCourseDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log(`[DEBUG] Attempting to delete course: ${id}`);
+  const targetId = decodeURIComponent(id).trim();
+  console.log(`[DEBUG] Attempting to delete course: ${targetId}`);
   try {
     await db.update(d => {
-      d.courses = (d.courses || []).filter(c => c.id !== id);
+      d.courses = (d.courses || []).filter(c => c.id !== targetId && c.slug !== targetId);
     });
-    await db.logAction('Course Deleted', `Course ${id} was deleted`);
-    console.log(`[DEBUG] Successfully deleted course: ${id}`);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(`[DEBUG] Failed to delete course: ${id}`, err);
-    res.status(500).json({ error: 'Failed to delete course' });
+    await db.logAction('Course Deleted', `Course ${targetId} was deleted`);
+    console.log(`[DEBUG] Successfully deleted course: ${targetId}`);
+    res.json({ success: true, deletedId: targetId });
+  } catch (err: any) {
+    console.error(`[DEBUG] Failed to delete course: ${targetId}`, err);
+    res.status(500).json({ error: 'Failed to delete course: ' + (err?.message || err) });
   }
 };
 api.delete('/admin/courses/:id', requireAdmin, handleCourseDelete);
@@ -824,14 +826,15 @@ api.put('/admin/links/:id', requireAdmin, async (req: Request, res: Response) =>
 
 const handleLinkDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update(d => {
-      d.links = (d.links || []).filter(l => l.id !== id);
+      d.links = (d.links || []).filter(l => l.id !== targetId);
     });
-    await db.logAction('Link Deleted', `Link ${id} was deleted`);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete link' });
+    await db.logAction('Link Deleted', `Link ${targetId} was deleted`);
+    res.json({ success: true, deletedId: targetId });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to delete link: ' + (err?.message || err) });
   }
 };
 api.delete('/admin/links/:id', requireAdmin, handleLinkDelete);
@@ -912,14 +915,15 @@ api.put('/admin/portfolio/:id', requireAdmin, async (req: Request, res: Response
 
 const handlePortfolioDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update(d => {
-      d.portfolio = (d.portfolio || []).filter(p => p.id !== id);
+      d.portfolio = (d.portfolio || []).filter(p => p.id !== targetId);
     });
-    await db.logAction('Portfolio Deleted', `Portfolio item ${id} was deleted`);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete portfolio item' });
+    await db.logAction('Portfolio Deleted', `Portfolio item ${targetId} was deleted`);
+    res.json({ success: true, deletedId: targetId });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to delete portfolio item: ' + (err?.message || err) });
   }
 };
 api.delete('/admin/portfolio/:id', requireAdmin, handlePortfolioDelete);
@@ -997,14 +1001,15 @@ api.put('/admin/books/:id', requireAdmin, async (req: Request, res: Response) =>
 
 const handleBookDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update(d => {
-      d.books = (d.books || []).filter(item => item.id !== id);
+      d.books = (d.books || []).filter(item => item.id !== targetId);
     });
-    await db.logAction('Book Deleted', `Book ${id} deleted`);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete book' });
+    await db.logAction('Book Deleted', `Book ${targetId} deleted`);
+    res.json({ success: true, deletedId: targetId });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to delete book: ' + (err?.message || err) });
   }
 };
 api.delete('/admin/books/:id', requireAdmin, handleBookDelete);
@@ -1082,14 +1087,15 @@ api.put('/admin/strategies/:id', requireAdmin, async (req: Request, res: Respons
 
 const handleStrategyDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update(d => {
-      d.strategies = (d.strategies || []).filter(item => item.id !== id);
+      d.strategies = (d.strategies || []).filter(item => item.id !== targetId);
     });
-    await db.logAction('Strategy Deleted', `Strategy ${id} deleted`);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete strategy' });
+    await db.logAction('Strategy Deleted', `Strategy ${targetId} deleted`);
+    res.json({ success: true, deletedId: targetId });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to delete strategy: ' + (err?.message || err) });
   }
 };
 api.delete('/admin/strategies/:id', requireAdmin, handleStrategyDelete);

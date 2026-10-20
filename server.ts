@@ -14,11 +14,11 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 export default app;
 
 async function startServer() {
-  const isProd = process.env.NODE_ENV === 'production';
   const distPath = path.resolve(__dirname, 'dist');
   const distIndex = path.resolve(distPath, 'index.html');
+  const hasDist = fs.existsSync(distIndex);
 
-  if (isProd && !fs.existsSync(distIndex)) {
+  if (process.env.NODE_ENV === 'production' && !hasDist) {
     console.log('Production mode detected but dist/index.html is missing. Building app automatically...');
     try {
       execSync('npm run build', { stdio: 'inherit' });
@@ -27,19 +27,19 @@ async function startServer() {
     }
   }
 
-  if (!isProd || !fs.existsSync(distIndex)) {
+  if (fs.existsSync(distIndex)) {
+    console.log('Serving production static files from dist...');
+    app.use(express.static(distPath));
+    app.get('*', (_req: Request, res: Response) => {
+      res.sendFile(path.resolve(distPath, 'index.html'));
+    });
+  } else {
     console.log('Starting Vite development/middleware server...');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
-    console.log('Serving production static files from dist...');
-    app.use(express.static(distPath));
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.resolve(distPath, 'index.html'));
-    });
   }
 
   app.listen(PORT, '0.0.0.0', () => {

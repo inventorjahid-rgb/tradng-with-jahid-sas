@@ -9,29 +9,51 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+var DEFAULT_FIREBASE_CONFIG = {
+  projectId: "gen-lang-client-0845142804",
+  appId: "1:667788705815:web:a5758ace8d5ff2754b5c52",
+  apiKey: "AIzaSyAaYi9AxoKZGnYKRY3p20Ce0aflSGCIYtE",
+  authDomain: "gen-lang-client-0845142804.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-tradingwithjahid-84b3e1d0-7172-4d83-bf69-4db6867ea1a0",
+  storageBucket: "gen-lang-client-0845142804.firebasestorage.app",
+  messagingSenderId: "667788705815",
+  measurementId: "",
+  oAuthClientId: "667788705815-5c6nfgf1r11cr2mkqodri0c2rjs9i1i8.apps.googleusercontent.com",
+  recaptchaSiteKey: ""
+};
+function getFirebaseConfig() {
+  const configPaths = [
+    path.resolve(process.cwd(), "firebase-applet-config.json"),
+    path.resolve(__dirname, "firebase-applet-config.json"),
+    path.resolve(__dirname, "../firebase-applet-config.json")
+  ];
+  for (const configPath of configPaths) {
+    try {
+      if (fs.existsSync(configPath)) {
+        const parsed = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+        if (parsed && parsed.projectId && parsed.apiKey) {
+          return parsed;
+        }
+      }
+    } catch {
+    }
+  }
+  return DEFAULT_FIREBASE_CONFIG;
+}
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 var firestoreDb = null;
 try {
-  const configPaths = [
-    path.resolve(__dirname, "firebase-applet-config.json"),
-    path.resolve(process.cwd(), "firebase-applet-config.json"),
-    path.resolve(__dirname, "../firebase-applet-config.json")
-  ];
-  for (const configPath of configPaths) {
-    if (fs.existsSync(configPath)) {
-      const configData = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-      if (configData.apiKey && configData.projectId) {
-        const app2 = initializeApp(configData, "server-app-db");
-        firestoreDb = getFirestore(app2, configData.firestoreDatabaseId);
-        break;
-      }
-    }
+  const configData = getFirebaseConfig();
+  if (configData && configData.apiKey && configData.projectId) {
+    const app2 = getApps().find((a) => a.name === "server-app-db") || initializeApp(configData, "server-app-db");
+    firestoreDb = getFirestore(app2, configData.firestoreDatabaseId || "(default)");
+    console.log("[Database] Firestore successfully connected to project:", configData.projectId, "database:", configData.firestoreDatabaseId);
   }
 } catch (e) {
-  console.warn("Warning: Could not initialize Firebase in server/db.ts:", e);
+  console.warn("Warning: Could not initialize Firebase in server/db.ts:", e?.message || e);
 }
 var LOCAL_DATA_PATH = path.resolve(process.cwd(), "data/db.json");
 var TMP_DATA_PATH = path.resolve("/tmp", "trading_jahid_db.json");
@@ -445,31 +467,37 @@ var Database = class {
   }
   async syncFromFirestore() {
     if (!firestoreDb) return;
-    try {
-      const docRef = doc(firestoreDb, "app_state", "main");
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const raw = snap.data();
-        if (raw && raw.payloadString) {
-          this.applyParsedState(raw.payloadString);
-          console.log("[Database] Loaded initial state from Firestore app_state/main");
-        }
-      } else {
-        console.log("[Database] Firestore document app_state/main not found. Seeding initial data.");
-        await this.saveToFirestore(this.data);
-      }
-      onSnapshot(docRef, (updatedSnap) => {
-        if (updatedSnap.exists()) {
-          const raw = updatedSnap.data();
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const docRef = doc(firestoreDb, "app_state", "main");
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const raw = snap.data();
           if (raw && raw.payloadString) {
             this.applyParsedState(raw.payloadString);
+            console.log("[Database] Loaded initial state from Firestore app_state/main");
           }
+        } else {
+          console.log("[Database] Firestore document app_state/main not found. Seeding initial data.");
+          await this.saveToFirestore(this.data);
         }
-      }, (err) => {
-        console.warn("[Database] Realtime onSnapshot sync warning:", err.message);
-      });
-    } catch (e) {
-      console.warn("[Database] Failed to sync database from Firestore at startup:", e?.message || e);
+        onSnapshot(docRef, (updatedSnap) => {
+          if (updatedSnap.exists()) {
+            const raw = updatedSnap.data();
+            if (raw && raw.payloadString) {
+              this.applyParsedState(raw.payloadString);
+            }
+          }
+        }, (err) => {
+          console.warn("[Database] Realtime onSnapshot sync warning:", err.message);
+        });
+        break;
+      } catch (e) {
+        console.warn(`[Database] Attempt ${attempt} failed to sync database from Firestore:`, e?.message || e);
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 800));
+        }
+      }
     }
   }
   applyParsedState(payloadString) {
@@ -636,7 +664,15 @@ var Database = class {
       if (this.data.auditLogs.length > 200) {
         this.data.auditLogs.pop();
       }
-      await this.saveToFile(this.data);
+      const jsonStr = JSON.stringify(this.data, null, 2);
+      try {
+        fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
+      } catch {
+      }
+      try {
+        fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
+      } catch {
+      }
     } catch (e) {
       console.warn("Warning: logAction failed:", e);
     }
@@ -1150,14 +1186,15 @@ api.post("/admin/submissions/ban-id", requireAdmin, async (req, res) => {
 });
 var handleSubmissionDelete = async (req, res) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update((d) => {
-      d.submissions = (d.submissions || []).filter((s) => s.id !== id);
+      d.submissions = (d.submissions || []).filter((s) => s.id !== targetId);
     });
-    await db.logAction("Submission Deleted", `Submission ${id} was deleted`);
-    res.json({ success: true });
+    await db.logAction("Submission Deleted", `Submission ${targetId} was deleted`);
+    res.json({ success: true, deletedId: targetId });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete submission" });
+    res.status(500).json({ error: "Failed to delete submission: " + (err?.message || err) });
   }
 };
 api.delete("/admin/submissions/:id", requireAdmin, handleSubmissionDelete);
@@ -1232,17 +1269,18 @@ api.put("/admin/courses/:id", requireAdmin, async (req, res) => {
 });
 var handleCourseDelete = async (req, res) => {
   const { id } = req.params;
-  console.log(`[DEBUG] Attempting to delete course: ${id}`);
+  const targetId = decodeURIComponent(id).trim();
+  console.log(`[DEBUG] Attempting to delete course: ${targetId}`);
   try {
     await db.update((d) => {
-      d.courses = (d.courses || []).filter((c) => c.id !== id);
+      d.courses = (d.courses || []).filter((c) => c.id !== targetId && c.slug !== targetId);
     });
-    await db.logAction("Course Deleted", `Course ${id} was deleted`);
-    console.log(`[DEBUG] Successfully deleted course: ${id}`);
-    res.json({ success: true });
+    await db.logAction("Course Deleted", `Course ${targetId} was deleted`);
+    console.log(`[DEBUG] Successfully deleted course: ${targetId}`);
+    res.json({ success: true, deletedId: targetId });
   } catch (err) {
-    console.error(`[DEBUG] Failed to delete course: ${id}`, err);
-    res.status(500).json({ error: "Failed to delete course" });
+    console.error(`[DEBUG] Failed to delete course: ${targetId}`, err);
+    res.status(500).json({ error: "Failed to delete course: " + (err?.message || err) });
   }
 };
 api.delete("/admin/courses/:id", requireAdmin, handleCourseDelete);
@@ -1311,14 +1349,15 @@ api.put("/admin/links/:id", requireAdmin, async (req, res) => {
 });
 var handleLinkDelete = async (req, res) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update((d) => {
-      d.links = (d.links || []).filter((l) => l.id !== id);
+      d.links = (d.links || []).filter((l) => l.id !== targetId);
     });
-    await db.logAction("Link Deleted", `Link ${id} was deleted`);
-    res.json({ success: true });
+    await db.logAction("Link Deleted", `Link ${targetId} was deleted`);
+    res.json({ success: true, deletedId: targetId });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete link" });
+    res.status(500).json({ error: "Failed to delete link: " + (err?.message || err) });
   }
 };
 api.delete("/admin/links/:id", requireAdmin, handleLinkDelete);
@@ -1385,14 +1424,15 @@ api.put("/admin/portfolio/:id", requireAdmin, async (req, res) => {
 });
 var handlePortfolioDelete = async (req, res) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update((d) => {
-      d.portfolio = (d.portfolio || []).filter((p) => p.id !== id);
+      d.portfolio = (d.portfolio || []).filter((p) => p.id !== targetId);
     });
-    await db.logAction("Portfolio Deleted", `Portfolio item ${id} was deleted`);
-    res.json({ success: true });
+    await db.logAction("Portfolio Deleted", `Portfolio item ${targetId} was deleted`);
+    res.json({ success: true, deletedId: targetId });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete portfolio item" });
+    res.status(500).json({ error: "Failed to delete portfolio item: " + (err?.message || err) });
   }
 };
 api.delete("/admin/portfolio/:id", requireAdmin, handlePortfolioDelete);
@@ -1456,14 +1496,15 @@ api.put("/admin/books/:id", requireAdmin, async (req, res) => {
 });
 var handleBookDelete = async (req, res) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update((d) => {
-      d.books = (d.books || []).filter((item) => item.id !== id);
+      d.books = (d.books || []).filter((item) => item.id !== targetId);
     });
-    await db.logAction("Book Deleted", `Book ${id} deleted`);
-    res.json({ success: true });
+    await db.logAction("Book Deleted", `Book ${targetId} deleted`);
+    res.json({ success: true, deletedId: targetId });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete book" });
+    res.status(500).json({ error: "Failed to delete book: " + (err?.message || err) });
   }
 };
 api.delete("/admin/books/:id", requireAdmin, handleBookDelete);
@@ -1527,14 +1568,15 @@ api.put("/admin/strategies/:id", requireAdmin, async (req, res) => {
 });
 var handleStrategyDelete = async (req, res) => {
   const { id } = req.params;
+  const targetId = decodeURIComponent(id).trim();
   try {
     await db.update((d) => {
-      d.strategies = (d.strategies || []).filter((item) => item.id !== id);
+      d.strategies = (d.strategies || []).filter((item) => item.id !== targetId);
     });
-    await db.logAction("Strategy Deleted", `Strategy ${id} deleted`);
-    res.json({ success: true });
+    await db.logAction("Strategy Deleted", `Strategy ${targetId} deleted`);
+    res.json({ success: true, deletedId: targetId });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete strategy" });
+    res.status(500).json({ error: "Failed to delete strategy: " + (err?.message || err) });
   }
 };
 api.delete("/admin/strategies/:id", requireAdmin, handleStrategyDelete);
@@ -1726,10 +1768,10 @@ var __dirname3 = path3.dirname(__filename3);
 var PORT = process.env.PORT ? parseInt(process.env.PORT) : 3e3;
 var server_default = app_default;
 async function startServer() {
-  const isProd = process.env.NODE_ENV === "production";
   const distPath = path3.resolve(__dirname3, "dist");
   const distIndex = path3.resolve(distPath, "index.html");
-  if (isProd && !fs3.existsSync(distIndex)) {
+  const hasDist = fs3.existsSync(distIndex);
+  if (process.env.NODE_ENV === "production" && !hasDist) {
     console.log("Production mode detected but dist/index.html is missing. Building app automatically...");
     try {
       execSync("npm run build", { stdio: "inherit" });
@@ -1737,19 +1779,19 @@ async function startServer() {
       console.error("Auto-build failed:", e);
     }
   }
-  if (!isProd || !fs3.existsSync(distIndex)) {
+  if (fs3.existsSync(distIndex)) {
+    console.log("Serving production static files from dist...");
+    app_default.use(express2.static(distPath));
+    app_default.get("*", (_req, res) => {
+      res.sendFile(path3.resolve(distPath, "index.html"));
+    });
+  } else {
     console.log("Starting Vite development/middleware server...");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa"
     });
     app_default.use(vite.middlewares);
-  } else {
-    console.log("Serving production static files from dist...");
-    app_default.use(express2.static(distPath));
-    app_default.get("*", (_req, res) => {
-      res.sendFile(path3.resolve(distPath, "index.html"));
-    });
   }
   app_default.listen(PORT, "0.0.0.0", () => {
     console.log(`[Trading With Jahid] Full-stack Server listening on port ${PORT}`);

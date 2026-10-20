@@ -1,31 +1,53 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+const DEFAULT_FIREBASE_CONFIG = {
+  projectId: "gen-lang-client-0845142804",
+  appId: "1:667788705815:web:a5758ace8d5ff2754b5c52",
+  apiKey: "AIzaSyAaYi9AxoKZGnYKRY3p20Ce0aflSGCIYtE",
+  authDomain: "gen-lang-client-0845142804.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-tradingwithjahid-84b3e1d0-7172-4d83-bf69-4db6867ea1a0",
+  storageBucket: "gen-lang-client-0845142804.firebasestorage.app",
+  messagingSenderId: "667788705815",
+  measurementId: "",
+  oAuthClientId: "667788705815-5c6nfgf1r11cr2mkqodri0c2rjs9i1i8.apps.googleusercontent.com",
+  recaptchaSiteKey: ""
+};
+
+function getFirebaseConfig(): any {
+  const configPaths = [
+    path.resolve(process.cwd(), 'firebase-applet-config.json'),
+    path.resolve(__dirname, 'firebase-applet-config.json'),
+    path.resolve(__dirname, '../firebase-applet-config.json')
+  ];
+  for (const configPath of configPaths) {
+    try {
+      if (fs.existsSync(configPath)) {
+        const parsed = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        if (parsed && parsed.projectId && parsed.apiKey) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return DEFAULT_FIREBASE_CONFIG;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let firestoreDb: any = null;
 try {
-  const configPaths = [
-    path.resolve(__dirname, 'firebase-applet-config.json'),
-    path.resolve(process.cwd(), 'firebase-applet-config.json'),
-    path.resolve(__dirname, '../firebase-applet-config.json')
-  ];
-  for (const configPath of configPaths) {
-    if (fs.existsSync(configPath)) {
-      const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      if (configData.apiKey && configData.projectId) {
-        const app = initializeApp(configData, 'server-app-db');
-        firestoreDb = getFirestore(app, configData.firestoreDatabaseId);
-        break;
-      }
-    }
+  const configData = getFirebaseConfig();
+  if (configData && configData.apiKey && configData.projectId) {
+    const app = getApps().find(a => a.name === 'server-app-db') || initializeApp(configData, 'server-app-db');
+    firestoreDb = getFirestore(app, configData.firestoreDatabaseId || '(default)');
+    console.log('[Database] Firestore successfully connected to project:', configData.projectId, 'database:', configData.firestoreDatabaseId);
   }
-} catch (e) {
-  console.warn('Warning: Could not initialize Firebase in server/db.ts:', e);
+} catch (e: any) {
+  console.warn('Warning: Could not initialize Firebase in server/db.ts:', e?.message || e);
 }
 
 const LOCAL_DATA_PATH = path.resolve(process.cwd(), 'data/db.json');
@@ -607,33 +629,39 @@ class Database {
 
   private async syncFromFirestore() {
     if (!firestoreDb) return;
-    try {
-      const docRef = doc(firestoreDb, 'app_state', 'main');
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const raw = snap.data();
-        if (raw && raw.payloadString) {
-          this.applyParsedState(raw.payloadString);
-          console.log('[Database] Loaded initial state from Firestore app_state/main');
-        }
-      } else {
-        console.log('[Database] Firestore document app_state/main not found. Seeding initial data.');
-        await this.saveToFirestore(this.data);
-      }
-
-      // Attach continuous real-time listener so changes from any container or admin propagate immediately
-      onSnapshot(docRef, (updatedSnap) => {
-        if (updatedSnap.exists()) {
-          const raw = updatedSnap.data();
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const docRef = doc(firestoreDb, 'app_state', 'main');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const raw = snap.data();
           if (raw && raw.payloadString) {
             this.applyParsedState(raw.payloadString);
+            console.log('[Database] Loaded initial state from Firestore app_state/main');
           }
+        } else {
+          console.log('[Database] Firestore document app_state/main not found. Seeding initial data.');
+          await this.saveToFirestore(this.data);
         }
-      }, (err) => {
-        console.warn('[Database] Realtime onSnapshot sync warning:', err.message);
-      });
-    } catch (e: any) {
-      console.warn('[Database] Failed to sync database from Firestore at startup:', e?.message || e);
+
+        // Attach continuous real-time listener so changes from any container or admin propagate immediately
+        onSnapshot(docRef, (updatedSnap) => {
+          if (updatedSnap.exists()) {
+            const raw = updatedSnap.data();
+            if (raw && raw.payloadString) {
+              this.applyParsedState(raw.payloadString);
+            }
+          }
+        }, (err) => {
+          console.warn('[Database] Realtime onSnapshot sync warning:', err.message);
+        });
+        break;
+      } catch (e: any) {
+        console.warn(`[Database] Attempt ${attempt} failed to sync database from Firestore:`, e?.message || e);
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 800));
+        }
+      }
     }
   }
 
@@ -814,7 +842,13 @@ class Database {
       if (this.data.auditLogs.length > 200) {
         this.data.auditLogs.pop();
       }
-      await this.saveToFile(this.data);
+      const jsonStr = JSON.stringify(this.data, null, 2);
+      try {
+        fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, 'utf-8');
+      } catch {}
+      try {
+        fs.writeFileSync(TMP_DATA_PATH, jsonStr, 'utf-8');
+      } catch {}
     } catch (e) {
       console.warn('Warning: logAction failed:', e);
     }

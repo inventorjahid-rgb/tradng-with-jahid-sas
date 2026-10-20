@@ -67,30 +67,6 @@
   "courses": [],
   "links": [
     {
-      "id": "link-tg-community",
-      "title": "Telegram Trading Community",
-      "category": "Telegram Group",
-      "url": "https://t.me/tradewithjahid",
-      "description": "Join 14,800+ active members for daily market charts, discussions, and updates.",
-      "iconName": "Send",
-      "buttonLabel": "Join Community",
-      "displayLocations": [
-        "navbar",
-        "hero",
-        "social_section",
-        "community_page",
-        "footer",
-        "floating"
-      ],
-      "order": 1,
-      "isActive": true,
-      "isFeatured": true,
-      "openInNewTab": true,
-      "clickCount": 1422,
-      "createdAt": "2026-01-01T00:00:00Z",
-      "lastClickedAt": "2026-10-13T16:37:03.752Z"
-    },
-    {
       "id": "link-tg-admin",
       "title": "Contact Jahid (Telegram Admin)",
       "category": "Telegram Admin / Direct Contact",
@@ -110,65 +86,6 @@
       "isFeatured": true,
       "openInNewTab": true,
       "clickCount": 890,
-      "createdAt": "2026-01-01T00:00:00Z"
-    },
-    {
-      "id": "link-youtube",
-      "title": "YouTube Channel (Daily Breakdowns)",
-      "category": "YouTube Channel",
-      "url": "https://youtube.com/@tradingwithjahid",
-      "description": "Weekly live trading sessions, strategy guides, and market commentary.",
-      "iconName": "Youtube",
-      "buttonLabel": "Subscribe",
-      "displayLocations": [
-        "social_section",
-        "footer"
-      ],
-      "order": 3,
-      "isActive": true,
-      "isFeatured": false,
-      "openInNewTab": true,
-      "clickCount": 655,
-      "createdAt": "2026-01-01T00:00:00Z",
-      "lastClickedAt": "2026-10-13T16:37:10.409Z"
-    },
-    {
-      "id": "link-facebook",
-      "title": "Facebook Official Page",
-      "category": "Facebook Page",
-      "url": "https://facebook.com/tradingwithjahid",
-      "description": "Follow announcements, educational snippets, and trade recaps.",
-      "iconName": "Facebook",
-      "buttonLabel": "Follow Page",
-      "displayLocations": [
-        "social_section",
-        "footer"
-      ],
-      "order": 4,
-      "isActive": true,
-      "isFeatured": false,
-      "openInNewTab": true,
-      "clickCount": 312,
-      "createdAt": "2026-01-01T00:00:00Z"
-    },
-    {
-      "id": "link-whatsapp",
-      "title": "WhatsApp Priority Desk",
-      "category": "WhatsApp Direct Contact",
-      "url": "https://wa.me/message/TRADINGWITHJAHID",
-      "description": "Priority chat for payment verification, course access, and technical questions.",
-      "iconName": "PhoneCall",
-      "buttonLabel": "Chat on WhatsApp",
-      "displayLocations": [
-        "social_section",
-        "contact_page",
-        "floating"
-      ],
-      "order": 5,
-      "isActive": true,
-      "isFeatured": false,
-      "openInNewTab": true,
-      "clickCount": 440,
       "createdAt": "2026-01-01T00:00:00Z"
     }
   ],
@@ -224,20 +141,6 @@
   ],
   "portfolio": [
     {
-      "id": "port-1",
-      "title": "EUR/USD London Killzone Liquidity Sweep",
-      "instrument": "Forex",
-      "pair": "EUR/USD",
-      "outcome": "WIN",
-      "riskReward": "1:4.8 RR",
-      "profitPercentage": "+4.8%",
-      "screenshotUrl": "/images/forex_course_cover_1791906599347.jpg",
-      "date": "October 2026",
-      "educationalNote": "Asian session highs were swept at London Open followed by a clean 5-minute Market Structure Shift (MSS). Entered on the Fair Value Gap retest with 7 pip stop loss.",
-      "published": true,
-      "order": 1
-    },
-    {
       "id": "port-2",
       "title": "USD/JPY 60-Second Bollinger Squeeze Breakout",
       "instrument": "Binary",
@@ -283,17 +186,6 @@
   "books": [],
   "strategies": [
     {
-      "id": "strat-2",
-      "title": "1-Minute Binary Bollinger Squeeze Rejection",
-      "category": "Binary Options",
-      "description": "Look for volatility contraction on Bollinger Bands paired with RSI divergence and wick rejection at major support/resistance.",
-      "imageUrl": "/images/binary_course_cover_1791906598444.jpg",
-      "winRate": "82.1% Payout Accuracy",
-      "published": true,
-      "order": 2,
-      "createdAt": "2026-01-12T10:00:00Z"
-    },
-    {
       "id": "strat-3",
       "title": "Algorithmic Trend Following Bot Setup",
       "category": "Quantitative Bot",
@@ -306,6 +198,73 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log-1792502385921-524",
+      "action": "Link Deleted",
+      "details": "Link link-1792502385769 was deleted",
+      "timestamp": "2026-10-20T13:19:45.921Z"
+    },
+    {
+      "id": "log-1792501565402-45",
+      "action": "Link Deleted",
+      "details": "Link link-youtube was deleted",
+      "timestamp": "2026-10-20T13:06:05.402Z"
+    },
+    {
+      "id": "log-1792500870564-303",
+      "action": "Link Deleted",
+      "details": "Link link-facebook was deleted",
+      "timestamp": "2026-10-20T12:54:30.565Z"
+    },
+    {
+      "id": "log-1792425312177-177",
+      "action": "Portfolio Deleted",
+      "details": "Portfolio item port-1 was deleted",
+      "timestamp": "2026-10-19T15:55:12.177Z"
+    },
+    {
+      "id": "log-1792425253770-812",
+      "action": "Link Deleted",
+      "details": "Link link-tg-community was deleted",
+      "timestamp": "2026-10-19T15:54:13.770Z"
+    },
+    {
+      "id": "log-1792425012439-497",
+      "action": "Link Deleted",
+      "details": "Link link-whatsapp was deleted",
+      "timestamp": "2026-10-19T15:50:12.439Z"
+    },
+    {
+      "id": "log-1792424879881-271",
+      "action": "Course Deleted",
+      "details": "Course test-course was deleted",
+      "timestamp": "2026-10-19T15:47:59.881Z"
+    },
+    {
+      "id": "log-1792424400578-443",
+      "action": "Strategy Deleted",
+      "details": "Strategy strat-2 deleted",
+      "timestamp": "2026-10-19T15:40:00.578Z"
+    },
+    {
+      "id": "log-1792424396109-972",
+      "action": "Strategy Deleted",
+      "details": "Strategy strat-2 deleted",
+      "timestamp": "2026-10-19T15:39:56.109Z"
+    },
+    {
+      "id": "log-1792424381293-185",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-19T15:39:41.293Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792423907534-372",
+      "action": "Course Deleted",
+      "details": "Course course-1792423907297 was deleted",
+      "timestamp": "2026-10-19T15:31:47.534Z"
+    },
     {
       "id": "log-1792423907414-245",
       "action": "Course Created",
