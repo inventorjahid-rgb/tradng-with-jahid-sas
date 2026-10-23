@@ -64,31 +64,47 @@
     "backgroundStyle": "matte_obsidian",
     "enableOnMobile": true
   },
-  "courses": [],
-  "links": [
+  "courses": [
     {
-      "id": "link-tg-admin",
-      "title": "Contact Jahid (Telegram Admin)",
-      "category": "Telegram Admin / Direct Contact",
-      "url": "https://t.me/tradewithjahid",
-      "description": "Direct official inquiry for 1-on-1 mentorship, bot setup, and verification support.",
-      "iconName": "MessageCircle",
-      "buttonLabel": "Contact Admin",
-      "displayLocations": [
-        "hero",
-        "social_section",
-        "contact_page",
-        "footer",
-        "floating"
-      ],
-      "order": 2,
-      "isActive": true,
-      "isFeatured": true,
-      "openInNewTab": true,
-      "clickCount": 890,
-      "createdAt": "2026-01-01T00:00:00Z"
+      "id": "course-1792743496669",
+      "slug": "course-1",
+      "title": "Course 1",
+      "category": "Binary Trading Course",
+      "shortDesc": "",
+      "fullDesc": "",
+      "coverImage": "/images/hero_trading_terminal_1791906597313.jpg",
+      "accessMode": "new_account",
+      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_vip",
+      "joinUrl": "https://t.me/tradewithjahid",
+      "modules": [],
+      "requirements": "Broker Account ID required.",
+      "faqs": [],
+      "published": true,
+      "featured": false,
+      "order": 99,
+      "createdAt": "2026-10-23T08:18:16.669Z"
+    },
+    {
+      "id": "course-1792743496766",
+      "slug": "course-2",
+      "title": "Course 2",
+      "category": "Forex Trading Course",
+      "shortDesc": "",
+      "fullDesc": "",
+      "coverImage": "/images/hero_trading_terminal_1791906597313.jpg",
+      "accessMode": "new_account",
+      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_vip",
+      "joinUrl": "https://t.me/tradewithjahid",
+      "modules": [],
+      "requirements": "Broker Account ID required.",
+      "faqs": [],
+      "published": true,
+      "featured": false,
+      "order": 99,
+      "createdAt": "2026-10-23T08:18:16.766Z"
     }
   ],
+  "links": [],
   "submissions": [],
   "portfolio": [
     {
@@ -137,6 +153,36 @@
   "books": [],
   "strategies": [],
   "auditLogs": [
+    {
+      "id": "log-1792743503047-151",
+      "action": "Course Deleted",
+      "details": "Course course-1792743496827 was deleted",
+      "timestamp": "2026-10-23T08:18:23.047Z"
+    },
+    {
+      "id": "log-1792743496880-622",
+      "action": "Course Created",
+      "details": "Course \"Course 3\" created",
+      "timestamp": "2026-10-23T08:18:16.880Z"
+    },
+    {
+      "id": "log-1792743496821-623",
+      "action": "Course Created",
+      "details": "Course \"Course 2\" created",
+      "timestamp": "2026-10-23T08:18:16.821Z"
+    },
+    {
+      "id": "log-1792743496748-186",
+      "action": "Course Created",
+      "details": "Course \"Course 1\" created",
+      "timestamp": "2026-10-23T08:18:16.748Z"
+    },
+    {
+      "id": "log-1792743368061-898",
+      "action": "Link Deleted",
+      "details": "Link link-tg-admin was deleted",
+      "timestamp": "2026-10-23T08:16:08.061Z"
+    },
     {
       "id": "log-1792742335144-236",
       "action": "Settings Updated",

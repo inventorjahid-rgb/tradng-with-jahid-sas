@@ -263,7 +263,7 @@ export async function updateCourse(id: string, data: Partial<CourseService>): Pr
   return res.json();
 }
 
-export async function deleteCourse(id: string): Promise<void> {
+export async function deleteCourse(id: string): Promise<any> {
   const encId = encodeURIComponent(id);
   let res = await fetch(`/api/admin/courses/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
@@ -276,6 +276,7 @@ export async function deleteCourse(id: string): Promise<void> {
     });
   }
   await checkAdminResponse(res, 'Failed to delete course');
+  return res.json();
 }
 
 export async function fetchAdminLinks(): Promise<SocialLink[]> {
@@ -304,7 +305,7 @@ export async function updateLink(id: string, data: Partial<SocialLink>): Promise
   return res.json();
 }
 
-export async function deleteLink(id: string): Promise<void> {
+export async function deleteLink(id: string): Promise<any> {
   const encId = encodeURIComponent(id);
   let res = await fetch(`/api/admin/links/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
@@ -317,6 +318,7 @@ export async function deleteLink(id: string): Promise<void> {
     });
   }
   await checkAdminResponse(res, 'Failed to delete link');
+  return res.json();
 }
 
 export async function fetchAdminPortfolio(): Promise<PortfolioItem[]> {
@@ -345,7 +347,7 @@ export async function updatePortfolioItem(id: string, data: Partial<PortfolioIte
   return res.json();
 }
 
-export async function deletePortfolioItem(id: string): Promise<void> {
+export async function deletePortfolioItem(id: string): Promise<any> {
   const encId = encodeURIComponent(id);
   let res = await fetch(`/api/admin/portfolio/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
@@ -358,6 +360,7 @@ export async function deletePortfolioItem(id: string): Promise<void> {
     });
   }
   await checkAdminResponse(res, 'Failed to delete portfolio item');
+  return res.json();
 }
 
 export async function updateWebsiteSettings(settings: Partial<WebsiteSettings>): Promise<WebsiteSettings> {
@@ -515,7 +518,7 @@ export async function updateBook(id: string, data: Partial<BookItem>): Promise<B
   return res.json();
 }
 
-export async function deleteBook(id: string): Promise<void> {
+export async function deleteBook(id: string): Promise<any> {
   const encId = encodeURIComponent(id);
   let res = await fetch(`/api/admin/books/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
@@ -528,6 +531,7 @@ export async function deleteBook(id: string): Promise<void> {
     });
   }
   await checkAdminResponse(res, 'Failed to delete book');
+  return res.json();
 }
 
 export async function fetchAdminStrategies(): Promise<StrategyItem[]> {
@@ -556,7 +560,7 @@ export async function updateStrategy(id: string, data: Partial<StrategyItem>): P
   return res.json();
 }
 
-export async function deleteStrategy(id: string): Promise<void> {
+export async function deleteStrategy(id: string): Promise<any> {
   const encId = encodeURIComponent(id);
   let res = await fetch(`/api/admin/strategies/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
@@ -569,6 +573,7 @@ export async function deleteStrategy(id: string): Promise<void> {
     });
   }
   await checkAdminResponse(res, 'Failed to delete strategy');
+  return res.json();
 }
 
 export async function banTraderId(accountId: string, reason?: string): Promise<{ success: boolean; message: string }> {

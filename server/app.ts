@@ -733,16 +733,15 @@ api.put('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) 
 const handleCourseDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
-  console.log(`[DEBUG] Attempting to delete course: ${targetId}`);
   try {
+    let updatedCourses: CourseService[] = [];
     await db.update(d => {
-      d.courses = (d.courses || []).filter(c => c.id !== targetId && c.slug !== targetId);
+      d.courses = (d.courses || []).filter(c => c.id !== targetId);
+      updatedCourses = d.courses;
     });
     await db.logAction('Course Deleted', `Course ${targetId} was deleted`);
-    console.log(`[DEBUG] Successfully deleted course: ${targetId}`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, courses: updatedCourses });
   } catch (err: any) {
-    console.error(`[DEBUG] Failed to delete course: ${targetId}`, err);
     res.status(500).json({ error: 'Failed to delete course: ' + (err?.message || err) });
   }
 };
@@ -828,11 +827,13 @@ const handleLinkDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedLinks: SocialLink[] = [];
     await db.update(d => {
       d.links = (d.links || []).filter(l => l.id !== targetId);
+      updatedLinks = d.links;
     });
     await db.logAction('Link Deleted', `Link ${targetId} was deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, links: updatedLinks });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete link: ' + (err?.message || err) });
   }
@@ -917,11 +918,13 @@ const handlePortfolioDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedPortfolio: PortfolioItem[] = [];
     await db.update(d => {
       d.portfolio = (d.portfolio || []).filter(p => p.id !== targetId);
+      updatedPortfolio = d.portfolio;
     });
     await db.logAction('Portfolio Deleted', `Portfolio item ${targetId} was deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, portfolio: updatedPortfolio });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete portfolio item: ' + (err?.message || err) });
   }
@@ -1003,11 +1006,13 @@ const handleBookDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedBooks: any[] = [];
     await db.update(d => {
       d.books = (d.books || []).filter(item => item.id !== targetId);
+      updatedBooks = d.books;
     });
     await db.logAction('Book Deleted', `Book ${targetId} deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, books: updatedBooks });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete book: ' + (err?.message || err) });
   }
@@ -1089,11 +1094,13 @@ const handleStrategyDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedStrategies: any[] = [];
     await db.update(d => {
       d.strategies = (d.strategies || []).filter(item => item.id !== targetId);
+      updatedStrategies = d.strategies;
     });
     await db.logAction('Strategy Deleted', `Strategy ${targetId} deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, strategies: updatedStrategies });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete strategy: ' + (err?.message || err) });
   }

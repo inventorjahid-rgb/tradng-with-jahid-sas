@@ -1151,8 +1151,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 message: `Are you sure you want to permanently delete course "${course.title}"?`,
                                 confirmButtonText: 'Yes, Delete Course',
                                 onConfirm: async () => {
-                                  await deleteCourse(course.id);
-                                  setCourses(prev => prev.filter(c => c.id !== course.id));
+                                  const result = await deleteCourse(course.id);
+                                  if (result && result.courses) {
+                                    setCourses(result.courses);
+                                  } else {
+                                    setCourses(prev => prev.filter(c => c.id !== course.id));
+                                  }
                                   await loadAllAdminData();
                                   notifySaved(`Deleted ${course.title}`);
                                 }
@@ -1256,8 +1260,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     message: `Are you sure you want to permanently delete link "${link.title}"?`,
                                     confirmButtonText: 'Yes, Delete Link',
                                     onConfirm: async () => {
-                                  await deleteLink(link.id);
-                                      setLinks(prev => prev.filter(l => l.id !== link.id));
+                                      const result = await deleteLink(link.id);
+                                      if (result && result.links) {
+                                        setLinks(result.links);
+                                      } else {
+                                        setLinks(prev => prev.filter(l => l.id !== link.id));
+                                      }
                                       await loadAllAdminData();
                                       notifySaved(`Deleted ${link.title}`);
                                     }
@@ -1352,8 +1360,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   message: `Are you sure you want to permanently delete trade "${item.title}"?`,
                                   confirmButtonText: 'Yes, Delete Trade',
                                   onConfirm: async () => {
-                                    await deletePortfolioItem(item.id);
-                                    setPortfolio(prev => prev.filter(p => p.id !== item.id));
+                                    const result = await deletePortfolioItem(item.id);
+                                    if (result && result.portfolio) {
+                                      setPortfolio(result.portfolio);
+                                    } else {
+                                      setPortfolio(prev => prev.filter(p => p.id !== item.id));
+                                    }
                                     await loadAllAdminData();
                                     notifySaved('Deleted trade');
                                   }
@@ -1440,8 +1452,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   message: `Are you sure you want to permanently delete this book?`,
                                   confirmButtonText: 'Yes, Delete Book',
                                   onConfirm: async () => {
-                                    await deleteBook(book.id);
-                                    setBooks(prev => prev.filter(b => b.id !== book.id));
+                                    const result = await deleteBook(book.id);
+                                    if (result && result.books) {
+                                      setBooks(result.books);
+                                    } else {
+                                      setBooks(prev => prev.filter(b => b.id !== book.id));
+                                    }
                                     await loadAllAdminData();
                                     notifySaved('Deleted book');
                                   }
@@ -1523,8 +1539,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   message: `Are you sure you want to permanently delete this strategy?`,
                                   confirmButtonText: 'Yes, Delete Strategy',
                                   onConfirm: async () => {
-                                    await deleteStrategy(strat.id);
-                                    setStrategies(prev => prev.filter(s => s.id !== strat.id));
+                                    const result = await deleteStrategy(strat.id);
+                                    if (result && result.strategies) {
+                                      setStrategies(result.strategies);
+                                    } else {
+                                      setStrategies(prev => prev.filter(s => s.id !== strat.id));
+                                    }
                                     await loadAllAdminData();
                                     notifySaved('Deleted strategy');
                                   }
@@ -2370,10 +2390,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsSavingCourse(true);
                 try {
                   if (editingCourse.id) {
-                    await updateCourse(editingCourse.id, editingCourse);
+                    const updated = await updateCourse(editingCourse.id, editingCourse);
+                    setCourses(prev => prev.map(c => c.id === updated.id ? updated : c));
                     notifySaved(`Updated course`);
                   } else {
-                    await createCourse(editingCourse);
+                    const created = await createCourse(editingCourse);
+                    setCourses(prev => [...prev, created]);
                     notifySaved(`Created course`);
                   }
                   setEditingCourse(null);
@@ -2541,10 +2563,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsSavingLink(true);
                 try {
                   if (editingLink.id) {
-                    await updateLink(editingLink.id, editingLink);
+                    const updated = await updateLink(editingLink.id, editingLink);
+                    setLinks(prev => prev.map(l => l.id === updated.id ? updated : l));
                     notifySaved(`Updated link`);
                   } else {
-                    await createLink(editingLink);
+                    const created = await createLink(editingLink);
+                    setLinks(prev => [...prev, created]);
                     notifySaved(`Created link`);
                   }
                   setEditingLink(null);
@@ -2690,10 +2714,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsSavingPortfolio(true);
                 try {
                   if (editingPortfolio.id) {
-                    await updatePortfolioItem(editingPortfolio.id, editingPortfolio);
+                    const updated = await updatePortfolioItem(editingPortfolio.id, editingPortfolio);
+                    setPortfolio(prev => prev.map(p => p.id === updated.id ? updated : p));
                     notifySaved(`Updated trade breakdown`);
                   } else {
-                    await createPortfolioItem(editingPortfolio);
+                    const created = await createPortfolioItem(editingPortfolio);
+                    setPortfolio(prev => [...prev, created]);
                     notifySaved(`Created trade breakdown`);
                   }
                   setEditingPortfolio(null);
@@ -2902,10 +2928,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsSavingBook(true);
                 try {
                   if (editingBook.id) {
-                    await updateBook(editingBook.id, editingBook);
+                    const updated = await updateBook(editingBook.id, editingBook);
+                    setBooks(prev => prev.map(b => b.id === updated.id ? updated : b));
                     notifySaved('Updated book');
                   } else {
-                    await createBook(editingBook);
+                    const created = await createBook(editingBook);
+                    setBooks(prev => [...prev, created]);
                     notifySaved('Created book');
                   }
                   setEditingBook(null);
@@ -3050,10 +3078,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsSavingStrategy(true);
                 try {
                   if (editingStrategy.id) {
-                    await updateStrategy(editingStrategy.id, editingStrategy);
+                    const updated = await updateStrategy(editingStrategy.id, editingStrategy);
+                    setStrategies(prev => prev.map(s => s.id === updated.id ? updated : s));
                     notifySaved('Updated strategy');
                   } else {
-                    await createStrategy(editingStrategy);
+                    const created = await createStrategy(editingStrategy);
+                    setStrategies(prev => [...prev, created]);
                     notifySaved('Created strategy');
                   }
                   setEditingStrategy(null);

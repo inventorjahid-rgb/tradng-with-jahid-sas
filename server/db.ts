@@ -672,6 +672,9 @@ const INITIAL_DATA: DatabaseSchema = {
 class Database {
   private data: DatabaseSchema;
   private initPromise: Promise<void>;
+  private updateQueue: Promise<any> = Promise.resolve();
+  private currentVersion: number = Date.now();
+  private isSaving: boolean = false;
 
   constructor() {
     this.data = this.loadFromFile();
@@ -687,19 +690,33 @@ class Database {
         if (snap.exists()) {
           const raw = snap.data();
           if (raw && raw.payloadString) {
+            const remoteVersion = typeof raw.version === 'number' ? raw.version : 0;
+            this.currentVersion = Math.max(this.currentVersion, remoteVersion);
             this.applyParsedState(raw.payloadString);
-            console.log('[Database] Loaded initial state from Firestore app_state/main');
+            console.log(`[Database] Loaded initial state from Firestore app_state/main (version: ${this.currentVersion})`);
           }
         } else {
           console.log('[Database] Firestore document app_state/main not found. Seeding initial data.');
-          await this.saveToFirestore(this.data);
+          await this.saveToFirestore(this.data, this.currentVersion);
         }
 
-        // Attach continuous real-time listener so changes from any container or admin propagate immediately
+        // Attach continuous real-time listener with version and pending write protection
         onSnapshot(docRef, (updatedSnap) => {
           if (updatedSnap.exists()) {
+            // Ignore local metadata writes
+            if (updatedSnap.metadata.hasPendingWrites) {
+              return;
+            }
             const raw = updatedSnap.data();
             if (raw && raw.payloadString) {
+              const remoteVersion = typeof raw.version === 'number' ? raw.version : 0;
+              // Ignore any snapshot that is older than or equal to our local version!
+              // This completely prevents echoes of previous writes from wiping newly added or deleted items!
+              if (remoteVersion <= this.currentVersion) {
+                return;
+              }
+              console.log(`[Database] Applying newer remote state from Firestore (${remoteVersion} > ${this.currentVersion})`);
+              this.currentVersion = remoteVersion;
               this.applyParsedState(raw.payloadString);
             }
           }
@@ -793,8 +810,9 @@ class Database {
     }
   }
 
-  private async saveToFirestore(data: DatabaseSchema) {
+  private async saveToFirestore(data: DatabaseSchema, version: number) {
     if (!firestoreDb) return;
+    this.isSaving = true;
     try {
       const cloned = JSON.parse(JSON.stringify(data));
       this.sanitizeData(cloned);
@@ -804,6 +822,7 @@ class Database {
       
       const firestorePromise = setDoc(docRef, {
         payloadString,
+        version,
         updatedAt: new Date().toISOString()
       });
 
@@ -812,9 +831,11 @@ class Database {
         firestorePromise,
         new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore save timed out after 4000ms')), 4000))
       ]);
-      console.log(`[Firestore] Saved state (${payloadString.length} bytes) to app_state/main`);
+      console.log(`[Firestore] Saved state (${payloadString.length} bytes, version: ${version}) to app_state/main`);
     } catch (e: any) {
       console.error('[Firestore] CRITICAL: Failed to save to Firestore:', e?.message || e);
+    } finally {
+      this.isSaving = false;
     }
   }
 
@@ -860,7 +881,7 @@ class Database {
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
 
-  private async saveToFile(data: DatabaseSchema) {
+  private async saveToFile(data: DatabaseSchema, version: number) {
     this.sanitizeData(data);
     const jsonStr = JSON.stringify(data, null, 2);
     try {
@@ -882,7 +903,7 @@ class Database {
       console.warn('Warning: Could not save data to TMP_DATA_PATH:', e);
     }
 
-    await this.saveToFirestore(data);
+    await this.saveToFirestore(data, version);
   }
 
   public async get(): Promise<DatabaseSchema> {
@@ -892,9 +913,21 @@ class Database {
 
   public async update(updater: (data: DatabaseSchema) => void): Promise<DatabaseSchema> {
     await this.initPromise;
-    updater(this.data);
-    await this.saveToFile(this.data);
-    return this.data;
+    // Sequential mutex queue so concurrent writes never interleave or clobber each other
+    return new Promise<DatabaseSchema>((resolve, reject) => {
+      this.updateQueue = this.updateQueue.then(async () => {
+        try {
+          this.currentVersion = Date.now();
+          updater(this.data);
+          await this.saveToFile(this.data, this.currentVersion);
+          resolve(this.data);
+        } catch (err) {
+          reject(err);
+        }
+      }).catch(err => {
+        reject(err);
+      });
+    });
   }
 
   public async logAction(action: string, details: string, ip?: string) {
