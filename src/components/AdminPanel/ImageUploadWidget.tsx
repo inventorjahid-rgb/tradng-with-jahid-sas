@@ -87,14 +87,21 @@ function compressImage(file: File): Promise<string> {
     try {
       setIsUploading(true);
       setErrorMsg('');
+
+      // 1. First priority: upload directly to server to get permanent lightweight URL
+      try {
+        const uploadRes = await uploadImage(file);
+        if (uploadRes && uploadRes.url) {
+          onChange(uploadRes.url);
+          return;
+        }
+      } catch (uploadErr) {
+        console.warn('Direct upload notice, using compressed device preview fallback:', uploadErr);
+      }
+
+      // 2. Fallback: compress and store base64 preview (server will auto-convert to file upon saving)
       const compressedDataUrl = await compressImage(file);
       onChange(compressedDataUrl);
-
-      try {
-        await uploadImage(file);
-      } catch (err) {
-        console.warn('Backend upload notice:', err);
-      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to process image from device');
     } finally {
@@ -241,7 +248,7 @@ function compressImage(file: File): Promise<string> {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={allowPdf ? 'image/*,.pdf,application/pdf' : 'image/*'}
               onChange={onInputChange}
               className="hidden"
             />

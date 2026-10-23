@@ -157,6 +157,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isSavingAnimations, setIsSavingAnimations] = useState(false);
+  const [isSavingCourse, setIsSavingCourse] = useState(false);
+  const [isSavingLink, setIsSavingLink] = useState(false);
+  const [isSavingPortfolio, setIsSavingPortfolio] = useState(false);
+  const [isSavingBook, setIsSavingBook] = useState(false);
+  const [isSavingStrategy, setIsSavingStrategy] = useState(false);
+  const [isSavingReview, setIsSavingReview] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -1547,8 +1555,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <form
                     onSubmit={async e => {
                       e.preventDefault();
-                      await updateAnimationSettings(animationsForm);
-                      notifySaved('Visual effects settings saved & updated on live website');
+                      setIsSavingAnimations(true);
+                      try {
+                        await updateAnimationSettings(animationsForm);
+                        notifySaved('Visual effects settings saved & updated on live website');
+                      } catch (err: any) {
+                        alert(err.message || 'Failed to save animation settings');
+                      } finally {
+                        setIsSavingAnimations(false);
+                      }
                     }}
                     className="space-y-6 bg-[#111715] p-6 sm:p-8 rounded-2xl border border-white/10"
                   >
@@ -1679,10 +1694,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="pt-4 flex justify-end">
                       <button
                         type="submit"
-                        className="px-6 py-2.5 text-xs font-bold text-black bg-[#00D084] hover:bg-[#00e692] rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md uppercase tracking-wider"
+                        disabled={isSavingAnimations}
+                        className="px-6 py-2.5 text-xs font-bold text-black bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md uppercase tracking-wider transition-all"
                       >
-                        <Save className="w-4 h-4" />
-                        <span>Save & Apply Visual Effects</span>
+                        {isSavingAnimations ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span>Saving Effects...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            <span>Save & Apply Visual Effects</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>
@@ -1702,8 +1727,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <form
                     onSubmit={async e => {
                       e.preventDefault();
-                      await updateWebsiteSettings(settingsForm);
-                      notifySaved('Website brand settings updated successfully');
+                      setIsSavingSettings(true);
+                      try {
+                        const saved = await updateWebsiteSettings(settingsForm);
+                        if (saved) {
+                          setSettingsForm(saved);
+                        }
+                        notifySaved('Website brand settings updated successfully');
+                      } catch (err: any) {
+                        alert(err.message || 'Failed to update website settings');
+                      } finally {
+                        setIsSavingSettings(false);
+                      }
                     }}
                     className="space-y-5 bg-[#111715] p-6 sm:p-8 rounded-2xl border border-white/10"
                   >
@@ -1937,10 +1972,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="pt-4 flex justify-end">
                       <button
                         type="submit"
-                        className="px-6 py-2.5 text-xs font-bold text-black bg-[#00D084] hover:bg-[#00e692] rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md uppercase tracking-wider"
+                        disabled={isSavingSettings}
+                        className="px-6 py-2.5 text-xs font-bold text-black bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-md uppercase tracking-wider transition-all"
                       >
-                        <Save className="w-4 h-4" />
-                        <span>Save All Settings</span>
+                        {isSavingSettings ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span>Saving Settings...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            <span>Save All Settings</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>
@@ -2321,15 +2366,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form
               onSubmit={async e => {
                 e.preventDefault();
-                if (editingCourse.id) {
-                  await updateCourse(editingCourse.id, editingCourse);
-                  notifySaved(`Updated course`);
-                } else {
-                  await createCourse(editingCourse);
-                  notifySaved(`Created course`);
+                if (!editingCourse) return;
+                setIsSavingCourse(true);
+                try {
+                  if (editingCourse.id) {
+                    await updateCourse(editingCourse.id, editingCourse);
+                    notifySaved(`Updated course`);
+                  } else {
+                    await createCourse(editingCourse);
+                    notifySaved(`Created course`);
+                  }
+                  setEditingCourse(null);
+                  await loadAllAdminData();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save course');
+                } finally {
+                  setIsSavingCourse(false);
                 }
-                setEditingCourse(null);
-                loadAllAdminData();
               }}
               className="space-y-4 text-xs"
             >
@@ -2450,9 +2503,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] rounded-xl"
+                  disabled={isSavingCourse}
+                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
                 >
-                  Save Course
+                  {isSavingCourse ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Course...</span>
+                    </>
+                  ) : (
+                    <span>Save Course</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -2476,15 +2537,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form
               onSubmit={async e => {
                 e.preventDefault();
-                if (editingLink.id) {
-                  await updateLink(editingLink.id, editingLink);
-                  notifySaved(`Updated link`);
-                } else {
-                  await createLink(editingLink);
-                  notifySaved(`Created link`);
+                if (!editingLink) return;
+                setIsSavingLink(true);
+                try {
+                  if (editingLink.id) {
+                    await updateLink(editingLink.id, editingLink);
+                    notifySaved(`Updated link`);
+                  } else {
+                    await createLink(editingLink);
+                    notifySaved(`Created link`);
+                  }
+                  setEditingLink(null);
+                  await loadAllAdminData();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save link');
+                } finally {
+                  setIsSavingLink(false);
                 }
-                setEditingLink(null);
-                loadAllAdminData();
               }}
               className="space-y-4 text-xs"
             >
@@ -2583,9 +2652,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] rounded-xl"
+                  disabled={isSavingLink}
+                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
                 >
-                  Save Link
+                  {isSavingLink ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Link...</span>
+                    </>
+                  ) : (
+                    <span>Save Link</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -2609,15 +2686,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form
               onSubmit={async e => {
                 e.preventDefault();
-                if (editingPortfolio.id) {
-                  await updatePortfolioItem(editingPortfolio.id, editingPortfolio);
-                  notifySaved(`Updated trade breakdown`);
-                } else {
-                  await createPortfolioItem(editingPortfolio);
-                  notifySaved(`Created trade breakdown`);
+                if (!editingPortfolio) return;
+                setIsSavingPortfolio(true);
+                try {
+                  if (editingPortfolio.id) {
+                    await updatePortfolioItem(editingPortfolio.id, editingPortfolio);
+                    notifySaved(`Updated trade breakdown`);
+                  } else {
+                    await createPortfolioItem(editingPortfolio);
+                    notifySaved(`Created trade breakdown`);
+                  }
+                  setEditingPortfolio(null);
+                  await loadAllAdminData();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save trade');
+                } finally {
+                  setIsSavingPortfolio(false);
                 }
-                setEditingPortfolio(null);
-                loadAllAdminData();
               }}
               className="space-y-4 text-xs"
             >
@@ -2696,9 +2781,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] rounded-xl"
+                  disabled={isSavingPortfolio}
+                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
                 >
-                  Save Trade
+                  {isSavingPortfolio ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Trade...</span>
+                    </>
+                  ) : (
+                    <span>Save Trade</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -2756,18 +2849,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   type="button"
+                  disabled={isSavingReview}
                   onClick={async () => {
-                    await updateSubmission(reviewingSub.id, {
-                      status: reviewingSub.status,
-                      reviewNotes: reviewingSub.reviewNotes
-                    });
-                    setReviewingSub(null);
-                    loadAllAdminData();
-                    notifySaved(`Updated submission ${reviewingSub.id}`);
+                    if (!reviewingSub) return;
+                    setIsSavingReview(true);
+                    try {
+                      await updateSubmission(reviewingSub.id, {
+                        status: reviewingSub.status,
+                        reviewNotes: reviewingSub.reviewNotes
+                      });
+                      setReviewingSub(null);
+                      await loadAllAdminData();
+                      notifySaved(`Updated submission ${reviewingSub.id}`);
+                    } catch (err: any) {
+                      alert(err.message || 'Failed to update submission');
+                    } finally {
+                      setIsSavingReview(false);
+                    }
                   }}
-                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] rounded-xl"
+                  className="px-5 py-2 text-xs font-semibold text-black bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
                 >
-                  Update Submission
+                  {isSavingReview ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <span>Update Submission</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -2789,15 +2898,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form
               onSubmit={async e => {
                 e.preventDefault();
-                if (editingBook.id) {
-                  await updateBook(editingBook.id, editingBook);
-                  notifySaved('Updated book');
-                } else {
-                  await createBook(editingBook);
-                  notifySaved('Created book');
+                if (!editingBook) return;
+                setIsSavingBook(true);
+                try {
+                  if (editingBook.id) {
+                    await updateBook(editingBook.id, editingBook);
+                    notifySaved('Updated book');
+                  } else {
+                    await createBook(editingBook);
+                    notifySaved('Created book');
+                  }
+                  setEditingBook(null);
+                  await loadAllAdminData();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save book');
+                } finally {
+                  setIsSavingBook(false);
                 }
-                setEditingBook(null);
-                loadAllAdminData();
               }}
               className="space-y-4 text-xs"
             >
@@ -2895,7 +3012,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               <div className="pt-4 flex justify-end gap-2 border-t border-white/10">
                 <button type="button" onClick={() => setEditingBook(null)} className="px-4 py-2 bg-white/5 text-white rounded-xl">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-[#00D084] text-black font-bold rounded-xl">Save Book</button>
+                <button
+                  type="submit"
+                  disabled={isSavingBook}
+                  className="px-5 py-2 bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 text-black font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                >
+                  {isSavingBook ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Book...</span>
+                    </>
+                  ) : (
+                    <span>Save Book</span>
+                  )}
+                </button>
               </div>
             </form>
           </div>
@@ -2916,15 +3046,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <form
               onSubmit={async e => {
                 e.preventDefault();
-                if (editingStrategy.id) {
-                  await updateStrategy(editingStrategy.id, editingStrategy);
-                  notifySaved('Updated strategy');
-                } else {
-                  await createStrategy(editingStrategy);
-                  notifySaved('Created strategy');
+                if (!editingStrategy) return;
+                setIsSavingStrategy(true);
+                try {
+                  if (editingStrategy.id) {
+                    await updateStrategy(editingStrategy.id, editingStrategy);
+                    notifySaved('Updated strategy');
+                  } else {
+                    await createStrategy(editingStrategy);
+                    notifySaved('Created strategy');
+                  }
+                  setEditingStrategy(null);
+                  await loadAllAdminData();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save strategy');
+                } finally {
+                  setIsSavingStrategy(false);
                 }
-                setEditingStrategy(null);
-                loadAllAdminData();
               }}
               className="space-y-4 text-xs"
             >
@@ -2992,7 +3130,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               <div className="pt-4 flex justify-end gap-2 border-t border-white/10">
                 <button type="button" onClick={() => setEditingStrategy(null)} className="px-4 py-2 bg-white/5 text-white rounded-xl">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-[#00D084] text-black font-bold rounded-xl">Save Strategy</button>
+                <button
+                  type="submit"
+                  disabled={isSavingStrategy}
+                  className="px-5 py-2 bg-[#00D084] hover:bg-[#00e692] disabled:opacity-50 text-black font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                >
+                  {isSavingStrategy ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Strategy...</span>
+                    </>
+                  ) : (
+                    <span>Save Strategy</span>
+                  )}
+                </button>
               </div>
             </form>
           </div>

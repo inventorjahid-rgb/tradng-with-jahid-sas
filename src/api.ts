@@ -249,7 +249,7 @@ export async function createCourse(data: Partial<CourseService>): Promise<Course
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to create course');
+  await checkAdminResponse(res, 'Failed to create course');
   return res.json();
 }
 
@@ -259,7 +259,7 @@ export async function updateCourse(id: string, data: Partial<CourseService>): Pr
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to update course');
+  await checkAdminResponse(res, 'Failed to update course');
   return res.json();
 }
 
@@ -280,7 +280,7 @@ export async function deleteCourse(id: string): Promise<void> {
 
 export async function fetchAdminLinks(): Promise<SocialLink[]> {
   const res = await fetch(`/api/admin/links?_t=${Date.now()}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch links');
+  await checkAdminResponse(res, 'Failed to fetch links');
   return res.json();
 }
 
@@ -290,7 +290,7 @@ export async function createLink(data: Partial<SocialLink>): Promise<SocialLink>
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to create link');
+  await checkAdminResponse(res, 'Failed to create link');
   return res.json();
 }
 
@@ -300,7 +300,7 @@ export async function updateLink(id: string, data: Partial<SocialLink>): Promise
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to update link');
+  await checkAdminResponse(res, 'Failed to update link');
   return res.json();
 }
 
@@ -321,7 +321,7 @@ export async function deleteLink(id: string): Promise<void> {
 
 export async function fetchAdminPortfolio(): Promise<PortfolioItem[]> {
   const res = await fetch(`/api/admin/portfolio?_t=${Date.now()}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch portfolio');
+  await checkAdminResponse(res, 'Failed to fetch portfolio');
   return res.json();
 }
 
@@ -331,7 +331,7 @@ export async function createPortfolioItem(data: Partial<PortfolioItem>): Promise
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to create portfolio item');
+  await checkAdminResponse(res, 'Failed to create portfolio item');
   return res.json();
 }
 
@@ -341,7 +341,7 @@ export async function updatePortfolioItem(id: string, data: Partial<PortfolioIte
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to update portfolio item');
+  await checkAdminResponse(res, 'Failed to update portfolio item');
   return res.json();
 }
 
@@ -371,7 +371,7 @@ export async function updateWebsiteSettings(settings: Partial<WebsiteSettings>):
     headers: authHeaders(),
     body: JSON.stringify(settings)
   });
-  if (!res.ok) throw new Error('Failed to update website settings');
+  await checkAdminResponse(res, 'Failed to update website settings');
   const data = await res.json();
   try {
     localStorage.setItem('trading_jahid_website_settings', JSON.stringify(data));
@@ -385,7 +385,7 @@ export async function updateAnimationSettings(animations: Partial<AnimationSetti
     headers: authHeaders(),
     body: JSON.stringify(animations)
   });
-  if (!res.ok) throw new Error('Failed to update animation settings');
+  await checkAdminResponse(res, 'Failed to update animation settings');
   return res.json();
 }
 
@@ -491,7 +491,7 @@ export async function clearAllMediaFiles(): Promise<void> {
 
 export async function fetchAdminBooks(): Promise<BookItem[]> {
   const res = await fetch(`/api/admin/books?_t=${Date.now()}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch books');
+  await checkAdminResponse(res, 'Failed to fetch books');
   return res.json();
 }
 
@@ -501,7 +501,7 @@ export async function createBook(data: Partial<BookItem>): Promise<BookItem> {
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to create book');
+  await checkAdminResponse(res, 'Failed to create book');
   return res.json();
 }
 
@@ -511,7 +511,7 @@ export async function updateBook(id: string, data: Partial<BookItem>): Promise<B
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to update book');
+  await checkAdminResponse(res, 'Failed to update book');
   return res.json();
 }
 
@@ -532,7 +532,7 @@ export async function deleteBook(id: string): Promise<void> {
 
 export async function fetchAdminStrategies(): Promise<StrategyItem[]> {
   const res = await fetch(`/api/admin/strategies?_t=${Date.now()}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch strategies');
+  await checkAdminResponse(res, 'Failed to fetch strategies');
   return res.json();
 }
 
@@ -542,7 +542,7 @@ export async function createStrategy(data: Partial<StrategyItem>): Promise<Strat
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to create strategy');
+  await checkAdminResponse(res, 'Failed to create strategy');
   return res.json();
 }
 
@@ -552,7 +552,7 @@ export async function updateStrategy(id: string, data: Partial<StrategyItem>): P
     headers: authHeaders(),
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Failed to update strategy');
+  await checkAdminResponse(res, 'Failed to update strategy');
   return res.json();
 }
 

@@ -78,6 +78,53 @@ function getDbFilePath() {
   }
 }
 var DATA_FILE_PATH = getDbFilePath();
+var UPLOADS_DIR = (() => {
+  try {
+    const dir = path.resolve(process.cwd(), "public/uploads");
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    return dir;
+  } catch {
+    const tmpDir = path.resolve("/tmp", "uploads");
+    try {
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      return tmpDir;
+    } catch {
+      return path.resolve(process.cwd(), "public/uploads");
+    }
+  }
+})();
+function saveBase64ToDisk(dataUrl, prefix) {
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) {
+    return dataUrl;
+  }
+  try {
+    const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return dataUrl;
+    }
+    const mime = matches[1];
+    let ext = "jpg";
+    if (mime.includes("png")) ext = "png";
+    else if (mime.includes("webp")) ext = "webp";
+    else if (mime.includes("gif")) ext = "gif";
+    else if (mime.includes("svg")) ext = "svg";
+    else if (mime.includes("pdf")) ext = "pdf";
+    const buffer = Buffer.from(matches[2], "base64");
+    const safePrefix = prefix.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
+    const fileName = `${safePrefix}_${Date.now()}_${Math.floor(Math.random() * 1e4)}.${ext}`;
+    const targetPath = path.join(UPLOADS_DIR, fileName);
+    fs.writeFileSync(targetPath, buffer);
+    console.log(`[Upload Auto-Save] Converted base64 to static file: /uploads/${fileName} (${Math.round(buffer.length / 1024)} KB)`);
+    return `/uploads/${fileName}`;
+  } catch (err) {
+    console.warn("[Upload Auto-Save] Failed to convert base64 to file:", err);
+    return dataUrl;
+  }
+}
 var INITIAL_DATA = {
   settings: {
     brandName: "Trading With Jahid",
@@ -527,32 +574,72 @@ var Database = class {
       console.warn("[Database] Failed to parse Firestore payload:", err);
     }
   }
+  sanitizeData(data) {
+    if (!data) return;
+    if (data.settings) {
+      if (data.settings.logoUrl?.startsWith("data:")) {
+        data.settings.logoUrl = saveBase64ToDisk(data.settings.logoUrl, "logo");
+      }
+      if (data.settings.profileImageUrl?.startsWith("data:")) {
+        data.settings.profileImageUrl = saveBase64ToDisk(data.settings.profileImageUrl, "profile");
+      }
+      if (data.settings.heroBannerUrl?.startsWith("data:")) {
+        data.settings.heroBannerUrl = saveBase64ToDisk(data.settings.heroBannerUrl, "banner");
+      }
+    }
+    if (Array.isArray(data.courses)) {
+      for (const course of data.courses) {
+        if (course.coverImage?.startsWith("data:")) {
+          course.coverImage = saveBase64ToDisk(course.coverImage, "course");
+        }
+      }
+    }
+    if (Array.isArray(data.portfolio)) {
+      for (const item of data.portfolio) {
+        if (item.screenshotUrl?.startsWith("data:")) {
+          item.screenshotUrl = saveBase64ToDisk(item.screenshotUrl, "portfolio");
+        }
+      }
+    }
+    if (Array.isArray(data.books)) {
+      for (const book of data.books) {
+        if (book.coverImage?.startsWith("data:")) {
+          book.coverImage = saveBase64ToDisk(book.coverImage, "book_cover");
+        }
+        if (book.pdfUrl?.startsWith("data:")) {
+          book.pdfUrl = saveBase64ToDisk(book.pdfUrl, "book_pdf");
+        }
+      }
+    }
+    if (Array.isArray(data.strategies)) {
+      for (const strategy of data.strategies) {
+        if (strategy.imageUrl?.startsWith("data:")) {
+          strategy.imageUrl = saveBase64ToDisk(strategy.imageUrl, "strategy");
+        }
+      }
+    }
+    if (Array.isArray(data.auditLogs) && data.auditLogs.length > 50) {
+      data.auditLogs = data.auditLogs.slice(0, 50);
+    }
+  }
   async saveToFirestore(data) {
     if (!firestoreDb) return;
     try {
       const cloned = JSON.parse(JSON.stringify(data));
-      if (cloned.auditLogs && cloned.auditLogs.length > 50) {
-        cloned.auditLogs = cloned.auditLogs.slice(0, 50);
-      }
-      if (cloned.settings?.logoUrl?.startsWith("data:")) {
-        cloned.settings.logoUrl = "/images/trading_with_jahid_logo_1791908793141.jpg";
-      }
-      if (cloned.settings?.profileImageUrl?.startsWith("data:")) {
-        cloned.settings.profileImageUrl = "/images/jahid_profile_avatar_1791906596676.jpg";
-      }
-      if (cloned.settings?.heroBannerUrl?.startsWith("data:")) {
-        cloned.settings.heroBannerUrl = "/images/hero_trading_terminal_1791906597313.jpg";
-      }
+      this.sanitizeData(cloned);
       const payloadString = JSON.stringify(cloned);
       const docRef = doc(firestoreDb, "app_state", "main");
-      await setDoc(docRef, {
+      const firestorePromise = setDoc(docRef, {
         payloadString,
         updatedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
+      await Promise.race([
+        firestorePromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timed out after 4000ms")), 4e3))
+      ]);
       console.log(`[Firestore] Saved state (${payloadString.length} bytes) to app_state/main`);
     } catch (e) {
       console.error("[Firestore] CRITICAL: Failed to save to Firestore:", e?.message || e);
-      throw e;
     }
   }
   loadFromFile() {
@@ -596,6 +683,7 @@ var Database = class {
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
   async saveToFile(data) {
+    this.sanitizeData(data);
     const jsonStr = JSON.stringify(data, null, 2);
     try {
       const dir = path.dirname(LOCAL_DATA_PATH);
@@ -622,31 +710,6 @@ var Database = class {
   }
   async update(updater) {
     await this.initPromise;
-    if (firestoreDb) {
-      try {
-        const docRef = doc(firestoreDb, "app_state", "main");
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const raw = snap.data();
-          if (raw && raw.payloadString) {
-            const fresh = JSON.parse(raw.payloadString);
-            if (fresh) {
-              if (Array.isArray(fresh.courses)) this.data.courses = fresh.courses;
-              if (Array.isArray(fresh.links)) this.data.links = fresh.links;
-              if (Array.isArray(fresh.portfolio)) this.data.portfolio = fresh.portfolio;
-              if (Array.isArray(fresh.books)) this.data.books = fresh.books;
-              if (Array.isArray(fresh.strategies)) this.data.strategies = fresh.strategies;
-              if (Array.isArray(fresh.submissions)) this.data.submissions = fresh.submissions;
-              if (Array.isArray(fresh.auditLogs)) this.data.auditLogs = fresh.auditLogs;
-              if (fresh.settings) this.data.settings = { ...this.data.settings, ...fresh.settings };
-              if (fresh.animations) this.data.animations = { ...this.data.animations, ...fresh.animations };
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("[Database] Pre-update Firestore sync note:", err);
-      }
-    }
     updater(this.data);
     await this.saveToFile(this.data);
     return this.data;
@@ -702,7 +765,7 @@ app.use((req, res, next) => {
   }
   next();
 });
-var UPLOADS_DIR = (() => {
+var UPLOADS_DIR2 = (() => {
   try {
     const dir = path2.resolve(process.cwd(), "public/uploads");
     if (!fs2.existsSync(dir)) {
@@ -723,7 +786,7 @@ var UPLOADS_DIR = (() => {
     }
   }
 })();
-app.use("/uploads", express.static(UPLOADS_DIR));
+app.use("/uploads", express.static(UPLOADS_DIR2));
 var IMAGES_DIR = path2.resolve(process.cwd(), "public/images");
 app.use("/images", express.static(IMAGES_DIR));
 app.use("/src/assets/images", express.static(IMAGES_DIR));
@@ -1635,7 +1698,7 @@ api.post("/admin/upload-image", requireAdmin, async (req, res) => {
     const buffer = Buffer.from(matches[2], "base64");
     const cleanBase = (fileName || "device_upload").replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
     const uniqueName = `${cleanBase}_${Date.now()}.${ext}`;
-    const targetPath = path2.join(UPLOADS_DIR, uniqueName);
+    const targetPath = path2.join(UPLOADS_DIR2, uniqueName);
     try {
       fs2.writeFileSync(targetPath, buffer);
     } catch (e) {
@@ -1656,8 +1719,8 @@ api.post("/admin/upload-image", requireAdmin, async (req, res) => {
 });
 api.get("/admin/media-library", requireAdmin, (_req, res) => {
   try {
-    const files = fs2.readdirSync(UPLOADS_DIR).filter((f) => /\.(jpg|jpeg|png|webp|gif|svg|pdf)$/i.test(f)).map((fileName) => {
-      const stats = fs2.statSync(path2.join(UPLOADS_DIR, fileName));
+    const files = fs2.readdirSync(UPLOADS_DIR2).filter((f) => /\.(jpg|jpeg|png|webp|gif|svg|pdf)$/i.test(f)).map((fileName) => {
+      const stats = fs2.statSync(path2.join(UPLOADS_DIR2, fileName));
       return {
         fileName,
         url: `/uploads/${fileName}`,
@@ -1674,7 +1737,7 @@ api.delete("/admin/media-library/:fileName", requireAdmin, async (req, res) => {
   try {
     const rawName = decodeURIComponent(req.params.fileName || "").split("?")[0];
     const safeName = path2.basename(rawName);
-    const targetPath = path2.join(UPLOADS_DIR, safeName);
+    const targetPath = path2.join(UPLOADS_DIR2, safeName);
     if (fs2.existsSync(targetPath)) {
       fs2.unlinkSync(targetPath);
     }
@@ -1698,12 +1761,12 @@ api.delete("/admin/media-library/:fileName", requireAdmin, async (req, res) => {
 });
 api.delete("/admin/media-library-all", requireAdmin, async (_req, res) => {
   try {
-    const files = fs2.readdirSync(UPLOADS_DIR);
+    const files = fs2.readdirSync(UPLOADS_DIR2);
     let deletedCount = 0;
     for (const f of files) {
       if (/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(f)) {
         try {
-          fs2.unlinkSync(path2.join(UPLOADS_DIR, f));
+          fs2.unlinkSync(path2.join(UPLOADS_DIR2, f));
           deletedCount++;
         } catch {
         }

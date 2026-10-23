@@ -1,7 +1,7 @@
 {
   "settings": {
     "brandName": "Trading With Jahid",
-    "tagline": "Institutional Precision. High-Probability Trading Education.",
+    "tagline": "Professional Forex & Binary Trading Community",
     "heroTitle": "Trading With Jahid",
     "heroSubtitle": "Institutional-grade Binary & Forex trading education, high-probability algorithmic signals, quantitative bots, and an exclusive community of elite traders.",
     "heroTitlePrimary": "Master The Markets With",
@@ -12,7 +12,7 @@
     "coursesTitleHighlight": "Algorithmic Bots & Signals",
     "coursesSubtitle": "Eliminate guesswork with institutional methodologies. Select a course or service below to review the curriculum and initiate verified access.",
     "profileImageUrl": "/images/jahid_profile_avatar_1791906596676.jpg",
-    "logoUrl": "/images/trading_with_jahid_logo_1791908793141.jpg",
+    "logoUrl": "/uploads/photo_2026-07-21_19-31-56_1791911766485.jpg",
     "heroBannerUrl": "/images/hero_trading_terminal_1791906597313.jpg",
     "telegramCommunityUrl": "https://t.me/tradewithjahid",
     "telegramAdminUrl": "https://t.me/tradewithjahid",
@@ -89,56 +89,7 @@
       "createdAt": "2026-01-01T00:00:00Z"
     }
   ],
-  "submissions": [
-    {
-      "id": "SUB-8721",
-      "courseId": "course-forex",
-      "courseTitle": "Forex Institutional Order Flow",
-      "accountId": "EX-998811",
-      "telegramHandle": "@trader_live",
-      "userEmail": "live@test.com",
-      "status": "Rejected",
-      "reviewNotes": "Account ID not found under partner link.",
-      "createdAt": "2026-10-13T16:08:23.504Z",
-      "updatedAt": "2026-10-13T16:19:48.397Z"
-    },
-    {
-      "id": "SUB-8021",
-      "courseId": "course-binary",
-      "courseTitle": "Binary Trading Mastery",
-      "accountId": "PO-9941824",
-      "telegramHandle": "@alex_trader_ny",
-      "userEmail": "alex.trade@gmail.com",
-      "status": "Rejected",
-      "reviewNotes": "Account ID not found under partner link.",
-      "createdAt": "2026-10-12T14:20:00Z",
-      "updatedAt": "2026-10-13T16:19:49.395Z"
-    },
-    {
-      "id": "SUB-8022",
-      "courseId": "course-forex",
-      "courseTitle": "Forex Institutional Order Flow",
-      "accountId": "EX-4889102",
-      "telegramHandle": "@samuel_fx",
-      "userEmail": "samuel.fx@outlook.com",
-      "status": "Rejected",
-      "reviewNotes": "Account ID not found under partner link.",
-      "createdAt": "2026-10-13T07:15:00Z",
-      "updatedAt": "2026-10-13T16:19:50.095Z"
-    },
-    {
-      "id": "SUB-8023",
-      "courseId": "service-signals",
-      "courseTitle": "VIP Trading Signals",
-      "accountId": "QX-1049281",
-      "telegramHandle": "@rahul_invest",
-      "userEmail": "rahul@yahoo.com",
-      "status": "Rejected",
-      "reviewNotes": "Account ID not found under partner link.",
-      "createdAt": "2026-10-13T08:02:00Z",
-      "updatedAt": "2026-10-13T16:19:51.375Z"
-    }
-  ],
+  "submissions": [],
   "portfolio": [
     {
       "id": "port-2",
@@ -184,25 +135,37 @@
     }
   ],
   "books": [],
-  "strategies": [
-    {
-      "id": "strat-3",
-      "title": "Algorithmic Trend Following Bot Setup",
-      "category": "Quantitative Bot",
-      "description": "Multi-timeframe moving average crossover combined with ATR trailing stop limits for hands-free trend capture.",
-      "imageUrl": "/images/trading_bot_cover_1791906598974.jpg",
-      "winRate": "79.8% Net ROI",
-      "published": true,
-      "order": 3,
-      "createdAt": "2026-01-15T10:00:00Z"
-    }
-  ],
+  "strategies": [],
   "auditLogs": [
     {
-      "id": "log-1792502385921-524",
-      "action": "Link Deleted",
-      "details": "Link link-1792502385769 was deleted",
-      "timestamp": "2026-10-20T13:19:45.921Z"
+      "id": "log-1792742335144-236",
+      "action": "Settings Updated",
+      "details": "Website brand settings updated",
+      "timestamp": "2026-10-23T07:58:55.144Z"
+    },
+    {
+      "id": "log-1792742326465-913",
+      "action": "Course Deleted",
+      "details": "Course course-1792742326375 was deleted",
+      "timestamp": "2026-10-23T07:58:46.465Z"
+    },
+    {
+      "id": "log-1792742326427-358",
+      "action": "Course Created",
+      "details": "Course \"Test Speed Course\" created",
+      "timestamp": "2026-10-23T07:58:46.427Z"
+    },
+    {
+      "id": "log-1792742326367-618",
+      "action": "Settings Updated",
+      "details": "Website brand settings updated",
+      "timestamp": "2026-10-23T07:58:46.367Z"
+    },
+    {
+      "id": "log-1792742326288-854",
+      "action": "Settings Updated",
+      "details": "Website brand settings updated",
+      "timestamp": "2026-10-23T07:58:46.288Z"
     },
     {
       "id": "log-1792501565402-45",
@@ -460,7 +423,7 @@
   ],
   "adminAuth": {
     "username": "admin",
-    "passwordHash": "jahidvip2026",
+    "passwordHash": "888892",
     "sessionTokens": [
       "b23871bb24fea1d64a65a888af5b7f4fe75edaa946b4dd0e10e2bccf2099d556",
       "bb2c7abeb316bf06bcf65c967803d95641f62294b5f8a157ac25c73c4552e0bc",
@@ -470,7 +433,9 @@
       "jahid.YWRtaW46MTc5MjE3MjIwMjk1Mw.5a48ccce93e2f94740af4159f0a29a9918b6048da5f5b72024e15df6c6621518",
       "jahid.YWRtaW46MTc5MjIyMzQ2MDY3Mw.9c1b3821ae937c45be20b1b1083cb806fee5dd36d3c56a7c08068fc50029c401",
       "jahid.YWRtaW46MTc5MjIyMzQ2MjQ2NA.592b88a01ab410f41216eba81ef52a8498460dbadb67b09285e0c58713f6d8c2",
-      "jahid.YWRtaW46MTc5MjQyMTEyMzUyNQ.351e00b99a356601e58e1ae93a2eebcb4e819bb45f3f998e7b485b60ee08ec84"
+      "jahid.YWRtaW46MTc5MjQyMTEyMzUyNQ.351e00b99a356601e58e1ae93a2eebcb4e819bb45f3f998e7b485b60ee08ec84",
+      "jahid.YWRtaW46MTc5MjUwMzUyMjMzMw.ee859013c68d206794a98e2c65953313ad2366e9623b4c39bc151bc909416b1c",
+      "jahid.YWRtaW46MTc5MjUwMzUzODA0NQ.387e5acaa0186730780e4190bacd415305f92a38ce03274fda43c92a382c7f76"
     ]
   }
 }
