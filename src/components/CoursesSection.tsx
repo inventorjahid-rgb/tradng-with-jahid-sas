@@ -96,6 +96,9 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                     alt={course.title}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 

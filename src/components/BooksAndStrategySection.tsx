@@ -170,6 +170,9 @@ Official Telegram Community: https://t.me/tradewithjahid
                       alt={book.title}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-yellow-400 bg-[#040604]">
@@ -238,6 +241,9 @@ Official Telegram Community: https://t.me/tradewithjahid
                     alt={strat.title}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/hero_trading_terminal_1791906597313.jpg';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 

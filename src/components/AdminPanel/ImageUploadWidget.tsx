@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { uploadImage, deleteMediaFile } from '../../api.ts';
-import { Upload, Image as ImageIcon, CheckCircle2, AlertCircle, RefreshCw, Link as LinkIcon, Trash2, FileText } from 'lucide-react';
+import { Upload, Image as ImageIcon, CheckCircle2, AlertCircle, RefreshCw, Link as LinkIcon, Trash2, FileText, AlertTriangle } from 'lucide-react';
 
 interface ImageUploadWidgetProps {
   label: string;
@@ -276,6 +276,22 @@ function compressImage(file: File): Promise<string> {
             <span>{errorMsg}</span>
           </div>
         )}
+
+        {/* Persistence Warning */}
+        <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-[11px] text-yellow-200/80 leading-relaxed">
+          <div className="flex items-center gap-1.5 font-bold mb-1 text-yellow-400 uppercase tracking-wider">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Persistence Notice</span>
+          </div>
+          Local file uploads are <strong>ephemeral</strong> and may be wiped during system updates. 
+          {allowPdf ? (
+            <div className="mt-1 font-semibold text-white">
+              Recommendation: Use external URLs (Google Drive, Dropbox, etc.) for PDFs to ensure they are always accessible.
+            </div>
+          ) : (
+            " For critical assets, keep file sizes small (under 100KB) to ensure they are backed up to the database."
+          )}
+        </div>
 
       </div>
     </div>

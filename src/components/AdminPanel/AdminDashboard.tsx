@@ -561,6 +561,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </p>
                   </div>
 
+                  {/* Persistence Warning Banner */}
+                  <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/30 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <span>Data Persistence & Troubleshooting Guide</span>
+                        <span className="text-[10px] font-normal lowercase">(নির্দেশিকা)</span>
+                      </h4>
+                      <p className="text-xs text-amber-100/70 leading-relaxed">
+                        ১. <strong>PDF ফাইল সম্পর্কে:</strong> বড় ফাইল বা PDF সরাসরি আপলোড না করে গুগল ড্রাইভ বা অন্য ড্রাইভ লিংক ব্যবহার করুন। সরাসরি আপলোড করা ফাইল সাময়িক (ephemeral) এবং রিস্টার্ট হলে মুছে যেতে পারে।<br/>
+                        ২. <strong>থাম্বনেইল বা ছবি:</strong> থাম্বনেইল হিসেবে ব্যবহার করা ছবিগুলো অবশ্যই ১০০ কিলোবাইট (100KB) এর নিচে রাখার চেষ্টা করবেন, তাহলে সেগুলো পারমানেন্টলি সেভ থাকবে।<br/>
+                        ৩. <strong>ডাটা সেভ না হওয়া:</strong> ৩টির বেশি আইটেম অ্যাড করলে যদি ডিলিট হয়ে যায়, তবে বুঝতে হবে আপনি ১ মেগাবাইট (1MB) ডাটা লিমিট অতিক্রম করেছেন। অকেজো ইমেজ বা অডিট লগ ডিলিট করে জায়গা খালি করুন।
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Metric Cards */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-5 rounded-2xl bg-[#111715] border border-white/10">

@@ -96,7 +96,7 @@ const UPLOADS_DIR = (() => {
   }
 })();
 
-export function saveBase64ToDisk(dataUrl: string, prefix: string): string {
+export function saveBase64ToDisk(dataUrl: string, prefix: string, forceDisk: boolean = false): string {
   if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
     return dataUrl;
   }
@@ -106,6 +106,17 @@ export function saveBase64ToDisk(dataUrl: string, prefix: string): string {
       return dataUrl;
     }
     const mime = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+    const sizeKb = buffer.length / 1024;
+
+    // CRITICAL: We only save to disk if the file is large (>100KB) OR if it's a PDF.
+    // Small images are kept as base64 in Firestore to ensure they survive container restarts.
+    // Note: Local disk storage in this environment is ephemeral and will be wiped on redeploy.
+    if (!forceDisk && sizeKb < 100 && !mime.includes('pdf')) {
+      return dataUrl;
+    }
+
     let ext = 'jpg';
     if (mime.includes('png')) ext = 'png';
     else if (mime.includes('webp')) ext = 'webp';
@@ -113,13 +124,12 @@ export function saveBase64ToDisk(dataUrl: string, prefix: string): string {
     else if (mime.includes('svg')) ext = 'svg';
     else if (mime.includes('pdf')) ext = 'pdf';
 
-    const buffer = Buffer.from(matches[2], 'base64');
     const safePrefix = prefix.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
     const fileName = `${safePrefix}_${Date.now()}_${Math.floor(Math.random() * 10000)}.${ext}`;
     const targetPath = path.join(UPLOADS_DIR, fileName);
 
     fs.writeFileSync(targetPath, buffer);
-    console.log(`[Upload Auto-Save] Converted base64 to static file: /uploads/${fileName} (${Math.round(buffer.length / 1024)} KB)`);
+    console.log(`[Upload Auto-Save] Converted base64 to static file: /uploads/${fileName} (${Math.round(sizeKb)} KB). Note: This file is ephemeral.`);
     return `/uploads/${fileName}`;
   } catch (err) {
     console.warn('[Upload Auto-Save] Failed to convert base64 to file:', err);
@@ -817,7 +827,27 @@ class Database {
       const cloned = JSON.parse(JSON.stringify(data));
       this.sanitizeData(cloned);
 
-      const payloadString = JSON.stringify(cloned);
+      let payloadString = JSON.stringify(cloned);
+      
+      // CRITICAL: Firestore document limit is 1MB. 
+      // If we are close (e.g. > 900KB), we must prune audit logs and submissions to save space.
+      if (payloadString.length > 900000) {
+        console.warn(`[Database] Payload size ${payloadString.length} bytes is close to 1MB limit. Pruning audit logs.`);
+        cloned.auditLogs = cloned.auditLogs.slice(0, 10);
+        payloadString = JSON.stringify(cloned);
+        
+        if (payloadString.length > 950000) {
+          console.warn(`[Database] Payload STILL too large (${payloadString.length} bytes). Pruning older submissions.`);
+          cloned.submissions = cloned.submissions.slice(0, 50);
+          payloadString = JSON.stringify(cloned);
+        }
+      }
+
+      // Final safety check
+      if (payloadString.length > 1048000) {
+        throw new Error(`CRITICAL: Database payload size (${payloadString.length} bytes) exceeds Firestore 1MB limit. Cannot save.`);
+      }
+
       const docRef = doc(firestoreDb, 'app_state', 'main');
       
       const firestorePromise = setDoc(docRef, {
@@ -826,14 +856,15 @@ class Database {
         updatedAt: new Date().toISOString()
       });
 
-      // 4-second timeout guarantee so saves never hang
+      // 8-second timeout guarantee
       await Promise.race([
         firestorePromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore save timed out after 4000ms')), 4000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore save timed out after 8000ms')), 8000))
       ]);
       console.log(`[Firestore] Saved state (${payloadString.length} bytes, version: ${version}) to app_state/main`);
     } catch (e: any) {
       console.error('[Firestore] CRITICAL: Failed to save to Firestore:', e?.message || e);
+      // We don't throw here to prevent the server from crashing, but we logged it.
     } finally {
       this.isSaving = false;
     }
