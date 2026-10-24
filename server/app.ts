@@ -12,9 +12,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Configure body limits for device photo & large PDF uploads (up to 100MB)
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+// Configure body limits for device photo & large PDF uploads (up to 500MB)
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 // Enable full CORS and disable caching for API routes
 app.use((req, res, next) => {
@@ -307,6 +307,7 @@ api.post('/public/submit-id', async (req: Request, res: Response) => {
     await db.update(d => {
       d.submissions.unshift(newSubmission);
     });
+    await db.saveSubmissionDirect(newSubmission);
 
     await db.logAction('Account ID Submission', `Submission ${submissionId} (${status}) for "${courseTitle}" with ID ${cleanAccountId}`);
 
@@ -530,11 +531,14 @@ api.post('/admin/change-password', requireAdmin, async (req: Request, res: Respo
       d.adminAuth.passwordHash = newPassword;
     });
 
+    const currentAuth = (await db.get()).adminAuth;
+    await db.saveConfigDirect('auth', currentAuth);
     await db.logAction('Admin Password Change', 'Administrator password was updated');
 
     res.json({ success: true, message: 'Password changed successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to change password' });
+  } catch (err: any) {
+    console.error('[Admin Password Change ERROR]:', err);
+    res.status(500).json({ error: `Failed to change password: ${err?.message || err}` });
   }
 });
 
@@ -591,12 +595,13 @@ api.get('/admin/submissions', requireAdmin, async (_req: Request, res: Response)
 
 api.patch('/admin/submissions/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  const cleanId = decodeURIComponent(id || '').trim();
   const { status, reviewNotes } = req.body;
 
   try {
-    let updatedSub = null;
+    let updatedSub: any = null;
     await db.update(d => {
-      const sub = (d.submissions || []).find(s => s.id === id);
+      const sub = (d.submissions || []).find(s => s.id === cleanId || s.id === id);
       if (sub) {
         if (status) sub.status = status;
         if (reviewNotes !== undefined) sub.reviewNotes = reviewNotes;
@@ -617,14 +622,18 @@ api.patch('/admin/submissions/:id', requireAdmin, async (req: Request, res: Resp
     });
 
     if (!updatedSub) {
+      console.warn(`[Admin Submission Update] Submission not found for ID "${cleanId}"`);
       res.status(404).json({ error: 'Submission not found' });
       return;
     }
 
-    await db.logAction(status === 'Rejected' ? 'Trader ID Banned' : 'Submission Status Update', `Submission ${id} updated to ${status} for ID ${(updatedSub as any)?.accountId}`);
+    // Persist directly to Firestore
+    await db.saveSubmissionDirect(updatedSub);
+    await db.logAction(status === 'Rejected' ? 'Trader ID Banned' : 'Submission Status Update', `Submission ${cleanId} updated to ${status} for ID ${(updatedSub as any)?.accountId}`);
     res.json(updatedSub);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update submission' });
+  } catch (err: any) {
+    console.error(`[Admin Submission ERROR] Failed to update submission ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to update submission: ${err?.message || err}` });
   }
 });
 
@@ -637,6 +646,7 @@ api.post('/admin/submissions/ban-id', requireAdmin, async (req: Request, res: Re
 
   const cleanId = String(accountId).trim().replace(/\s+/g, '');
   try {
+    let targetSub: any = null;
     await db.update(d => {
       let found = false;
       (d.submissions || []).forEach(item => {
@@ -644,12 +654,13 @@ api.post('/admin/submissions/ban-id', requireAdmin, async (req: Request, res: Re
           item.status = 'Rejected';
           item.reviewNotes = reason || 'Banned by admin: Trader ID blacklisted from VIP access.';
           item.updatedAt = new Date().toISOString();
+          targetSub = item;
           found = true;
         }
       });
 
       if (!found) {
-        d.submissions.unshift({
+        targetSub = {
           id: `BAN-${Math.floor(1000 + Math.random() * 9000)}`,
           courseId: 'all',
           courseTitle: 'All Services (Banned)',
@@ -659,26 +670,32 @@ api.post('/admin/submissions/ban-id', requireAdmin, async (req: Request, res: Re
           reviewNotes: reason || 'Banned by admin: Trader ID blacklisted from VIP access.',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
-        });
+        };
+        d.submissions.unshift(targetSub);
       }
     });
 
+    if (targetSub) {
+      await db.saveSubmissionDirect(targetSub);
+    }
     await db.logAction('Trader ID Banned', `Trader ID ${cleanId} was explicitly banned by admin`);
     res.json({ success: true, message: `Trader ID ${cleanId} has been banned.` });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to ban trader ID' });
+  } catch (err: any) {
+    console.error(`[Admin Ban ERROR] Failed to ban trader ID ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to ban trader ID: ${err?.message || err}` });
   }
 });
 
 const handleSubmissionDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const targetId = decodeURIComponent(id).trim();
+  const targetId = decodeURIComponent(id || '').trim();
   try {
     await db.deleteSubmissionDirect(targetId);
     await db.logAction('Submission Deleted', `Submission ${targetId} was deleted`);
     res.json({ success: true, deletedId: targetId });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete submission: ' + (err?.message || err) });
+    console.error(`[Admin Submission Delete ERROR] Failed to delete submission ${targetId}:`, err);
+    res.status(500).json({ error: `Failed to delete submission: ${err?.message || err}` });
   }
 };
 api.delete('/admin/submissions/:id', requireAdmin, handleSubmissionDelete);
@@ -732,19 +749,21 @@ api.post('/admin/courses', requireAdmin, async (req: Request, res: Response) => 
     await db.saveItemDirect({ id: newCourse.id, type: 'course', title: newCourse.title, data: newCourse });
     await db.logAction('Course Created', `Course "${newCourse.title}" created`);
     res.status(201).json(newCourse);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create course' });
+  } catch (err: any) {
+    console.error('[Admin Course Create ERROR]:', err);
+    res.status(500).json({ error: `Failed to create course: ${err?.message || err}` });
   }
 });
 
 api.put('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  const cleanId = decodeURIComponent(id || '').trim();
   const updates = req.body;
 
   try {
     let updated: any = null;
     await db.update(d => {
-      const courseIndex = (d.courses || []).findIndex(c => c.id === id);
+      const courseIndex = (d.courses || []).findIndex(c => c.id === cleanId || c.id === id);
       if (courseIndex !== -1) {
         d.courses[courseIndex] = {
           ...d.courses[courseIndex],
@@ -755,28 +774,31 @@ api.put('/admin/courses/:id', requireAdmin, async (req: Request, res: Response) 
     });
 
     if (!updated) {
+      console.warn(`[Admin Course Update WARN] Course not found for ID "${cleanId}"`);
       res.status(404).json({ error: 'Course not found' });
       return;
     }
 
     await db.saveItemDirect({ id: updated.id, type: 'course', title: updated.title, data: updated });
-    await db.logAction('Course Updated', `Course ${id} was updated`);
+    await db.logAction('Course Updated', `Course ${cleanId} was updated`);
     res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update course' });
+  } catch (err: any) {
+    console.error(`[Admin Course Update ERROR] Failed to update course ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to update course: ${err?.message || err}` });
   }
 });
 
 const handleCourseDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const targetId = decodeURIComponent(id).trim();
+  const targetId = decodeURIComponent(id || '').trim();
   try {
     await db.deleteItemDirect(targetId);
     const data = await db.get();
     await db.logAction('Course Deleted', `Course ${targetId} was deleted`);
     res.json({ success: true, deletedId: targetId, courses: data.courses });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete course: ' + (err?.message || err) });
+    console.error(`[Admin Course Delete ERROR] Failed to delete course ${targetId}:`, err);
+    res.status(500).json({ error: `Failed to delete course: ${err?.message || err}` });
   }
 };
 api.delete('/admin/courses/:id', requireAdmin, handleCourseDelete);
@@ -827,19 +849,21 @@ api.post('/admin/links', requireAdmin, async (req: Request, res: Response) => {
     await db.saveItemDirect({ id: newLink.id, type: 'link', title: newLink.title, data: newLink });
     await db.logAction('Link Created', `Link "${newLink.title}" created`);
     res.status(201).json(newLink);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create link' });
+  } catch (err: any) {
+    console.error('[Admin Link Create ERROR]:', err);
+    res.status(500).json({ error: `Failed to create link: ${err?.message || err}` });
   }
 });
 
 api.put('/admin/links/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  const cleanId = decodeURIComponent(id || '').trim();
   const updates = req.body;
 
   try {
     let updated: any = null;
     await db.update(d => {
-      const idx = (d.links || []).findIndex(l => l.id === id);
+      const idx = (d.links || []).findIndex(l => l.id === cleanId || l.id === id);
       if (idx !== -1) {
         d.links[idx] = { ...d.links[idx], ...updates };
         updated = d.links[idx];
@@ -847,28 +871,31 @@ api.put('/admin/links/:id', requireAdmin, async (req: Request, res: Response) =>
     });
 
     if (!updated) {
+      console.warn(`[Admin Link Update WARN] Link not found for ID "${cleanId}"`);
       res.status(404).json({ error: 'Link not found' });
       return;
     }
 
     await db.saveItemDirect({ id: updated.id, type: 'link', title: updated.title, data: updated });
-    await db.logAction('Link Updated', `Link ${id} was updated`);
+    await db.logAction('Link Updated', `Link ${cleanId} was updated`);
     res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update link' });
+  } catch (err: any) {
+    console.error(`[Admin Link Update ERROR] Failed to update link ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to update link: ${err?.message || err}` });
   }
 });
 
 const handleLinkDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const targetId = decodeURIComponent(id).trim();
+  const targetId = decodeURIComponent(id || '').trim();
   try {
     await db.deleteItemDirect(targetId);
     const data = await db.get();
     await db.logAction('Link Deleted', `Link ${targetId} was deleted`);
     res.json({ success: true, deletedId: targetId, links: data.links });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete link: ' + (err?.message || err) });
+    console.error(`[Admin Link Delete ERROR] Failed to delete link ${targetId}:`, err);
+    res.status(500).json({ error: `Failed to delete link: ${err?.message || err}` });
   }
 };
 api.delete('/admin/links/:id', requireAdmin, handleLinkDelete);
@@ -917,19 +944,21 @@ api.post('/admin/portfolio', requireAdmin, async (req: Request, res: Response) =
     await db.saveItemDirect({ id: newItem.id, type: 'portfolio', title: newItem.title, data: newItem });
     await db.logAction('Portfolio Created', `Portfolio item "${newItem.title}" created`);
     res.status(201).json(newItem);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create portfolio item' });
+  } catch (err: any) {
+    console.error('[Admin Portfolio Create ERROR]:', err);
+    res.status(500).json({ error: `Failed to create portfolio item: ${err?.message || err}` });
   }
 });
 
 api.put('/admin/portfolio/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  const cleanId = decodeURIComponent(id || '').trim();
   const updates = req.body;
 
   try {
     let updated: any = null;
     await db.update(d => {
-      const idx = (d.portfolio || []).findIndex(p => p.id === id);
+      const idx = (d.portfolio || []).findIndex(p => p.id === cleanId || p.id === id);
       if (idx !== -1) {
         d.portfolio[idx] = { ...d.portfolio[idx], ...updates };
         updated = d.portfolio[idx];
@@ -937,28 +966,31 @@ api.put('/admin/portfolio/:id', requireAdmin, async (req: Request, res: Response
     });
 
     if (!updated) {
+      console.warn(`[Admin Portfolio Update WARN] Portfolio item not found for ID "${cleanId}"`);
       res.status(404).json({ error: 'Portfolio item not found' });
       return;
     }
 
     await db.saveItemDirect({ id: updated.id, type: 'portfolio', title: updated.title, data: updated });
-    await db.logAction('Portfolio Updated', `Portfolio item ${id} was updated`);
+    await db.logAction('Portfolio Updated', `Portfolio item ${cleanId} was updated`);
     res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update portfolio item' });
+  } catch (err: any) {
+    console.error(`[Admin Portfolio Update ERROR] Failed to update portfolio item ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to update portfolio item: ${err?.message || err}` });
   }
 });
 
 const handlePortfolioDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const targetId = decodeURIComponent(id).trim();
+  const targetId = decodeURIComponent(id || '').trim();
   try {
     await db.deleteItemDirect(targetId);
     const data = await db.get();
     await db.logAction('Portfolio Deleted', `Portfolio item ${targetId} was deleted`);
     res.json({ success: true, deletedId: targetId, portfolio: data.portfolio });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete portfolio item: ' + (err?.message || err) });
+    console.error(`[Admin Portfolio Delete ERROR] Failed to delete portfolio item ${targetId}:`, err);
+    res.status(500).json({ error: `Failed to delete portfolio item: ${err?.message || err}` });
   }
 };
 api.delete('/admin/portfolio/:id', requireAdmin, handlePortfolioDelete);
@@ -1004,19 +1036,21 @@ api.post('/admin/books', requireAdmin, async (req: Request, res: Response) => {
     await db.saveItemDirect({ id: newItem.id, type: 'book', title: newItem.title, data: newItem });
     await db.logAction('Book Created', `Book "${newItem.title}" created`);
     res.status(201).json(newItem);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create book' });
+  } catch (err: any) {
+    console.error('[Admin Book Create ERROR]:', err);
+    res.status(500).json({ error: `Failed to create book: ${err?.message || err}` });
   }
 });
 
 api.put('/admin/books/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  const cleanId = decodeURIComponent(id || '').trim();
   const updates = req.body;
 
   try {
     let updated: any = null;
     await db.update(d => {
-      const idx = (d.books || []).findIndex(item => item.id === id);
+      const idx = (d.books || []).findIndex(item => item.id === cleanId || item.id === id);
       if (idx !== -1) {
         d.books[idx] = { ...d.books[idx], ...updates };
         updated = d.books[idx];
@@ -1024,28 +1058,31 @@ api.put('/admin/books/:id', requireAdmin, async (req: Request, res: Response) =>
     });
 
     if (!updated) {
+      console.warn(`[Admin Book Update WARN] Book not found for ID "${cleanId}"`);
       res.status(404).json({ error: 'Book not found' });
       return;
     }
 
     await db.saveItemDirect({ id: updated.id, type: 'book', title: updated.title, data: updated });
-    await db.logAction('Book Updated', `Book ${id} updated`);
+    await db.logAction('Book Updated', `Book ${cleanId} updated`);
     res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update book' });
+  } catch (err: any) {
+    console.error(`[Admin Book Update ERROR] Failed to update book ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to update book: ${err?.message || err}` });
   }
 });
 
 const handleBookDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const targetId = decodeURIComponent(id).trim();
+  const targetId = decodeURIComponent(id || '').trim();
   try {
     await db.deleteItemDirect(targetId);
     const data = await db.get();
     await db.logAction('Book Deleted', `Book ${targetId} deleted`);
     res.json({ success: true, deletedId: targetId, books: data.books });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete book: ' + (err?.message || err) });
+    console.error(`[Admin Book Delete ERROR] Failed to delete book ${targetId}:`, err);
+    res.status(500).json({ error: `Failed to delete book: ${err?.message || err}` });
   }
 };
 api.delete('/admin/books/:id', requireAdmin, handleBookDelete);
@@ -1091,19 +1128,21 @@ api.post('/admin/strategies', requireAdmin, async (req: Request, res: Response) 
     await db.saveItemDirect({ id: newItem.id, type: 'strategy', title: newItem.title, data: newItem });
     await db.logAction('Strategy Created', `Strategy "${newItem.title}" created`);
     res.status(201).json(newItem);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create strategy' });
+  } catch (err: any) {
+    console.error('[Admin Strategy Create ERROR]:', err);
+    res.status(500).json({ error: `Failed to create strategy: ${err?.message || err}` });
   }
 });
 
 api.put('/admin/strategies/:id', requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
+  const cleanId = decodeURIComponent(id || '').trim();
   const updates = req.body;
 
   try {
     let updated: any = null;
     await db.update(d => {
-      const idx = (d.strategies || []).findIndex(item => item.id === id);
+      const idx = (d.strategies || []).findIndex(item => item.id === cleanId || item.id === id);
       if (idx !== -1) {
         d.strategies[idx] = { ...d.strategies[idx], ...updates };
         updated = d.strategies[idx];
@@ -1111,28 +1150,31 @@ api.put('/admin/strategies/:id', requireAdmin, async (req: Request, res: Respons
     });
 
     if (!updated) {
+      console.warn(`[Admin Strategy Update WARN] Strategy not found for ID "${cleanId}"`);
       res.status(404).json({ error: 'Strategy not found' });
       return;
     }
 
     await db.saveItemDirect({ id: updated.id, type: 'strategy', title: updated.title, data: updated });
-    await db.logAction('Strategy Updated', `Strategy ${id} updated`);
+    await db.logAction('Strategy Updated', `Strategy ${cleanId} updated`);
     res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update strategy' });
+  } catch (err: any) {
+    console.error(`[Admin Strategy Update ERROR] Failed to update strategy ${cleanId}:`, err);
+    res.status(500).json({ error: `Failed to update strategy: ${err?.message || err}` });
   }
 });
 
 const handleStrategyDelete = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const targetId = decodeURIComponent(id).trim();
+  const targetId = decodeURIComponent(id || '').trim();
   try {
     await db.deleteItemDirect(targetId);
     const data = await db.get();
     await db.logAction('Strategy Deleted', `Strategy ${targetId} deleted`);
     res.json({ success: true, deletedId: targetId, strategies: data.strategies });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to delete strategy: ' + (err?.message || err) });
+    console.error(`[Admin Strategy Delete ERROR] Failed to delete strategy ${targetId}:`, err);
+    res.status(500).json({ error: `Failed to delete strategy: ${err?.message || err}` });
   }
 };
 api.delete('/admin/strategies/:id', requireAdmin, handleStrategyDelete);
@@ -1152,8 +1194,9 @@ api.put('/admin/settings', requireAdmin, async (req: Request, res: Response) => 
     await db.saveConfigDirect('settings', currentSettings);
     await db.logAction('Settings Updated', 'Website brand settings updated');
     res.json(currentSettings);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update website settings' });
+  } catch (err: any) {
+    console.error('[Admin Settings ERROR] Failed to update settings:', err);
+    res.status(500).json({ error: `Failed to update website settings: ${err?.message || err}` });
   }
 });
 
@@ -1167,8 +1210,9 @@ api.put('/admin/animations', requireAdmin, async (req: Request, res: Response) =
     await db.saveConfigDirect('animations', currentAnimations);
     await db.logAction('Animation Settings Updated', 'Visual effects & animation config updated');
     res.json(currentAnimations);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update animation settings' });
+  } catch (err: any) {
+    console.error('[Admin Animations ERROR] Failed to update animation settings:', err);
+    res.status(500).json({ error: `Failed to update animation settings: ${err?.message || err}` });
   }
 });
 

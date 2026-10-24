@@ -154,6 +154,112 @@
   "strategies": [],
   "auditLogs": [
     {
+      "id": "log-1792847782309-17",
+      "action": "Strategy Deleted",
+      "details": "Strategy strat-1792847782140 deleted",
+      "timestamp": "2026-10-24T13:16:22.309Z"
+    },
+    {
+      "id": "log-1792847782202-578",
+      "action": "Strategy Created",
+      "details": "Strategy \"Breakout Strategy\" created",
+      "timestamp": "2026-10-24T13:16:22.202Z"
+    },
+    {
+      "id": "log-1792847782122-121",
+      "action": "Book Deleted",
+      "details": "Book book-1792847781808 deleted",
+      "timestamp": "2026-10-24T13:16:22.122Z"
+    },
+    {
+      "id": "log-1792847781990-413",
+      "action": "Book Updated",
+      "details": "Book book-1792847781808 updated",
+      "timestamp": "2026-10-24T13:16:21.990Z"
+    },
+    {
+      "id": "log-1792847781891-651",
+      "action": "Book Created",
+      "details": "Book \"Trading Psychology Guide\" created",
+      "timestamp": "2026-10-24T13:16:21.891Z"
+    },
+    {
+      "id": "log-1792847781790-782",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T13:16:21.790Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847774581-330",
+      "action": "Settings Updated",
+      "details": "Website brand settings updated",
+      "timestamp": "2026-10-24T13:16:14.581Z"
+    },
+    {
+      "id": "log-1792847774508-553",
+      "action": "Link Deleted",
+      "details": "Link link-1792847774081 was deleted",
+      "timestamp": "2026-10-24T13:16:14.508Z"
+    },
+    {
+      "id": "log-1792847774380-497",
+      "action": "Link Updated",
+      "details": "Link link-1792847774081 was updated",
+      "timestamp": "2026-10-24T13:16:14.380Z"
+    },
+    {
+      "id": "log-1792847774150-722",
+      "action": "Link Created",
+      "details": "Link \"Test VIP Channel\" created",
+      "timestamp": "2026-10-24T13:16:14.150Z"
+    },
+    {
+      "id": "log-1792847774051-475",
+      "action": "Settings Updated",
+      "details": "Website brand settings updated",
+      "timestamp": "2026-10-24T13:16:14.051Z"
+    },
+    {
+      "id": "log-1792847773916-134",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T13:16:13.916Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847765684-847",
+      "action": "Course Deleted",
+      "details": "Course course-1792847764899 was deleted",
+      "timestamp": "2026-10-24T13:16:05.684Z"
+    },
+    {
+      "id": "log-1792847765554-997",
+      "action": "Course Updated",
+      "details": "Course course-1792847764899 was updated",
+      "timestamp": "2026-10-24T13:16:05.554Z"
+    },
+    {
+      "id": "log-1792847765214-308",
+      "action": "Course Created",
+      "details": "Course \"Test Algo Mastery\" created",
+      "timestamp": "2026-10-24T13:16:05.214Z"
+    },
+    {
+      "id": "log-1792847764881-333",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T13:16:04.881Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847758799-559",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T13:15:58.799Z",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "log-1792846582560-757",
       "action": "Book Deleted",
       "details": "Book book-1792846582319 deleted",
@@ -361,113 +467,6 @@
       "action": "Book Deleted",
       "details": "Book book-1 deleted",
       "timestamp": "2026-10-19T15:18:35.860Z"
-    },
-    {
-      "id": "log-1792423110203-579",
-      "action": "Course Deleted",
-      "details": "Course service-community was deleted",
-      "timestamp": "2026-10-19T15:18:30.203Z"
-    },
-    {
-      "id": "log-1792421152725-581",
-      "action": "Course Deleted",
-      "details": "Course service-classes was deleted",
-      "timestamp": "2026-10-19T14:45:52.725Z"
-    },
-    {
-      "id": "log-1792421131164-967",
-      "action": "Course Deleted",
-      "details": "Course service-classes was deleted",
-      "timestamp": "2026-10-19T14:45:31.164Z"
-    },
-    {
-      "id": "log-1792421125324-346",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-19T14:45:25.324Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1792245397937-746",
-      "action": "Course Deleted",
-      "details": "Course course-1792245397487 was deleted",
-      "timestamp": "2026-10-17T13:56:37.937Z"
-    },
-    {
-      "id": "log-1792245397561-867",
-      "action": "Course Created",
-      "details": "Course \"Test Course to Delete\" created",
-      "timestamp": "2026-10-17T13:56:37.561Z"
-    },
-    {
-      "id": "log-1792245365856-249",
-      "action": "Course Deleted",
-      "details": "Course undefined was deleted",
-      "timestamp": "2026-10-17T13:56:05.856Z"
-    },
-    {
-      "id": "log-1792245325856-144",
-      "action": "Course Deleted",
-      "details": "Course service-bots was deleted",
-      "timestamp": "2026-10-17T13:55:25.856Z"
-    },
-    {
-      "id": "log-1792245079736-720",
-      "action": "Course Deleted",
-      "details": "Course service-signals was deleted",
-      "timestamp": "2026-10-17T13:51:19.736Z"
-    },
-    {
-      "id": "log-1792244763014-257",
-      "action": "Strategy Deleted",
-      "details": "Strategy strat-1 deleted",
-      "timestamp": "2026-10-17T13:46:03.014Z"
-    },
-    {
-      "id": "log-1792242620690-691",
-      "action": "Course Deleted",
-      "details": "Course course-forex was deleted",
-      "timestamp": "2026-10-17T13:10:20.690Z"
-    },
-    {
-      "id": "log-1792223497057-90",
-      "action": "Book Deleted",
-      "details": "Book book-2 deleted",
-      "timestamp": "2026-10-17T07:51:37.057Z"
-    },
-    {
-      "id": "log-1792223462776-837",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-17T07:51:02.776Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1792223462358-695",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-17T07:51:02.358Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1792172202954-294",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-16T17:36:42.954Z",
-      "ip": "::ffff:127.0.0.1"
-    },
-    {
-      "id": "log-1791911624453-501",
-      "action": "Device Image Uploaded",
-      "details": "Uploaded device_test_logo_1791911624453.png (0 KB) from device",
-      "timestamp": "2026-10-13T17:13:44.453Z"
-    },
-    {
-      "id": "log-1791911624437-481",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T17:13:44.437Z",
-      "ip": "127.0.0.1"
     }
   ],
   "adminAuth": {
@@ -488,7 +487,11 @@
       "jahid.YWRtaW46MTc5Mjg0NTUwNjc0NQ.195c57e7363abcd06ceeaa9da5a8f7cfa91fe1513a104dc9f1b77c24dbb67db2",
       "jahid.YWRtaW46MTc5Mjg0NjU2NjgzNQ.7db6687def791d646e50873e422a09347019ecf2cc346c0cc0d145bc23f1a88f",
       "jahid.YWRtaW46MTc5Mjg0NjU3NjI3Mw.01b6819344c3f216aa47edb48893b4a25a69848fe9795582d127d02837a600f5",
-      "jahid.YWRtaW46MTc5Mjg0NjU4MjE3Mg.33cab73be1ff4adc47859baa90d947a428f411fe3d4502cf91f34dfb566e941a"
+      "jahid.YWRtaW46MTc5Mjg0NjU4MjE3Mg.33cab73be1ff4adc47859baa90d947a428f411fe3d4502cf91f34dfb566e941a",
+      "jahid.YWRtaW46MTc5Mjg0Nzc1NzY2NA.660f1acf6ad7d64ad5211ef8614acd5aa13809057881f5d4384d2625b71feef9",
+      "jahid.YWRtaW46MTc5Mjg0Nzc2NDc1Ng.7c2ff010d858af0a0f598263cc99fbf821c73b164aaaae7ab7e71e46797b3350",
+      "jahid.YWRtaW46MTc5Mjg0Nzc3Mzc3MQ.1c6c4a77a4e79326cddd37c0e7a77003c465731b5637e1ad7c1e89cf202fedbe",
+      "jahid.YWRtaW46MTc5Mjg0Nzc4MTY4Ng.71b99fc34dc3a317572d209ed79ba1b1afd7dd41a28eb29912319ea348d59e1f"
     ]
   }
 }

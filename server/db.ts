@@ -92,10 +92,12 @@ export const UPLOADS_DIR = (() => {
  * Bulletproof recursive helper to strip undefined values so Firestore never errors on WriteBatch
  */
 export function cleanForFirestore<T>(obj: T): T {
-  if (obj === undefined || obj === null) return null as any;
+  if (obj === undefined) return null as any;
+  if (obj === null) return null as any;
+  if (obj instanceof Date) return obj.toISOString() as any;
   if (typeof obj !== 'object') return obj;
   if (Array.isArray(obj)) {
-    return obj.map(cleanForFirestore) as any;
+    return obj.filter(v => v !== undefined).map(cleanForFirestore) as any;
   }
   const result: any = {};
   for (const [key, value] of Object.entries(obj)) {
@@ -771,11 +773,16 @@ class Database {
   }
 
   /**
-   * Save a single item directly to Firestore
+   * Save a single item directly to Firestore & sync in-memory & local file
    */
   public async saveItemDirect(item: { id: string; type: string; title: string; data: any }): Promise<void> {
-    if (!firestoreDb) return;
+    const targetId = String(item.id).trim();
+    if (!targetId) {
+      throw new Error('saveItemDirect failed: item.id is required');
+    }
+
     try {
+      // 1. Sanitize base64 files to disk & chunk storage
       if (item && item.data) {
         const fileKeys = ['coverImage', 'imageUrl', 'screenshotUrl', 'pdfUrl', 'logoUrl', 'profileImageUrl'];
         for (const k of fileKeys) {
@@ -784,53 +791,132 @@ class Database {
           }
         }
       }
-      const cleaned = cleanForFirestore(item);
-      await setDoc(doc(firestoreDb, 'items', item.id), cleaned);
-      console.log(`[Firestore Direct] Saved item ${item.id} (${item.type}) to Firestore.`);
+
+      // 2. Synchronize item in local memory arrays
+      if (item.type === 'course') {
+        this.data.courses = this.data.courses || [];
+        const idx = this.data.courses.findIndex(c => c.id === targetId);
+        if (idx !== -1) this.data.courses[idx] = { ...this.data.courses[idx], ...item.data };
+        else this.data.courses.push(item.data);
+      } else if (item.type === 'book') {
+        this.data.books = this.data.books || [];
+        const idx = this.data.books.findIndex(b => b.id === targetId);
+        if (idx !== -1) this.data.books[idx] = { ...this.data.books[idx], ...item.data };
+        else this.data.books.push(item.data);
+      } else if (item.type === 'strategy') {
+        this.data.strategies = this.data.strategies || [];
+        const idx = this.data.strategies.findIndex(s => s.id === targetId);
+        if (idx !== -1) this.data.strategies[idx] = { ...this.data.strategies[idx], ...item.data };
+        else this.data.strategies.push(item.data);
+      } else if (item.type === 'portfolio') {
+        this.data.portfolio = this.data.portfolio || [];
+        const idx = this.data.portfolio.findIndex(p => p.id === targetId);
+        if (idx !== -1) this.data.portfolio[idx] = { ...this.data.portfolio[idx], ...item.data };
+        else this.data.portfolio.push(item.data);
+      } else if (item.type === 'link') {
+        this.data.links = this.data.links || [];
+        const idx = this.data.links.findIndex(l => l.id === targetId);
+        if (idx !== -1) this.data.links[idx] = { ...this.data.links[idx], ...item.data };
+        else this.data.links.push(item.data);
+      }
+
+      // 3. Save local file cache immediately
+      this.saveToLocalFile();
+
+      // 4. Save to Firestore
+      if (!firestoreDb) {
+        console.warn(`[Firestore Direct WARN] Firestore is not initialized. Item "${targetId}" saved locally only.`);
+        return;
+      }
+
+      const cleaned = cleanForFirestore({
+        id: targetId,
+        type: item.type,
+        title: item.title || 'Untitled',
+        data: item.data,
+        updatedAt: new Date().toISOString()
+      });
+
+      await setDoc(doc(firestoreDb, 'items', targetId), cleaned);
+      console.log(`[Firestore Direct SUCCESS] Saved item "${targetId}" (${item.type}) to Firestore collection "items".`);
     } catch (err: any) {
-      console.warn(`[Firestore Direct] Error saving item ${item.id}:`, err?.message || err);
+      console.error(`[Firestore Direct ERROR] Failed to save item "${targetId}" (${item.type}) to Firestore:`, err?.message || err);
+      throw err;
     }
   }
 
   /**
-   * Directly delete an item from Firestore
+   * Directly delete an item from Firestore & memory
    */
   public async deleteItemDirect(itemId: string): Promise<void> {
     const targetId = String(itemId).trim();
-    // 1. Remove from in-memory arrays
-    this.data.courses = (this.data.courses || []).filter(c => c.id !== targetId);
-    this.data.books = (this.data.books || []).filter(b => b.id !== targetId);
-    this.data.strategies = (this.data.strategies || []).filter(s => s.id !== targetId);
-    this.data.portfolio = (this.data.portfolio || []).filter(p => p.id !== targetId);
-    this.data.links = (this.data.links || []).filter(l => l.id !== targetId);
-    this.saveToLocalFile();
+    if (!targetId) {
+      throw new Error('deleteItemDirect failed: itemId is required');
+    }
 
-    // 2. Delete permanently from Firestore items collection
-    if (firestoreDb) {
-      try {
+    try {
+      // 1. Remove from in-memory arrays
+      this.data.courses = (this.data.courses || []).filter(c => c.id !== targetId);
+      this.data.books = (this.data.books || []).filter(b => b.id !== targetId);
+      this.data.strategies = (this.data.strategies || []).filter(s => s.id !== targetId);
+      this.data.portfolio = (this.data.portfolio || []).filter(p => p.id !== targetId);
+      this.data.links = (this.data.links || []).filter(l => l.id !== targetId);
+      this.saveToLocalFile();
+
+      // 2. Delete permanently from Firestore items collection
+      if (firestoreDb) {
         await deleteDoc(doc(firestoreDb, 'items', targetId));
-        console.log(`[Firestore Direct] Deleted item ${targetId} from Firestore.`);
-      } catch (err: any) {
-        console.warn(`[Firestore Direct] Error deleting item ${targetId}:`, err?.message || err);
+        console.log(`[Firestore Direct SUCCESS] Deleted item "${targetId}" from Firestore collection "items".`);
+      } else {
+        console.warn(`[Firestore Direct WARN] Firestore not available. Item "${targetId}" removed locally only.`);
       }
+    } catch (err: any) {
+      console.error(`[Firestore Direct ERROR] Failed to delete item "${targetId}" from Firestore:`, err?.message || err);
+      throw err;
     }
   }
 
   /**
-   * Directly delete a submission from Firestore
+   * Directly save a submission to Firestore
+   */
+  public async saveSubmissionDirect(submission: AccountSubmission): Promise<void> {
+    const targetId = String(submission.id).trim();
+    try {
+      this.data.submissions = this.data.submissions || [];
+      const idx = this.data.submissions.findIndex(s => s.id === targetId);
+      if (idx !== -1) {
+        this.data.submissions[idx] = { ...this.data.submissions[idx], ...submission };
+      } else {
+        this.data.submissions.unshift(submission);
+      }
+      this.saveToLocalFile();
+
+      if (firestoreDb) {
+        await setDoc(doc(firestoreDb, 'submissions', targetId), cleanForFirestore(submission));
+        console.log(`[Firestore Direct SUCCESS] Saved submission "${targetId}" to Firestore collection "submissions".`);
+      }
+    } catch (err: any) {
+      console.error(`[Firestore Direct ERROR] Failed to save submission "${targetId}":`, err?.message || err);
+      throw err;
+    }
+  }
+
+  /**
+   * Directly delete a submission from Firestore & memory
    */
   public async deleteSubmissionDirect(subId: string): Promise<void> {
     const targetId = String(subId).trim();
-    this.data.submissions = (this.data.submissions || []).filter(s => s.id !== targetId);
-    this.saveToLocalFile();
+    try {
+      this.data.submissions = (this.data.submissions || []).filter(s => s.id !== targetId);
+      this.saveToLocalFile();
 
-    if (firestoreDb) {
-      try {
+      if (firestoreDb) {
         await deleteDoc(doc(firestoreDb, 'submissions', targetId));
-        console.log(`[Firestore Direct] Deleted submission ${targetId} from Firestore.`);
-      } catch (err: any) {
-        console.warn(`[Firestore Direct] Error deleting submission ${targetId}:`, err?.message || err);
+        console.log(`[Firestore Direct SUCCESS] Deleted submission "${targetId}" from Firestore collection "submissions".`);
       }
+    } catch (err: any) {
+      console.error(`[Firestore Direct ERROR] Failed to delete submission "${targetId}":`, err?.message || err);
+      throw err;
     }
   }
 
@@ -838,12 +924,25 @@ class Database {
    * Directly save configuration document to Firestore
    */
   public async saveConfigDirect(configName: 'settings' | 'animations' | 'auth', configData: any): Promise<void> {
-    if (!firestoreDb) return;
     try {
-      await setDoc(doc(firestoreDb, 'app_config', configName), cleanForFirestore(configData));
-      console.log(`[Firestore Direct] Saved config ${configName} to Firestore.`);
+      if (configName === 'settings') {
+        this.data.settings = { ...this.data.settings, ...configData };
+      } else if (configName === 'animations') {
+        this.data.animations = { ...this.data.animations, ...configData };
+      } else if (configName === 'auth') {
+        this.data.adminAuth = { ...this.data.adminAuth, ...configData };
+      }
+      this.saveToLocalFile();
+
+      if (firestoreDb) {
+        await setDoc(doc(firestoreDb, 'app_config', configName), cleanForFirestore(configData));
+        console.log(`[Firestore Direct SUCCESS] Saved config "${configName}" to Firestore collection "app_config".`);
+      } else {
+        console.warn(`[Firestore Direct WARN] Firestore not available. Config "${configName}" saved locally only.`);
+      }
     } catch (err: any) {
-      console.warn(`[Firestore Direct] Error saving config ${configName}:`, err?.message || err);
+      console.error(`[Firestore Direct ERROR] Failed to save config "${configName}":`, err?.message || err);
+      throw err;
     }
   }
 
@@ -937,19 +1036,23 @@ class Database {
     return this.data;
   }
 
-  public async update(updater: (data: DatabaseSchema) => void): Promise<DatabaseSchema> {
+  public async update(updater: (data: DatabaseSchema) => void | Promise<void>): Promise<DatabaseSchema> {
     await this.initPromise;
     return new Promise<DatabaseSchema>((resolve, reject) => {
-      this.updateQueue = this.updateQueue.then(async () => {
-        try {
-          updater(this.data);
-          this.saveToLocalFile();
-          await this.saveToFirestore(this.data);
-          resolve(this.data);
-        } catch (err) {
-          reject(err);
-        }
-      });
+      this.updateQueue = this.updateQueue
+        .catch(err => {
+          console.warn('[Database update queue self-heal from prior error]:', err?.message || err);
+        })
+        .then(async () => {
+          try {
+            await updater(this.data);
+            this.saveToLocalFile();
+            resolve(this.data);
+          } catch (err: any) {
+            console.error('[Database update ERROR]:', err?.message || err);
+            reject(err);
+          }
+        });
     });
   }
 
