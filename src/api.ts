@@ -192,7 +192,11 @@ export async function fetchAdminOverview(): Promise<{
 export async function fetchAdminSubmissions(): Promise<AccountSubmission[]> {
   const res = await fetch('/api/admin/submissions', { headers: authHeaders() });
   await checkAdminResponse(res, 'Failed to fetch submissions');
-  return res.json();
+  const json = await res.json();
+  if (json && Array.isArray(json.data)) {
+    return json.data;
+  }
+  return Array.isArray(json) ? json : [];
 }
 
 export async function updateSubmission(id: string, updates: { status?: string; reviewNotes?: string }): Promise<AccountSubmission> {
@@ -378,7 +382,11 @@ export async function updateAnimationSettings(animations: Partial<AnimationSetti
 export async function fetchAuditLogs(): Promise<AuditLog[]> {
   const res = await fetch('/api/admin/audit-logs', { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to fetch audit logs');
-  return res.json();
+  const json = await res.json();
+  if (json && Array.isArray(json.data)) {
+    return json.data;
+  }
+  return Array.isArray(json) ? json : [];
 }
 
 export async function changeAdminPassword(currentPassword: string, newPassword: string): Promise<void> {
