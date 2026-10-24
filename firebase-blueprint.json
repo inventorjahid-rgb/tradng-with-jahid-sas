@@ -76,6 +76,10 @@
     "/audit_logs/{logId}": {
       "schema": "AuditLog",
       "description": "System activity logs."
+    },
+    "/file_chunks/{chunkId}": {
+      "schema": "object",
+      "description": "Chunked permanent storage for uploaded files and PDFs."
     }
   }
 }

@@ -88,17 +88,7 @@ function compressImage(file: File): Promise<string> {
       setIsUploading(true);
       setErrorMsg('');
 
-      // New Logic: If the file is small enough (< 900KB), we prefer keeping it as a DataURL
-      // so it gets saved PERMANENTLY in Firestore instead of being lost on ephemeral disk.
-      if (file.size < 900 * 1024) {
-        console.log(`[Upload] File is small (${Math.round(file.size / 1024)} KB), using permanent database storage (base64).`);
-        const dataUrl = await compressImage(file);
-        onChange(dataUrl);
-        return;
-      }
-
-      // 1. For larger files (>900KB), we must upload to disk to avoid Firestore 1MB limit.
-      // Note: These files are ephemeral and will be lost on container restart.
+      // Upload directly to permanent server storage (chunked into Firestore file_chunks)
       try {
         const uploadRes = await uploadImage(file);
         if (uploadRes && uploadRes.url) {
@@ -106,10 +96,10 @@ function compressImage(file: File): Promise<string> {
           return;
         }
       } catch (uploadErr) {
-        console.warn('Direct upload notice, using compressed device preview fallback:', uploadErr);
+        console.warn('Server chunked upload failed, trying compressed fallback:', uploadErr);
       }
 
-      // 2. Fallback: compress and store base64 preview
+      // Fallback: compress and store base64 preview
       const compressedDataUrl = await compressImage(file);
       onChange(compressedDataUrl);
     } catch (err: any) {
@@ -287,20 +277,13 @@ function compressImage(file: File): Promise<string> {
           </div>
         )}
 
-        {/* Persistence Warning */}
-        <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-[11px] text-yellow-200/80 leading-relaxed">
-          <div className="flex items-center gap-1.5 font-bold mb-1 text-yellow-400 uppercase tracking-wider">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Persistence Notice</span>
+        {/* Cloud Persistence Guarantee */}
+        <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[11px] text-emerald-200/90 leading-relaxed">
+          <div className="flex items-center gap-1.5 font-bold mb-1 text-emerald-400 uppercase tracking-wider">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Permanent Cloud Storage</span>
           </div>
-          Local file uploads are <strong>ephemeral</strong> and may be wiped during system updates. 
-          {allowPdf ? (
-            <div className="mt-1 font-semibold text-white">
-              Recommendation: Use external URLs (Google Drive, Dropbox, etc.) for PDFs to ensure they are always accessible.
-            </div>
-          ) : (
-            " For critical assets, keep file sizes small (under 100KB) to ensure they are backed up to the database."
-          )}
+          All uploads (large PDFs, book covers, and strategy pictures) are chunked and saved permanently to the Cloud Database. They will not be lost on reload or server restart.
         </div>
 
       </div>

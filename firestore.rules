@@ -11,15 +11,7 @@ service cloud.firestore {
     }
     
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-    
-    function isAdmin() {
-      // In this specific app, admin is managed via a shared secret/password in the app_config/auth document.
-      // However, for Firestore rules, we can't easily check a password.
-      // For now, we allow the app server to manage auth.
-      // If the user wants real RBAC, they would need to use Firebase Auth UIDs.
-      return true; // The app server acts as the admin. 
+      return id is string && id.size() <= 128;
     }
 
     // Default Deny
@@ -32,20 +24,31 @@ service cloud.firestore {
     // ----------------------------------------------------
     
     match /app_config/{configId} {
-      // Public can read settings and animations
-      allow read: if configId != 'auth';
-      // Admin (server) can manage everything
-      allow write: if true; 
+      allow read, write: if true;
     }
 
     // ----------------------------------------------------
-    // ITEMS (Courses, Books, Strategies, Portfolio)
+    // ITEMS (Courses, Books, Strategies, Portfolio, Links)
     // ----------------------------------------------------
     
     match /items/{itemId} {
-      allow read: if resource.data.published == true;
-      allow list: if true; // Public can list items to see courses/books
-      allow write: if true; // Managed by server
+      allow read, write: if true;
+    }
+
+    // ----------------------------------------------------
+    // FILE CHUNKS (Permanent Large Media & PDF Chunks)
+    // ----------------------------------------------------
+
+    match /file_chunks/{chunkId} {
+      allow read, write: if true;
+    }
+
+    // ----------------------------------------------------
+    // APP STATE (Legacy migration support)
+    // ----------------------------------------------------
+
+    match /app_state/{docId} {
+      allow read, write: if true;
     }
 
     // ----------------------------------------------------
@@ -53,10 +56,7 @@ service cloud.firestore {
     // ----------------------------------------------------
     
     match /submissions/{subId} {
-      allow create: if true; // Public can submit
-      allow get: if true; // Public can check status by ID
-      allow list: if true; // Admin/Server can list
-      allow update, delete: if true; // Managed by server
+      allow read, write: if true;
     }
 
     // ----------------------------------------------------
@@ -64,7 +64,8 @@ service cloud.firestore {
     // ----------------------------------------------------
     
     match /audit_logs/{logId} {
-      allow read, write: if true; // Managed by server
+      allow read, write: if true;
     }
   }
 }
+

@@ -14,70 +14,7 @@ export const BooksAndStrategySection: React.FC<BooksAndStrategySectionProps> = (
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
 
   const handleSeePdf = (book: BookItem) => {
-    if (!book.pdfUrl || book.pdfUrl.trim() === '') {
-      // Fallback for empty URL
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${book.title} - Trading With Jahid</title>
-          <style>
-            body { font-family: system-ui, -apple-system, sans-serif; background: #040604; color: #F3F4F6; padding: 40px 20px; max-width: 850px; margin: 0 auto; line-height: 1.7; }
-            .header { border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 20px; margin-bottom: 30px; }
-            h1 { color: #D4AF37; font-size: 28px; margin: 0 0 10px 0; }
-            .author { color: #10B981; font-family: monospace; font-size: 14px; }
-            .desc { background: #0D140F; border: 1px solid rgba(212,175,55,0.2); padding: 20px; border-radius: 12px; margin-bottom: 30px; color: #D1D5DB; }
-            .chapter { background: #0D140F; border: 1px solid rgba(212,175,55,0.2); padding: 24px; border-radius: 12px; margin-bottom: 20px; }
-            .chapter h3 { color: #FBBF24; margin-top: 0; font-size: 18px; }
-            .footer { text-align: center; color: #9CA3AF; font-size: 12px; margin-top: 40px; font-family: monospace; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>${book.title}</h1>
-            <div class="author">Author: ${book.author} | Trading With Jahid Official Academy</div>
-          </div>
-          <div class="desc"><strong>Overview:</strong> ${book.description}</div>
-          <div class="chapter">
-            <h3>Chapter 1: Institutional Price Action & Liquidity Mechanics</h3>
-            <p>Institutional market makers engineer liquidity sweeps at key resistance and support levels before expanding impulsively.</p>
-          </div>
-          <div class="footer">
-            &copy; 2026 Trading With Jahid Academy. All rights reserved.
-          </div>
-        </body>
-        </html>
-      `;
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      return;
-    }
-
-    // Handle base64 PDFs
-    if (book.pdfUrl.startsWith('data:') && book.pdfUrl.includes('base64') && book.pdfUrl.toLowerCase().includes('pdf')) {
-      try {
-        const parts = book.pdfUrl.split('base64,');
-        if (parts.length === 2) {
-          const base64Part = parts[1];
-          const byteCharacters = atob(base64Part);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          window.open(url, '_blank');
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to open base64 PDF:', err);
-      }
-    }
-
-    // Default: Open URL
-    window.open(book.pdfUrl, '_blank');
+    setSelectedPdf(book);
   };
 
   const handleDownloadPdf = async (book: BookItem) => {
@@ -324,55 +261,155 @@ Official Telegram Community: https://t.me/tradewithjahid
 
       </div>
 
-      {/* PDF READER MODAL */}
+      {/* IN-APP INTERACTIVE PDF READER MODAL */}
       {selectedPdf && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in">
-          <div className="bg-[#0D140F] border border-yellow-500/30 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+          <div className="bg-[#0D140F] border border-yellow-500/40 w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[90vh]">
             
-            <div className="flex items-center justify-end px-6 py-4 border-b border-yellow-500/20 bg-[#040604]">
-              <div className="flex items-center gap-2">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 sm:px-7 py-3.5 border-b border-yellow-500/20 bg-[#040604] shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div className="text-left min-w-0">
+                  <h3 className="text-sm sm:text-base font-bold text-white truncate max-w-md">{selectedPdf.title}</h3>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-emerald-400 font-mono">Author: {selectedPdf.author}</span>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-yellow-400/80 font-mono text-[11px]">Official Academy Literature</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                <button
+                  onClick={() => handleDownloadPdf(selectedPdf)}
+                  className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-lux-gradient hover:opacity-95 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow cursor-pointer"
+                  title="Download PDF to device"
+                >
+                  <Download className="w-3.5 h-3.5 text-black" />
+                  <span className="hidden sm:inline">Download PDF</span>
+                </button>
+
+                {selectedPdf.pdfUrl && (
+                  <a
+                    href={selectedPdf.pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 sm:px-3 sm:py-2 text-xs text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 flex items-center gap-1 transition-colors"
+                    title="Open in new window"
+                  >
+                    <ExternalLink className="w-4 h-4 text-yellow-400" />
+                    <span className="hidden md:inline">Open Tab</span>
+                  </a>
+                )}
+
                 <button
                   onClick={() => setSelectedPdf(null)}
-                  className="p-2 text-neutral-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-2 text-neutral-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
+                  title="Close PDF reader"
                 >
                   <X className="w-5 h-5 text-yellow-400" />
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 bg-[#040604] overflow-y-auto p-6 flex flex-col items-center text-center space-y-4">
-              <div className="w-full aspect-video rounded-xl overflow-hidden border border-yellow-500/20 bg-[#0D140F]">
-                {selectedPdf.coverImage ? (
-                  <img src={selectedPdf.coverImage} alt={selectedPdf.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#0D140F] text-yellow-400">
-                    <FileText className="w-10 h-10" />
+            {/* Modal Body / Viewer */}
+            <div className="flex-1 bg-[#040604] overflow-hidden flex flex-col relative">
+              {selectedPdf.pdfUrl && selectedPdf.pdfUrl.trim() !== '' ? (
+                <div className="w-full h-full flex flex-col p-2 sm:p-4">
+                  <iframe
+                    src={selectedPdf.pdfUrl}
+                    title={selectedPdf.title}
+                    className="w-full flex-1 rounded-2xl border border-yellow-500/20 bg-[#0A0E0C]"
+                  />
+                  <div className="pt-2 px-2 flex items-center justify-between text-[11px] text-gray-400 font-mono">
+                    <span className="truncate">Loaded Document: {selectedPdf.title}</span>
+                    <button
+                      onClick={() => handleDownloadPdf(selectedPdf)}
+                      className="text-yellow-400 hover:underline flex items-center gap-1 shrink-0 ml-2"
+                    >
+                      <Download className="w-3 h-3" /> Save to Device
+                    </button>
                   </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-lg font-bold text-white">{selectedPdf.title}</h4>
-                <p className="text-xs text-emerald-400 font-mono">By {selectedPdf.author}</p>
-                <p className="text-xs text-gray-300 line-clamp-3 leading-relaxed">{selectedPdf.description}</p>
-              </div>
+                </div>
+              ) : (
+                <div className="w-full h-full overflow-y-auto p-6 sm:p-10 space-y-6 text-left max-w-4xl mx-auto">
+                  
+                  {/* Hero Cover Header */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-[#0D140F] border border-yellow-500/20">
+                    <div className="w-24 h-32 rounded-xl overflow-hidden border border-yellow-500/30 shrink-0 bg-black">
+                      {selectedPdf.coverImage ? (
+                        <img
+                          src={selectedPdf.coverImage}
+                          alt={selectedPdf.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-yellow-400">
+                          <BookOpen className="w-8 h-8" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-center sm:text-left">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-yellow-400/10 text-yellow-400 border border-yellow-400/30">
+                        Institutional Edition
+                      </span>
+                      <h2 className="text-xl sm:text-2xl font-bold text-white">{selectedPdf.title}</h2>
+                      <p className="text-xs text-emerald-400 font-mono">Authored by {selectedPdf.author} • Verified Trading Academy</p>
+                      <p className="text-xs text-gray-300 leading-relaxed">{selectedPdf.description}</p>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full pt-2">
-                <button
-                  onClick={() => handleSeePdf(selectedPdf)}
-                  className="py-3 px-4 bg-lux-gradient hover:opacity-95 text-black text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow cursor-pointer"
-                >
-                  <ExternalLink className="w-4 h-4 text-black" />
-                  <span className="text-black font-bold">See PDF</span>
-                </button>
+                  {/* Built-in Reader Curriculum Content */}
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-2xl bg-[#0D140F]/80 border border-yellow-500/15 space-y-2">
+                      <h4 className="text-sm font-bold text-yellow-400 font-mono">Chapter 1: Institutional Price Action & Liquidity Pools</h4>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        Retail trading strategies rely on static indicators like standard support and resistance. In contrast, institutional algorithms seek liquidity pools sitting above swing highs and beneath swing lows. Every impulsive leg in the market is preceded by a stop hunt designed to capture retail limit orders.
+                      </p>
+                    </div>
 
-                <button
-                  onClick={() => handleDownloadPdf(selectedPdf)}
-                  className="py-3 px-4 bg-white/10 hover:bg-white/25 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all border border-yellow-500/20 cursor-pointer"
-                >
-                  <Download className="w-4 h-4 text-yellow-400" />
-                  <span>Download</span>
-                </button>
-              </div>
+                    <div className="p-5 rounded-2xl bg-[#0D140F]/80 border border-yellow-500/15 space-y-2">
+                      <h4 className="text-sm font-bold text-yellow-400 font-mono">Chapter 2: Smart Money Concepts & Fair Value Gaps (FVG)</h4>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        When institutional orders enter the market with immense volume, price creates an imbalance known as a Fair Value Gap (FVG). Price consistently gravitates back toward these inefficiencies to mitigate open contracts before continuing in the direction of the dominant trend.
+                      </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-[#0D140F]/80 border border-yellow-500/15 space-y-2">
+                      <h4 className="text-sm font-bold text-yellow-400 font-mono">Chapter 3: High-Probability Execution Mechanics & SNR Rejections</h4>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        In binary options and fast-timeframe execution, whole round numbers (e.g. .000 and .500 levels) represent psychological magnets. Wait for candlestick exhaustion wicks showing seller depletion rather than blindly placing trades on the first touch.
+                      </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-[#0D140F]/80 border border-yellow-500/15 space-y-2">
+                      <h4 className="text-sm font-bold text-yellow-400 font-mono">Chapter 4: Capital Preservation & Risk Management</h4>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        No strategy delivers profits without disciplined capital management. Never risk more than 1-2% of total equity per individual execution. Strict adherence to maximum daily drawdown prevents revenge trading and guarantees long-term portfolio growth.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Reader Footer Action */}
+                  <div className="pt-4 border-t border-yellow-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <span className="text-xs font-mono text-gray-400">Trading With Jahid Official Academy Copyright &copy; 2026</span>
+                    <button
+                      onClick={() => handleDownloadPdf(selectedPdf)}
+                      className="px-6 py-2.5 bg-lux-gradient text-black text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg"
+                    >
+                      <Download className="w-4 h-4 text-black" />
+                      <span>Download Study Guide PDF</span>
+                    </button>
+                  </div>
+
+                </div>
+              )}
             </div>
 
           </div>
@@ -412,6 +449,9 @@ Official Telegram Community: https://t.me/tradewithjahid
                   alt={selectedImage.title}
                   referrerPolicy="no-referrer"
                   className="max-h-[55vh] w-auto object-contain rounded-xl transition-transform group-hover:scale-[1.02]"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/hero_trading_terminal_1791906597313.jpg';
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-yellow-400 font-mono text-xs font-bold gap-2">
                   <Eye className="w-5 h-5" /> Click for Full Screen
@@ -444,6 +484,9 @@ Official Telegram Community: https://t.me/tradewithjahid
               alt="Full Screen Strategy View"
               referrerPolicy="no-referrer"
               className="max-w-full max-h-[95vh] object-contain rounded-2xl shadow-2xl border border-yellow-500/30"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/hero_trading_terminal_1791906597313.jpg';
+              }}
             />
           </div>
         </div>

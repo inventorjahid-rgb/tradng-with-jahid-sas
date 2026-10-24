@@ -154,6 +154,70 @@
   "strategies": [],
   "auditLogs": [
     {
+      "id": "log-1792846582560-757",
+      "action": "Book Deleted",
+      "details": "Book book-1792846582319 deleted",
+      "timestamp": "2026-10-24T12:56:22.560Z"
+    },
+    {
+      "id": "log-1792846582422-303",
+      "action": "Book Created",
+      "details": "Book \"Test Candlestick Masterclass\" created",
+      "timestamp": "2026-10-24T12:56:22.422Z"
+    },
+    {
+      "id": "log-1792846582298-207",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T12:56:22.298Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792846576664-745",
+      "action": "Strategy Deleted",
+      "details": "Strategy strat-1792846576418 deleted",
+      "timestamp": "2026-10-24T12:56:16.664Z"
+    },
+    {
+      "id": "log-1792846576497-690",
+      "action": "Strategy Created",
+      "details": "Strategy \"Test Automated SMC Strategy\" created",
+      "timestamp": "2026-10-24T12:56:16.497Z"
+    },
+    {
+      "id": "log-1792846576396-953",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T12:56:16.396Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792846567084-123",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T12:56:07.084Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792845522704-557",
+      "action": "Course Deleted",
+      "details": "Course course-1792845517354 was deleted",
+      "timestamp": "2026-10-24T12:38:42.704Z"
+    },
+    {
+      "id": "log-1792845517484-497",
+      "action": "Course Created",
+      "details": "Course \"Test Course Save\" created",
+      "timestamp": "2026-10-24T12:38:37.484Z"
+    },
+    {
+      "id": "log-1792845507005-917",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T12:38:27.005Z",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "log-1792743503047-151",
       "action": "Course Deleted",
       "details": "Course course-1792743496827 was deleted",
@@ -404,67 +468,6 @@
       "details": "Administrator logged in successfully",
       "timestamp": "2026-10-13T17:13:44.437Z",
       "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1791911574696-316",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-13T17:12:54.696Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1791911392941-315",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:09:52.941Z"
-    },
-    {
-      "id": "log-1791911376858-6",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:09:36.858Z"
-    },
-    {
-      "id": "log-1791911360512-136",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:09:20.512Z"
-    },
-    {
-      "id": "log-1791911347670-673",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:09:07.670Z"
-    },
-    {
-      "id": "log-1791911341101-531",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:09:01.101Z"
-    },
-    {
-      "id": "log-1791911332893-498",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:08:52.893Z"
-    },
-    {
-      "id": "log-1791911321301-763",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:08:41.301Z"
-    },
-    {
-      "id": "log-1791911306702-191",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:08:26.702Z"
-    },
-    {
-      "id": "log-1791911288204-631",
-      "action": "Animation Settings Updated",
-      "details": "Visual effects & animation config updated",
-      "timestamp": "2026-10-13T17:08:08.204Z"
     }
   ],
   "adminAuth": {
@@ -481,7 +484,11 @@
       "jahid.YWRtaW46MTc5MjIyMzQ2MjQ2NA.592b88a01ab410f41216eba81ef52a8498460dbadb67b09285e0c58713f6d8c2",
       "jahid.YWRtaW46MTc5MjQyMTEyMzUyNQ.351e00b99a356601e58e1ae93a2eebcb4e819bb45f3f998e7b485b60ee08ec84",
       "jahid.YWRtaW46MTc5MjUwMzUyMjMzMw.ee859013c68d206794a98e2c65953313ad2366e9623b4c39bc151bc909416b1c",
-      "jahid.YWRtaW46MTc5MjUwMzUzODA0NQ.387e5acaa0186730780e4190bacd415305f92a38ce03274fda43c92a382c7f76"
+      "jahid.YWRtaW46MTc5MjUwMzUzODA0NQ.387e5acaa0186730780e4190bacd415305f92a38ce03274fda43c92a382c7f76",
+      "jahid.YWRtaW46MTc5Mjg0NTUwNjc0NQ.195c57e7363abcd06ceeaa9da5a8f7cfa91fe1513a104dc9f1b77c24dbb67db2",
+      "jahid.YWRtaW46MTc5Mjg0NjU2NjgzNQ.7db6687def791d646e50873e422a09347019ecf2cc346c0cc0d145bc23f1a88f",
+      "jahid.YWRtaW46MTc5Mjg0NjU3NjI3Mw.01b6819344c3f216aa47edb48893b4a25a69848fe9795582d127d02837a600f5",
+      "jahid.YWRtaW46MTc5Mjg0NjU4MjE3Mg.33cab73be1ff4adc47859baa90d947a428f411fe3d4502cf91f34dfb566e941a"
     ]
   }
 }
