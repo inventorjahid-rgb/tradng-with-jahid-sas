@@ -584,12 +584,44 @@ api.get('/admin/overview', requireAdmin, async (_req: Request, res: Response) =>
 // ADMIN SUBMISSIONS MANAGEMENT
 // ----------------------------------------------------
 
-api.get('/admin/submissions', requireAdmin, async (_req: Request, res: Response) => {
+api.get('/admin/submissions', requireAdmin, async (req: Request, res: Response) => {
   try {
     const data = await db.get();
-    res.json(data.submissions || []);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch submissions' });
+    const submissions = data.submissions || [];
+    
+    const page = parseInt(String(req.query.page || '1'), 10);
+    const limit = parseInt(String(req.query.limit || '50'), 10);
+    const search = String(req.query.search || '').trim().toLowerCase();
+    const statusFilter = String(req.query.status || '').trim();
+
+    let filtered = submissions;
+    if (search) {
+      filtered = filtered.filter(s => 
+        (s.accountId && s.accountId.toLowerCase().includes(search)) ||
+        (s.id && s.id.toLowerCase().includes(search)) ||
+        (s.telegramHandle && s.telegramHandle.toLowerCase().includes(search)) ||
+        (s.courseTitle && s.courseTitle.toLowerCase().includes(search))
+      );
+    }
+
+    if (statusFilter && statusFilter !== 'All') {
+      filtered = filtered.filter(s => s.status === statusFilter);
+    }
+
+    const total = filtered.length;
+    const startIndex = (page - 1) * limit;
+    const paginated = filtered.slice(startIndex, startIndex + limit);
+
+    res.json({
+      data: paginated,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    });
+  } catch (err: any) {
+    console.error('[Admin Submissions ERROR]:', err);
+    res.status(500).json({ error: 'Failed to fetch submissions: ' + (err?.message || err) });
   }
 });
 
@@ -1216,12 +1248,38 @@ api.put('/admin/animations', requireAdmin, async (req: Request, res: Response) =
   }
 });
 
-api.get('/admin/audit-logs', requireAdmin, async (_req: Request, res: Response) => {
+api.get('/admin/audit-logs', requireAdmin, async (req: Request, res: Response) => {
   try {
     const data = await db.get();
-    res.json(data.auditLogs || []);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch audit logs' });
+    const auditLogs = data.auditLogs || [];
+
+    const page = parseInt(String(req.query.page || '1'), 10);
+    const limit = parseInt(String(req.query.limit || '50'), 10);
+    const search = String(req.query.search || '').trim().toLowerCase();
+
+    let filtered = auditLogs;
+    if (search) {
+      filtered = filtered.filter(l =>
+        (l.action && l.action.toLowerCase().includes(search)) ||
+        (l.details && l.details.toLowerCase().includes(search)) ||
+        (l.ip && l.ip.toLowerCase().includes(search))
+      );
+    }
+
+    const total = filtered.length;
+    const startIndex = (page - 1) * limit;
+    const paginated = filtered.slice(startIndex, startIndex + limit);
+
+    res.json({
+      data: paginated,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    });
+  } catch (err: any) {
+    console.error('[Admin Audit Logs ERROR]:', err);
+    res.status(500).json({ error: 'Failed to fetch audit logs: ' + (err?.message || err) });
   }
 });
 
