@@ -10,7 +10,18 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { initializeApp, getApps } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  getDocs,
+  collection,
+  query,
+  limit,
+  deleteDoc,
+  writeBatch
+} from "firebase/firestore";
 var DEFAULT_FIREBASE_CONFIG = {
   projectId: "gen-lang-client-0845142804",
   appId: "1:667788705815:web:a5758ace8d5ff2754b5c52",
@@ -26,7 +37,7 @@ var DEFAULT_FIREBASE_CONFIG = {
 function getFirebaseConfig() {
   const configPaths = [
     path.resolve(process.cwd(), "firebase-applet-config.json"),
-    path.resolve(__dirname, "firebase-applet-config.json"),
+    path.resolve(__filename, "firebase-applet-config.json"),
     path.resolve(__dirname, "../firebase-applet-config.json")
   ];
   for (const configPath of configPaths) {
@@ -50,7 +61,7 @@ try {
   if (configData && configData.apiKey && configData.projectId) {
     const app2 = getApps().find((a) => a.name === "server-app-db") || initializeApp(configData, "server-app-db");
     firestoreDb = getFirestore(app2, configData.firestoreDatabaseId || "(default)");
-    console.log("[Database] Firestore successfully connected to project:", configData.projectId, "database:", configData.firestoreDatabaseId);
+    console.log("[Database] Firestore successfully connected to project:", configData.projectId);
   }
 } catch (e) {
   console.warn("Warning: Could not initialize Firebase in server/db.ts:", e?.message || e);
@@ -60,68 +71,48 @@ var TMP_DATA_PATH = path.resolve("/tmp", "trading_jahid_db.json");
 function getDbFilePath() {
   try {
     const dir = path.dirname(LOCAL_DATA_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(path.join(dir, ".test"), "test");
-    fs.unlinkSync(path.join(dir, ".test"));
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     return LOCAL_DATA_PATH;
   } catch {
-    try {
-      if (!fs.existsSync("/tmp")) {
-        fs.mkdirSync("/tmp", { recursive: true });
-      }
-      return TMP_DATA_PATH;
-    } catch {
-      return LOCAL_DATA_PATH;
-    }
+    return TMP_DATA_PATH;
   }
 }
 var DATA_FILE_PATH = getDbFilePath();
 var UPLOADS_DIR = (() => {
   try {
     const dir = path.resolve(process.cwd(), "public/uploads");
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     return dir;
   } catch {
     const tmpDir = path.resolve("/tmp", "uploads");
-    try {
-      if (!fs.existsSync(tmpDir)) {
-        fs.mkdirSync(tmpDir, { recursive: true });
-      }
-      return tmpDir;
-    } catch {
-      return path.resolve(process.cwd(), "public/uploads");
-    }
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    return tmpDir;
   }
 })();
-function saveBase64ToDisk(dataUrl, prefix) {
-  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) {
-    return dataUrl;
-  }
+function saveBase64ToDisk(dataUrl, prefix, forceDisk = false) {
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) return dataUrl;
   try {
     const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-    if (!matches || matches.length !== 3) {
+    if (!matches || matches.length !== 3) return dataUrl;
+    const mime = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, "base64");
+    const sizeKb = buffer.length / 1024;
+    if (!forceDisk && sizeKb < 950) {
       return dataUrl;
     }
-    const mime = matches[1];
     let ext = "jpg";
     if (mime.includes("png")) ext = "png";
     else if (mime.includes("webp")) ext = "webp";
-    else if (mime.includes("gif")) ext = "gif";
-    else if (mime.includes("svg")) ext = "svg";
     else if (mime.includes("pdf")) ext = "pdf";
-    const buffer = Buffer.from(matches[2], "base64");
     const safePrefix = prefix.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
     const fileName = `${safePrefix}_${Date.now()}_${Math.floor(Math.random() * 1e4)}.${ext}`;
     const targetPath = path.join(UPLOADS_DIR, fileName);
     fs.writeFileSync(targetPath, buffer);
-    console.log(`[Upload Auto-Save] Converted base64 to static file: /uploads/${fileName} (${Math.round(buffer.length / 1024)} KB)`);
+    console.log(`[Upload] File too large for database (${Math.round(sizeKb)} KB). Saved to EPHEMERAL disk: /uploads/${fileName}`);
     return `/uploads/${fileName}`;
   } catch (err) {
-    console.warn("[Upload Auto-Save] Failed to convert base64 to file:", err);
+    console.warn("[Upload] Failed to convert base64 to file:", err);
     return dataUrl;
   }
 }
@@ -137,7 +128,7 @@ var INITIAL_DATA = {
     coursesBadgeText: "Trading Curriculum & Tools \xB7 Structured Path",
     coursesTitlePrimary: "Comprehensive Courses,",
     coursesTitleHighlight: "Algorithmic Bots & Signals",
-    coursesSubtitle: "Eliminate guesswork with institutional methodologies. Select a course or service below to review the curriculum and initiate verified access.",
+    coursesSubtitle: "Eliminate guesswork with institutional methodologies.",
     profileImageUrl: "/images/jahid_profile_avatar_1791906596676.jpg",
     logoUrl: "/images/trading_with_jahid_logo_1791908793141.jpg",
     heroBannerUrl: "/images/hero_trading_terminal_1791906597313.jpg",
@@ -149,23 +140,19 @@ var INITIAL_DATA = {
     secondaryColor: "#087F5B",
     accentGold: "#D4AF37",
     bgColor: "#080B0A",
-    aboutBio: "Professional financial trader, market technician, and trading mentor with over 7 years of specialized expertise in high-frequency Binary price action, institutional Forex order flow, and quantitative algorithmic strategies. My mission is to guide disciplined traders toward real consistency without gambling or false promises.",
-    aboutJourney: "Starting with small capital and navigating market volatility taught me that emotional discipline and mathematical edge always beat hype. Over the past 7 years, I developed systematic rule-based setups that transform everyday traders into calculated market operators.",
+    aboutBio: "Professional financial trader, market technician, and trading mentor with over 7 years of experience.",
+    aboutJourney: "Developing systematic rule-based setups that transform everyday traders into calculated market operators.",
     aboutExpertise: [
-      "Binary Options Candlestick Psychology & Rejection Trading",
-      "Institutional Forex Liquidity (SMC & Order Block Dynamics)",
-      "High-Frequency Risk Management & Capital Preservation",
-      "Algorithmic Trading Bot Deployment & Backtesting",
-      "Live Market Tape Reading & Session Volatility Exploitation"
+      "Binary Options Candlestick Psychology",
+      "Institutional Forex Liquidity (SMC)",
+      "High-Frequency Risk Management"
     ],
     aboutStats: [
       { label: "Community Members", value: "14,800+" },
-      { label: "Live Trading Hours", value: "1,200+" },
-      { label: "Course Graduates", value: "3,400+" },
       { label: "Verified Win Rate", value: "84.2%" }
     ],
-    footerDisclaimer: "Trading With Jahid is an independent educational academy. We do not provide financial advice, broker services, or guarantee profits. All content is for educational and training purposes.",
-    riskNotice: "High Risk Warning: Trading Forex, Binary Options, and derivative financial contracts carries a high level of risk to your capital. You should never trade with funds you cannot afford to lose. Past performance of any system or mentor is not indicative of future results."
+    footerDisclaimer: "Trading With Jahid is an independent educational academy. All content is for educational purposes.",
+    riskNotice: "High Risk Warning: Trading carries a high level of risk to your capital."
   },
   animations: {
     enable3D: true,
@@ -179,328 +166,13 @@ var INITIAL_DATA = {
     backgroundStyle: "emerald_mesh",
     enableOnMobile: false
   },
-  courses: [
-    {
-      id: "course-binary",
-      slug: "binary",
-      title: "Binary Trading Mastery",
-      category: "Binary Trading Course",
-      shortDesc: "Master 1-minute to 5-minute candlestick momentum, rejection zones, and volume spread analysis.",
-      fullDesc: "A complete masterclass in high-frequency binary options trading. Learn price action patterns, Bollinger squeeze breakouts, false breakout filters, and strict martingale/compounding math.",
-      coverImage: "/images/binary_course_cover_1791906598444.jpg",
-      accessMode: "new_account",
-      registrationUrl: "https://pocketoption.com/register?utm_source=jahid_vip",
-      joinUrl: "https://t.me/+JahidBinaryVipPortal",
-      modules: [
-        "Candlestick Anatomy, Wick Rejections & Key S/R Zones",
-        "Volume Spread Analysis (VSA) for 60-Second Expirations",
-        "Dynamic Indicator Confluence: Bollinger Bands & RSI 14/7",
-        "Mathematical Money Management: Compound vs Fixed Risk",
-        "Eliminating Emotional Trading & Over-trading Traps"
-      ],
-      requirements: "Register a fresh account via our partner link and submit your Broker Account ID for activation.",
-      faqs: [
-        { question: "Is this suitable for beginners?", answer: "Yes, we teach from foundational candlestick reading up to institutional setups." },
-        { question: "Which brokers are supported?", answer: "Pocket Option, Quotex, and Deriv are fully supported." }
-      ],
-      published: true,
-      featured: true,
-      order: 1,
-      createdAt: "2026-01-10T10:00:00Z"
-    },
-    {
-      id: "course-forex",
-      slug: "forex",
-      title: "Smart Money Forex Dynamics",
-      category: "Forex Institutional",
-      shortDesc: "Trade institutional order blocks, mitigation blocks, and liquidity sweeps with 1:5 risk-reward precision.",
-      fullDesc: "Comprehensive institutional Forex mentorship. Discover how market makers engineer liquidity, how to spot high-timeframe order blocks, and how to execute swing and intraday trades with extreme accuracy.",
-      coverImage: "/images/forex_course_cover_1791906599347.jpg",
-      accessMode: "existing_id",
-      registrationUrl: "https://exness.com/register?utm_source=jahid_vip",
-      joinUrl: "https://t.me/+JahidForexSMC",
-      modules: [
-        "Institutional Market Structure & Change of Character (CHoCH)",
-        "Liquidity Engineering: Inducement, Equal Highs & Stop Hunts",
-        "Order Block & Fair Value Gap (FVG) Refinement",
-        "Multi-Timeframe Top-Down Analysis Protocol",
-        "Risk-to-Reward Scaling & Execution Discipline"
-      ],
-      requirements: "Use our partner IB link or link your existing trading account ID for verification.",
-      faqs: [
-        { question: "Do I need a large starting balance?", answer: "No, you can start with a micro account (cent account or $50 standard)." },
-        { question: "Are live sessions included?", answer: "Yes, weekly London session live trading and chart reviews." }
-      ],
-      published: true,
-      featured: true,
-      order: 2,
-      createdAt: "2026-01-12T10:00:00Z"
-    },
-    {
-      id: "service-signals",
-      slug: "signals",
-      title: "VIP Trading Signals & Analysis",
-      category: "Telegram VIP Signals",
-      shortDesc: "Real-time high-probability Binary & Forex signal alerts with entry timing, stop loss, and TP targets.",
-      fullDesc: "Get direct VIP Telegram broadcast alerts delivered right when setups form. Each signal includes thorough technical breakdown, risk level, and expiration/target parameters.",
-      coverImage: "/images/hero_trading_terminal_1791906597313.jpg",
-      accessMode: "existing_id",
-      registrationUrl: "https://t.me/tradewithjahid",
-      joinUrl: "https://t.me/+JahidVipSignalsChannel",
-      modules: [
-        "Daily London & New York Session Signal Broadcasts",
-        "Pre-Market Chart Analysis & Key Level Mapping",
-        "Live Trade Management & Partial Profit Updates",
-        "Risk Management Guidelines per Signal Alert"
-      ],
-      requirements: "Submit your active trading broker account ID to receive instant VIP Telegram channel access.",
-      faqs: [
-        { question: "How many signals per day?", answer: "Typically 3 to 7 high-confluence signals across forex and binary." },
-        { question: "How are alerts sent?", answer: "Instantly via our private VIP Telegram channel." }
-      ],
-      published: true,
-      featured: true,
-      order: 3,
-      createdAt: "2026-01-15T10:00:00Z"
-    },
-    {
-      id: "service-bot",
-      slug: "bot",
-      title: "Alpha Engine Algorithmic Bot",
-      category: "Quantitative Bot",
-      shortDesc: "Automated binary and synthetic index execution bot engineered for disciplined algorithmic compounding.",
-      fullDesc: "Our proprietary Alpha Engine bot removes emotion entirely. Powered by trend-following momentum indicators and strict volatility filters.",
-      coverImage: "/images/trading_bot_cover_1791906598974.jpg",
-      accessMode: "new_account",
-      registrationUrl: "https://deriv.com/signup?utm_source=jahid_vip",
-      joinUrl: "https://t.me/+JahidBotAccess",
-      modules: [
-        "Bot Installation & Parameter Configuration",
-        "Risk Guardrails: Max Drawdown & Daily Profit Lock",
-        "Backtesting Results & Optimization Guidelines"
-      ],
-      requirements: "Register a partner trading account and submit your account ID for bot license key activation.",
-      faqs: [
-        { question: "Does the bot run 24/7?", answer: "It operates during high-liquidity London and New York sessions." }
-      ],
-      published: true,
-      featured: false,
-      order: 4,
-      createdAt: "2026-01-18T10:00:00Z"
-    }
-  ],
-  links: [
-    {
-      id: "link-1",
-      title: "VIP Telegram Community",
-      category: "Community",
-      url: "https://t.me/tradewithjahid",
-      description: "Join over 14,800 active traders sharing setups, daily analysis, and results.",
-      iconName: "Send",
-      buttonLabel: "Join Free Telegram",
-      displayLocations: ["navbar", "hero", "social_section", "footer", "floating"],
-      order: 1,
-      isActive: true,
-      isFeatured: true,
-      openInNewTab: true,
-      clickCount: 1420,
-      createdAt: "2026-01-10T10:00:00Z"
-    },
-    {
-      id: "link-2",
-      title: "Pocket Option Partner Portal",
-      category: "Broker",
-      url: "https://pocketoption.com/register?utm_source=jahid_vip",
-      description: "Register your trading account for Binary Mastery & VIP Access.",
-      iconName: "ExternalLink",
-      buttonLabel: "Open Account",
-      displayLocations: ["course_pages", "social_section"],
-      order: 2,
-      isActive: true,
-      isFeatured: true,
-      openInNewTab: true,
-      clickCount: 890,
-      createdAt: "2026-01-10T10:00:00Z"
-    },
-    {
-      id: "link-3",
-      title: "Direct Mentor Support (Telegram)",
-      category: "Support",
-      url: "https://t.me/tradewithjahid",
-      description: "Message Jahid directly with your account ID for instant course & signal approval.",
-      iconName: "MessageCircle",
-      buttonLabel: "Message Mentor",
-      displayLocations: ["contact_page", "hero", "footer"],
-      order: 3,
-      isActive: true,
-      isFeatured: true,
-      openInNewTab: true,
-      clickCount: 654,
-      createdAt: "2026-01-10T10:00:00Z"
-    }
-  ],
-  submissions: [
-    {
-      id: "SUB-9482",
-      courseId: "course-binary",
-      courseTitle: "Binary Trading Mastery",
-      accountId: "PO-8923419",
-      telegramHandle: "@arif_trader",
-      userEmail: "arif@gmail.com",
-      status: "Pending Review",
-      reviewNotes: "Awaiting partner dashboard sync.",
-      createdAt: "2026-10-13T07:15:00Z",
-      updatedAt: "2026-10-13T07:15:00Z"
-    },
-    {
-      id: "SUB-8023",
-      courseId: "service-signals",
-      courseTitle: "VIP Trading Signals",
-      accountId: "QX-1049281",
-      telegramHandle: "@rahul_invest",
-      userEmail: "rahul@yahoo.com",
-      status: "Pending Review",
-      reviewNotes: "New submission submitted today.",
-      createdAt: "2026-10-13T08:02:00Z",
-      updatedAt: "2026-10-13T08:02:00Z"
-    }
-  ],
-  portfolio: [
-    {
-      id: "port-1",
-      title: "EUR/USD London Killzone Liquidity Sweep",
-      instrument: "Forex",
-      pair: "EUR/USD",
-      outcome: "WIN",
-      riskReward: "1:4.8 RR",
-      profitPercentage: "+4.8%",
-      screenshotUrl: "/images/forex_course_cover_1791906599347.jpg",
-      date: "October 2026",
-      educationalNote: "Asian session highs were swept at London Open followed by a clean 5-minute Market Structure Shift (MSS). Entered on the Fair Value Gap retest with 7 pip stop loss.",
-      published: true,
-      order: 1
-    },
-    {
-      id: "port-2",
-      title: "USD/JPY 60-Second Bollinger Squeeze Breakout",
-      instrument: "Binary",
-      pair: "USD/JPY",
-      outcome: "WIN",
-      riskReward: "88% Payout",
-      profitPercentage: "+88%",
-      screenshotUrl: "/images/binary_course_cover_1791906598444.jpg",
-      date: "October 2026",
-      educationalNote: "Volatility contraction preceded a strong rejection candle touching the lower deviation band. Entered 1-minute CALL option immediately upon rejection confirmation.",
-      published: true,
-      order: 2
-    },
-    {
-      id: "port-3",
-      title: "Gold (XAU/USD) Daily Order Block Bounce",
-      instrument: "Forex",
-      pair: "XAU/USD",
-      outcome: "WIN",
-      riskReward: "1:5.5 RR",
-      profitPercentage: "+5.5%",
-      screenshotUrl: "/images/hero_trading_terminal_1791906597313.jpg",
-      date: "September 2026",
-      educationalNote: "Institutional daily demand mitigation into previous week's discount level. Clear bullish engulfing confirmation on the 15-minute timeframe.",
-      published: true,
-      order: 3
-    },
-    {
-      id: "port-4",
-      title: "Alpha Engine Quant Bot Forward Run",
-      instrument: "Bot",
-      pair: "Deriv Synthetic / Vol 75",
-      outcome: "PROFIT",
-      riskReward: "Automated",
-      profitPercentage: "+24.6% Month",
-      screenshotUrl: "/images/trading_bot_cover_1791906598974.jpg",
-      date: "September 2026",
-      educationalNote: "Dual-engine algorithmic execution filtering choppy market conditions with strict daily loss cap of 2.5% max equity risk.",
-      published: true,
-      order: 4
-    }
-  ],
-  books: [
-    {
-      id: "book-1",
-      title: "Institutional Candlestick Psychology & Wick Dynamics",
-      author: "Jahid Hossain",
-      description: "Master 60-second to 5-minute binary price action, order flow exhaustion, and false breakout filters.",
-      pdfUrl: "/uploads/institutional_candlestick_psychology.pdf",
-      coverImage: "/images/binary_course_cover_1791906598444.jpg",
-      published: true,
-      order: 1,
-      createdAt: "2026-01-10T10:00:00Z"
-    },
-    {
-      id: "book-2",
-      title: "Smart Money Concepts & Forex Liquidity Manual",
-      author: "Jahid Hossain",
-      description: "Comprehensive guide to institutional fair value gaps, liquidity sweeps, market structure shifts, and 1:5 RR setups.",
-      pdfUrl: "/uploads/smc_forex_liquidity_manual.pdf",
-      coverImage: "/images/forex_course_cover_1791906599347.jpg",
-      published: true,
-      order: 2,
-      createdAt: "2026-01-12T10:00:00Z"
-    },
-    {
-      id: "book-3",
-      title: "Advanced Risk Management & Compound Growth Handbook",
-      author: "Jahid Hossain",
-      description: "Mathematical framework for protecting capital, avoiding emotional tilt, and scaling accounts systematically.",
-      pdfUrl: "/uploads/risk_management_compound_handbook.pdf",
-      coverImage: "/images/hero_trading_terminal_1791906597313.jpg",
-      published: true,
-      order: 3,
-      createdAt: "2026-01-15T10:00:00Z"
-    }
-  ],
-  strategies: [
-    {
-      id: "strat-1",
-      title: "London Session Sweep & Mitigation Strategy",
-      category: "Forex Institutional",
-      description: "Identify key Asia session highs/sweeps, wait for market structure break (MSB), and enter on 15m order block mitigation.",
-      imageUrl: "/images/hero_trading_terminal_1791906597313.jpg",
-      winRate: "86.4% Win Rate",
-      published: true,
-      order: 1,
-      createdAt: "2026-01-10T10:00:00Z"
-    },
-    {
-      id: "strat-2",
-      title: "1-Minute Binary Bollinger Squeeze Rejection",
-      category: "Binary Options",
-      description: "Look for volatility contraction on Bollinger Bands paired with RSI divergence and wick rejection at major support/resistance.",
-      imageUrl: "/images/binary_course_cover_1791906598444.jpg",
-      winRate: "82.1% Payout Accuracy",
-      published: true,
-      order: 2,
-      createdAt: "2026-01-12T10:00:00Z"
-    },
-    {
-      id: "strat-3",
-      title: "Algorithmic Trend Following Bot Setup",
-      category: "Quantitative Bot",
-      description: "Multi-timeframe moving average crossover combined with ATR trailing stop limits for hands-free trend capture.",
-      imageUrl: "/images/trading_bot_cover_1791906598974.jpg",
-      winRate: "79.8% Net ROI",
-      published: true,
-      order: 3,
-      createdAt: "2026-01-15T10:00:00Z"
-    }
-  ],
-  auditLogs: [
-    {
-      id: "log-1",
-      action: "System Initialization",
-      details: "Trading With Jahid master system started with institutional configuration.",
-      timestamp: "2026-10-13T08:00:00Z"
-    }
-  ],
+  courses: [],
+  links: [],
+  submissions: [],
+  portfolio: [],
+  books: [],
+  strategies: [],
+  auditLogs: [],
   adminAuth: {
     username: "admin",
     passwordHash: "jahidvip2026",
@@ -509,200 +181,163 @@ var INITIAL_DATA = {
 };
 var Database = class {
   constructor() {
+    this.updateQueue = Promise.resolve();
     this.data = this.loadFromFile();
     this.initPromise = this.syncFromFirestore();
   }
   async syncFromFirestore() {
     if (!firestoreDb) return;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const docRef = doc(firestoreDb, "app_state", "main");
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const raw = snap.data();
-          if (raw && raw.payloadString) {
-            this.applyParsedState(raw.payloadString);
-            console.log("[Database] Loaded initial state from Firestore app_state/main");
-          }
-        } else {
-          console.log("[Database] Firestore document app_state/main not found. Seeding initial data.");
-          await this.saveToFirestore(this.data);
-        }
-        onSnapshot(docRef, (updatedSnap) => {
-          if (updatedSnap.exists()) {
-            const raw = updatedSnap.data();
-            if (raw && raw.payloadString) {
-              this.applyParsedState(raw.payloadString);
-            }
-          }
-        }, (err) => {
-          console.warn("[Database] Realtime onSnapshot sync warning:", err.message);
-        });
-        break;
-      } catch (e) {
-        console.warn(`[Database] Attempt ${attempt} failed to sync database from Firestore:`, e?.message || e);
-        if (attempt < 3) {
-          await new Promise((r) => setTimeout(r, 800));
+    try {
+      console.log("[Database] Synchronizing with multi-document collections...");
+      const legacyRef = doc(firestoreDb, "app_state", "main");
+      const legacySnap = await getDoc(legacyRef);
+      if (legacySnap.exists()) {
+        const raw = legacySnap.data();
+        if (raw && raw.payloadString) {
+          console.log("[Database] Found legacy data. Migrating to new structure...");
+          const legacyData = JSON.parse(raw.payloadString);
+          await this.migrateLegacyData(legacyData);
+          await deleteDoc(legacyRef).catch(() => {
+          });
         }
       }
+      const [settingsSnap, animationsSnap, authSnap] = await Promise.all([
+        getDoc(doc(firestoreDb, "app_config", "settings")),
+        getDoc(doc(firestoreDb, "app_config", "animations")),
+        getDoc(doc(firestoreDb, "app_config", "auth"))
+      ]);
+      if (settingsSnap.exists()) this.data.settings = { ...this.data.settings, ...settingsSnap.data() };
+      if (animationsSnap.exists()) this.data.animations = { ...this.data.animations, ...animationsSnap.data() };
+      if (authSnap.exists()) this.data.adminAuth = { ...this.data.adminAuth, ...authSnap.data() };
+      const itemsSnap = await getDocs(collection(firestoreDb, "items"));
+      const items = [];
+      itemsSnap.forEach((doc2) => items.push(doc2.data()));
+      this.data.courses = items.filter((i) => i.type === "course").map((i) => i.data).sort((a, b) => a.order - b.order);
+      this.data.books = items.filter((i) => i.type === "book").map((i) => i.data).sort((a, b) => a.order - b.order);
+      this.data.strategies = items.filter((i) => i.type === "strategy").map((i) => i.data).sort((a, b) => a.order - b.order);
+      this.data.portfolio = items.filter((i) => i.type === "portfolio").map((i) => i.data).sort((a, b) => a.order - b.order);
+      this.data.links = items.filter((i) => i.type === "link").map((i) => i.data).sort((a, b) => a.order - b.order);
+      const subsSnap = await getDocs(query(collection(firestoreDb, "submissions"), limit(200)));
+      this.data.submissions = subsSnap.docs.map((d) => d.data()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const logsSnap = await getDocs(query(collection(firestoreDb, "audit_logs"), limit(50)));
+      this.data.auditLogs = logsSnap.docs.map((d) => d.data()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      this.saveToLocalFile();
+      console.log("[Database] Multi-document sync complete.");
+    } catch (e) {
+      console.warn("[Database] Sync failed:", e?.message || e);
     }
   }
-  applyParsedState(payloadString) {
+  async migrateLegacyData(legacyData) {
+    if (!firestoreDb) return;
     try {
-      const parsed = JSON.parse(payloadString || "{}");
-      this.data = {
-        ...INITIAL_DATA,
-        ...parsed,
-        courses: Array.isArray(parsed.courses) ? parsed.courses : [],
-        links: Array.isArray(parsed.links) ? parsed.links : [],
-        submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
-        portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : [],
-        books: Array.isArray(parsed.books) ? parsed.books : [],
-        strategies: Array.isArray(parsed.strategies) ? parsed.strategies : [],
-        auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : [],
-        settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
-        animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
-        adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
+      const batch = writeBatch(firestoreDb);
+      if (legacyData.settings) batch.set(doc(firestoreDb, "app_config", "settings"), legacyData.settings);
+      if (legacyData.animations) batch.set(doc(firestoreDb, "app_config", "animations"), legacyData.animations);
+      if (legacyData.adminAuth) batch.set(doc(firestoreDb, "app_config", "auth"), legacyData.adminAuth);
+      const processList = (list, type) => {
+        if (Array.isArray(list)) {
+          list.forEach((item) => {
+            const id = item.id || `${type}-${Date.now()}-${Math.random()}`;
+            batch.set(doc(firestoreDb, "items", id), { id, type, title: item.title || "Untitled", data: item });
+          });
+        }
       };
-      try {
-        const jsonStr = JSON.stringify(this.data, null, 2);
-        fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
-        fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
-      } catch {
+      processList(legacyData.courses, "course");
+      processList(legacyData.books, "book");
+      processList(legacyData.strategies, "strategy");
+      processList(legacyData.portfolio, "portfolio");
+      processList(legacyData.links, "link");
+      if (Array.isArray(legacyData.submissions)) {
+        legacyData.submissions.slice(0, 100).forEach((s) => {
+          batch.set(doc(firestoreDb, "submissions", s.id), s);
+        });
       }
+      await batch.commit();
+      console.log("[Database] Legacy data successfully migrated.");
     } catch (err) {
-      console.warn("[Database] Failed to parse Firestore payload:", err);
+      console.error("[Database] Migration failed:", err);
     }
   }
   sanitizeData(data) {
     if (!data) return;
+    const processItem = (item, key, prefix) => {
+      if (item[key]?.startsWith("data:")) {
+        item[key] = saveBase64ToDisk(item[key], prefix);
+      }
+    };
     if (data.settings) {
-      if (data.settings.logoUrl?.startsWith("data:")) {
-        data.settings.logoUrl = saveBase64ToDisk(data.settings.logoUrl, "logo");
-      }
-      if (data.settings.profileImageUrl?.startsWith("data:")) {
-        data.settings.profileImageUrl = saveBase64ToDisk(data.settings.profileImageUrl, "profile");
-      }
-      if (data.settings.heroBannerUrl?.startsWith("data:")) {
-        data.settings.heroBannerUrl = saveBase64ToDisk(data.settings.heroBannerUrl, "banner");
-      }
+      processItem(data.settings, "logoUrl", "logo");
+      processItem(data.settings, "profileImageUrl", "profile");
+      processItem(data.settings, "heroBannerUrl", "banner");
     }
-    if (Array.isArray(data.courses)) {
-      for (const course of data.courses) {
-        if (course.coverImage?.startsWith("data:")) {
-          course.coverImage = saveBase64ToDisk(course.coverImage, "course");
-        }
-      }
-    }
-    if (Array.isArray(data.portfolio)) {
-      for (const item of data.portfolio) {
-        if (item.screenshotUrl?.startsWith("data:")) {
-          item.screenshotUrl = saveBase64ToDisk(item.screenshotUrl, "portfolio");
-        }
-      }
-    }
-    if (Array.isArray(data.books)) {
-      for (const book of data.books) {
-        if (book.coverImage?.startsWith("data:")) {
-          book.coverImage = saveBase64ToDisk(book.coverImage, "book_cover");
-        }
-        if (book.pdfUrl?.startsWith("data:")) {
-          book.pdfUrl = saveBase64ToDisk(book.pdfUrl, "book_pdf");
-        }
-      }
-    }
-    if (Array.isArray(data.strategies)) {
-      for (const strategy of data.strategies) {
-        if (strategy.imageUrl?.startsWith("data:")) {
-          strategy.imageUrl = saveBase64ToDisk(strategy.imageUrl, "strategy");
-        }
-      }
-    }
-    if (Array.isArray(data.auditLogs) && data.auditLogs.length > 50) {
-      data.auditLogs = data.auditLogs.slice(0, 50);
-    }
+    data.courses?.forEach((c) => processItem(c, "coverImage", "course"));
+    data.portfolio?.forEach((p) => processItem(p, "screenshotUrl", "portfolio"));
+    data.strategies?.forEach((s) => processItem(s, "imageUrl", "strategy"));
+    data.books?.forEach((b) => {
+      processItem(b, "coverImage", "book_cover");
+      processItem(b, "pdfUrl", "book_pdf");
+    });
   }
   async saveToFirestore(data) {
     if (!firestoreDb) return;
     try {
-      const cloned = JSON.parse(JSON.stringify(data));
-      this.sanitizeData(cloned);
-      const payloadString = JSON.stringify(cloned);
-      const docRef = doc(firestoreDb, "app_state", "main");
-      const firestorePromise = setDoc(docRef, {
-        payloadString,
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-      });
-      await Promise.race([
-        firestorePromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timed out after 4000ms")), 4e3))
-      ]);
-      console.log(`[Firestore] Saved state (${payloadString.length} bytes) to app_state/main`);
-    } catch (e) {
-      console.error("[Firestore] CRITICAL: Failed to save to Firestore:", e?.message || e);
+      this.sanitizeData(data);
+      const batch = writeBatch(firestoreDb);
+      batch.set(doc(firestoreDb, "app_config", "settings"), data.settings);
+      batch.set(doc(firestoreDb, "app_config", "animations"), data.animations);
+      batch.set(doc(firestoreDb, "app_config", "auth"), data.adminAuth);
+      const allItems = [
+        ...data.courses.map((i) => ({ id: i.id, type: "course", title: i.title, data: i })),
+        ...data.books.map((i) => ({ id: i.id, type: "book", title: i.title, data: i })),
+        ...data.strategies.map((i) => ({ id: i.id, type: "strategy", title: i.title, data: i })),
+        ...data.portfolio.map((i) => ({ id: i.id, type: "portfolio", title: i.title, data: i })),
+        ...data.links.map((i) => ({ id: i.id, type: "link", title: i.title, data: i }))
+      ];
+      for (const item of allItems) {
+        batch.set(doc(firestoreDb, "items", item.id), item);
+      }
+      for (const sub of data.submissions.slice(0, 10)) {
+        batch.set(doc(firestoreDb, "submissions", sub.id), sub);
+      }
+      for (const log of data.auditLogs.slice(0, 10)) {
+        batch.set(doc(firestoreDb, "audit_logs", log.id), log);
+      }
+      await batch.commit();
+      const itemsCollection = collection(firestoreDb, "items");
+      const allFirestoreItems = await getDocs(itemsCollection);
+      const currentItemIds = new Set(allItems.map((i) => i.id));
+      const deleteBatch = writeBatch(firestoreDb);
+      let deleteCount = 0;
+      for (const d of allFirestoreItems.docs) {
+        if (!currentItemIds.has(d.id)) {
+          deleteBatch.delete(doc(firestoreDb, "items", d.id));
+          deleteCount++;
+        }
+      }
+      if (deleteCount > 0) await deleteBatch.commit();
+      console.log(`[Firestore] Successfully synchronized database. Saved ${allItems.length} items, cleaned ${deleteCount} orphans.`);
+    } catch (err) {
+      console.error("[Firestore] Save failed:", err);
     }
   }
   loadFromFile() {
     try {
-      let targetPath = DATA_FILE_PATH;
-      try {
-        const localExists = fs.existsSync(LOCAL_DATA_PATH);
-        const tmpExists = fs.existsSync(TMP_DATA_PATH);
-        if (localExists && tmpExists) {
-          const localStat = fs.statSync(LOCAL_DATA_PATH);
-          const tmpStat = fs.statSync(TMP_DATA_PATH);
-          targetPath = tmpStat.mtime > localStat.mtime ? TMP_DATA_PATH : LOCAL_DATA_PATH;
-        } else if (tmpExists) {
-          targetPath = TMP_DATA_PATH;
-        } else if (localExists) {
-          targetPath = LOCAL_DATA_PATH;
-        }
-      } catch {
-      }
-      if (fs.existsSync(targetPath)) {
-        const fileContent = fs.readFileSync(targetPath, "utf-8");
+      if (fs.existsSync(DATA_FILE_PATH)) {
+        const fileContent = fs.readFileSync(DATA_FILE_PATH, "utf-8");
         const parsed = JSON.parse(fileContent);
-        return {
-          ...INITIAL_DATA,
-          ...parsed,
-          courses: Array.isArray(parsed.courses) ? parsed.courses : [],
-          links: Array.isArray(parsed.links) ? parsed.links : [],
-          submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
-          portfolio: Array.isArray(parsed.portfolio) ? parsed.portfolio : [],
-          books: Array.isArray(parsed.books) ? parsed.books : [],
-          strategies: Array.isArray(parsed.strategies) ? parsed.strategies : [],
-          auditLogs: Array.isArray(parsed.auditLogs) ? parsed.auditLogs : [],
-          settings: { ...INITIAL_DATA.settings, ...parsed.settings || {} },
-          animations: { ...INITIAL_DATA.animations, ...parsed.animations || {} },
-          adminAuth: { ...INITIAL_DATA.adminAuth, ...parsed.adminAuth || {} }
-        };
+        return { ...INITIAL_DATA, ...parsed };
       }
-    } catch (e) {
-      console.warn("[Database] Error loading data from file:", e);
+    } catch {
     }
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
-  async saveToFile(data) {
-    this.sanitizeData(data);
-    const jsonStr = JSON.stringify(data, null, 2);
+  saveToLocalFile() {
     try {
-      const dir = path.dirname(LOCAL_DATA_PATH);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
-    } catch (e) {
-      console.warn("Warning: Could not save data to LOCAL_DATA_PATH:", e);
-    }
-    try {
-      if (!fs.existsSync("/tmp")) {
-        fs.mkdirSync("/tmp", { recursive: true });
-      }
+      const jsonStr = JSON.stringify(this.data, null, 2);
+      fs.writeFileSync(DATA_FILE_PATH, jsonStr, "utf-8");
       fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
-    } catch (e) {
-      console.warn("Warning: Could not save data to TMP_DATA_PATH:", e);
+    } catch {
     }
-    await this.saveToFirestore(data);
   }
   async get() {
     await this.initPromise;
@@ -710,34 +345,33 @@ var Database = class {
   }
   async update(updater) {
     await this.initPromise;
-    updater(this.data);
-    await this.saveToFile(this.data);
-    return this.data;
+    return new Promise((resolve, reject) => {
+      this.updateQueue = this.updateQueue.then(async () => {
+        try {
+          updater(this.data);
+          this.saveToLocalFile();
+          await this.saveToFirestore(this.data);
+          resolve(this.data);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
   }
   async logAction(action, details, ip) {
-    try {
-      const log = {
-        id: `log-${Date.now()}-${Math.floor(Math.random() * 1e3)}`,
-        action,
-        details,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-        ip
-      };
-      this.data.auditLogs.unshift(log);
-      if (this.data.auditLogs.length > 200) {
-        this.data.auditLogs.pop();
-      }
-      const jsonStr = JSON.stringify(this.data, null, 2);
-      try {
-        fs.writeFileSync(LOCAL_DATA_PATH, jsonStr, "utf-8");
-      } catch {
-      }
-      try {
-        fs.writeFileSync(TMP_DATA_PATH, jsonStr, "utf-8");
-      } catch {
-      }
-    } catch (e) {
-      console.warn("Warning: logAction failed:", e);
+    const log = {
+      id: `log-${Date.now()}-${Math.floor(Math.random() * 1e3)}`,
+      action,
+      details,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      ip
+    };
+    this.data.auditLogs.unshift(log);
+    if (this.data.auditLogs.length > 50) this.data.auditLogs.pop();
+    this.saveToLocalFile();
+    if (firestoreDb) {
+      setDoc(doc(firestoreDb, "audit_logs", log.id), log).catch(() => {
+      });
     }
   }
 };
@@ -1333,16 +967,15 @@ api.put("/admin/courses/:id", requireAdmin, async (req, res) => {
 var handleCourseDelete = async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
-  console.log(`[DEBUG] Attempting to delete course: ${targetId}`);
   try {
+    let updatedCourses = [];
     await db.update((d) => {
-      d.courses = (d.courses || []).filter((c) => c.id !== targetId && c.slug !== targetId);
+      d.courses = (d.courses || []).filter((c) => c.id !== targetId);
+      updatedCourses = d.courses;
     });
     await db.logAction("Course Deleted", `Course ${targetId} was deleted`);
-    console.log(`[DEBUG] Successfully deleted course: ${targetId}`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, courses: updatedCourses });
   } catch (err) {
-    console.error(`[DEBUG] Failed to delete course: ${targetId}`, err);
     res.status(500).json({ error: "Failed to delete course: " + (err?.message || err) });
   }
 };
@@ -1414,11 +1047,13 @@ var handleLinkDelete = async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedLinks = [];
     await db.update((d) => {
       d.links = (d.links || []).filter((l) => l.id !== targetId);
+      updatedLinks = d.links;
     });
     await db.logAction("Link Deleted", `Link ${targetId} was deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, links: updatedLinks });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete link: " + (err?.message || err) });
   }
@@ -1489,11 +1124,13 @@ var handlePortfolioDelete = async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedPortfolio = [];
     await db.update((d) => {
       d.portfolio = (d.portfolio || []).filter((p) => p.id !== targetId);
+      updatedPortfolio = d.portfolio;
     });
     await db.logAction("Portfolio Deleted", `Portfolio item ${targetId} was deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, portfolio: updatedPortfolio });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete portfolio item: " + (err?.message || err) });
   }
@@ -1561,11 +1198,13 @@ var handleBookDelete = async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedBooks = [];
     await db.update((d) => {
       d.books = (d.books || []).filter((item) => item.id !== targetId);
+      updatedBooks = d.books;
     });
     await db.logAction("Book Deleted", `Book ${targetId} deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, books: updatedBooks });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete book: " + (err?.message || err) });
   }
@@ -1633,11 +1272,13 @@ var handleStrategyDelete = async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   try {
+    let updatedStrategies = [];
     await db.update((d) => {
       d.strategies = (d.strategies || []).filter((item) => item.id !== targetId);
+      updatedStrategies = d.strategies;
     });
     await db.logAction("Strategy Deleted", `Strategy ${targetId} deleted`);
-    res.json({ success: true, deletedId: targetId });
+    res.json({ success: true, deletedId: targetId, strategies: updatedStrategies });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete strategy: " + (err?.message || err) });
   }

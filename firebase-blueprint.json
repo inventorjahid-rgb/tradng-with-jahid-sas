@@ -1,62 +1,81 @@
 {
   "entities": {
-    "User": {
-      "title": "User",
-      "description": "User profile information.",
+    "WebsiteSettings": {
+      "title": "Website Settings",
+      "description": "Global branding and content settings for the platform.",
       "type": "object",
       "properties": {
-        "uid": { "type": "string", "description": "Firebase Auth UID" },
-        "email": { "type": "string", "format": "email", "description": "User email" },
-        "displayName": { "type": "string", "description": "Display name" },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
-      },
-      "required": ["uid", "email", "createdAt"]
-    },
-    "AppConfig": {
-      "title": "AppConfig",
-      "type": "object",
-      "properties": {
-        "settings": { "type": "object" },
-        "animations": { "type": "object" },
-        "adminAuth": { "type": "object" }
+        "brandName": { "type": "string" },
+        "tagline": { "type": "string" },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "profileImageUrl": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "heroBannerUrl": { "type": "string" }
       }
     },
-    "Course": {
-      "title": "Course",
+    "AppItem": {
+      "title": "Application Item",
+      "description": "Generic container for courses, books, strategies, and portfolio items.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "slug": { "type": "string" },
+        "type": { "type": "string", "enum": ["course", "book", "strategy", "portfolio"] },
         "title": { "type": "string" },
+        "data": { "type": "object" },
+        "order": { "type": "number" },
         "published": { "type": "boolean" },
-        "order": { "type": "number" }
-      }
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "type", "title"]
     },
-    "SocialLink": {
-      "title": "SocialLink",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "url": { "type": "string" },
-        "isActive": { "type": "boolean" }
-      }
-    },
-    "Submission": {
-      "title": "Submission",
+    "AccountSubmission": {
+      "title": "Account Submission",
+      "description": "Trader account ID verification request.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "accountId": { "type": "string" },
-        "status": { "type": "string" }
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "System event log entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       }
     }
   },
   "firestore": {
-    "/app_state/{docId}": { "schema": "AppConfig", "description": "Master database persistence" },
-    "/config/app": { "schema": "AppConfig" },
-    "/courses/{courseId}": { "schema": "Course" },
-    "/links/{linkId}": { "schema": "SocialLink" },
-    "/submissions/{subId}": { "schema": "Submission" },
-    "/users/{userId}": { "schema": "User" }
+    "/app_config/settings": {
+      "schema": "WebsiteSettings",
+      "description": "Global website configuration."
+    },
+    "/app_config/animations": {
+      "schema": "object",
+      "description": "Visual effect settings."
+    },
+    "/app_config/auth": {
+      "schema": "object",
+      "description": "Admin authentication configuration."
+    },
+    "/items/{itemId}": {
+      "schema": "AppItem",
+      "description": "Individual content items (Courses, Books, Strategies, Portfolio)."
+    },
+    "/submissions/{subId}": {
+      "schema": "AccountSubmission",
+      "description": "Trader verification submissions."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System activity logs."
+    }
   }
 }

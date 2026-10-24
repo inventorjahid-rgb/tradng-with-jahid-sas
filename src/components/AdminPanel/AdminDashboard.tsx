@@ -572,9 +572,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="text-[10px] font-normal lowercase">(নির্দেশিকা)</span>
                       </h4>
                       <p className="text-xs text-amber-100/70 leading-relaxed">
-                        ১. <strong>PDF ফাইল সম্পর্কে:</strong> বড় ফাইল বা PDF সরাসরি আপলোড না করে গুগল ড্রাইভ বা অন্য ড্রাইভ লিংক ব্যবহার করুন। সরাসরি আপলোড করা ফাইল সাময়িক (ephemeral) এবং রিস্টার্ট হলে মুছে যেতে পারে।<br/>
-                        ২. <strong>থাম্বনেইল বা ছবি:</strong> থাম্বনেইল হিসেবে ব্যবহার করা ছবিগুলো অবশ্যই ১০০ কিলোবাইট (100KB) এর নিচে রাখার চেষ্টা করবেন, তাহলে সেগুলো পারমানেন্টলি সেভ থাকবে।<br/>
-                        ৩. <strong>ডাটা সেভ না হওয়া:</strong> ৩টির বেশি আইটেম অ্যাড করলে যদি ডিলিট হয়ে যায়, তবে বুঝতে হবে আপনি ১ মেগাবাইট (1MB) ডাটা লিমিট অতিক্রম করেছেন। অকেজো ইমেজ বা অডিট লগ ডিলিট করে জায়গা খালি করুন।
+                        ১. <strong>ডাটাবেস আপগ্রেড:</strong> আপনার ওয়েবসাইট এখন একটি উন্নত মাল্টি-ডকুমেন্ট ডাটাবেস ব্যবহার করছে। এখন থেকে প্রতিটি বই বা স্ট্র্যাটেজি আলাদাভাবে সেভ হবে।<br/>
+                        ২. <strong>থাম্বনেইল বা ছবি:</strong> প্রতিটি ছবি বা PDF এখন <strong>৯৫০ কিলোবাইট (~950KB)</strong> পর্যন্ত বড় হতে পারবে এবং সেগুলো পারমানেন্টলি সেভ থাকবে। রিস্টার্ট হলেও এগুলো হারাবে না।<br/>
+                        ৩. <strong>বড় ফাইল সাপোর্ট:</strong> আপনি এখন অনেকগুলো আইটেম একসাথে অ্যাড করতে পারবেন, কারণ প্রতিটি আইটেমের জন্য আলাদা ১ মেগাবাইট জায়গা বরাদ্দ রয়েছে। তবে ১০ মেগাবাইটের বেশি বড় ফাইলের জন্য গুগল ড্রাইভ লিংক ব্যবহার করাই ভালো।
                       </p>
                     </div>
                   </div>
@@ -2619,6 +2619,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     className="w-full px-3 py-2 bg-[#080B0A] border border-white/10 rounded-xl text-white"
                   >
                     <option value="Telegram Group">Telegram Group</option>
+                    <option value="Telegram Channel">Telegram Channel</option>
+                    <option value="Telegram Bot">Telegram Bot</option>
                     <option value="Telegram Admin / Direct Contact">Telegram Admin / Direct Contact</option>
                     <option value="YouTube Channel">YouTube Channel</option>
                     <option value="Facebook Page">Facebook Page</option>
@@ -2630,6 +2632,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </select>
                 </div>
 
+                <div>
+                  <label className="font-semibold text-white block mb-1">Icon (Brand)</label>
+                  <select
+                    value={editingLink.iconName || 'Send'}
+                    onChange={e => setEditingLink({ ...editingLink, iconName: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#080B0A] border border-white/10 rounded-xl text-white font-mono"
+                  >
+                    <option value="Send">Telegram (Send)</option>
+                    <option value="Youtube">YouTube</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="PhoneCall">WhatsApp / Call</option>
+                    <option value="Users">Community / Discord</option>
+                    <option value="MessageCircle">Chat / Message</option>
+                    <option value="Video">Video / Live</option>
+                    <option value="ExternalLink">Link (Default)</option>
+                    <option value="Award">Award / Results</option>
+                    <option value="Shield">Secure / Verified</option>
+                    <option value="Sparkles">Premium / VIP</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="font-semibold text-white block mb-1">Button Label</label>
                   <input

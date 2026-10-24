@@ -40,23 +40,6 @@ export async function fetchPublicData(): Promise<PublicDataPayload> {
     throw new Error(`Failed to fetch platform data (${detail})`);
   }
   const data: PublicDataPayload = await res.json();
-  try {
-    const savedSettings = localStorage.getItem('trading_jahid_website_settings');
-    if (savedSettings) {
-      const customSettings = JSON.parse(savedSettings);
-      data.settings = { ...data.settings, ...customSettings };
-    }
-    const savedAnimations = localStorage.getItem('trading_jahid_animations');
-    if (savedAnimations) {
-      data.animations = { ...data.animations, ...JSON.parse(savedAnimations) };
-    }
-    // Clean up stale localStorage overrides so deletions from admin panel take effect
-    localStorage.removeItem('trading_jahid_courses');
-    localStorage.removeItem('trading_jahid_portfolio');
-    localStorage.removeItem('trading_jahid_books');
-    localStorage.removeItem('trading_jahid_strategies');
-    localStorage.removeItem('trading_jahid_links');
-  } catch {}
   return data;
 }
 

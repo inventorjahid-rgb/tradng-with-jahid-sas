@@ -14,54 +14,96 @@ export const BooksAndStrategySection: React.FC<BooksAndStrategySectionProps> = (
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
 
   const handleSeePdf = (book: BookItem) => {
-    if (book.pdfUrl && book.pdfUrl.trim() !== '') {
-      window.open(book.pdfUrl, '_blank');
+    if (!book.pdfUrl || book.pdfUrl.trim() === '') {
+      // Fallback for empty URL
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${book.title} - Trading With Jahid</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; background: #040604; color: #F3F4F6; padding: 40px 20px; max-width: 850px; margin: 0 auto; line-height: 1.7; }
+            .header { border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 20px; margin-bottom: 30px; }
+            h1 { color: #D4AF37; font-size: 28px; margin: 0 0 10px 0; }
+            .author { color: #10B981; font-family: monospace; font-size: 14px; }
+            .desc { background: #0D140F; border: 1px solid rgba(212,175,55,0.2); padding: 20px; border-radius: 12px; margin-bottom: 30px; color: #D1D5DB; }
+            .chapter { background: #0D140F; border: 1px solid rgba(212,175,55,0.2); padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+            .chapter h3 { color: #FBBF24; margin-top: 0; font-size: 18px; }
+            .footer { text-align: center; color: #9CA3AF; font-size: 12px; margin-top: 40px; font-family: monospace; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${book.title}</h1>
+            <div class="author">Author: ${book.author} | Trading With Jahid Official Academy</div>
+          </div>
+          <div class="desc"><strong>Overview:</strong> ${book.description}</div>
+          <div class="chapter">
+            <h3>Chapter 1: Institutional Price Action & Liquidity Mechanics</h3>
+            <p>Institutional market makers engineer liquidity sweeps at key resistance and support levels before expanding impulsively.</p>
+          </div>
+          <div class="footer">
+            &copy; 2026 Trading With Jahid Academy. All rights reserved.
+          </div>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
       return;
     }
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${book.title} - Trading With Jahid</title>
-        <style>
-          body { font-family: system-ui, -apple-system, sans-serif; background: #040604; color: #F3F4F6; padding: 40px 20px; max-width: 850px; margin: 0 auto; line-height: 1.7; }
-          .header { border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 20px; margin-bottom: 30px; }
-          h1 { color: #D4AF37; font-size: 28px; margin: 0 0 10px 0; }
-          .author { color: #10B981; font-family: monospace; font-size: 14px; }
-          .desc { background: #0D140F; border: 1px solid rgba(212,175,55,0.2); padding: 20px; border-radius: 12px; margin-bottom: 30px; color: #D1D5DB; }
-          .chapter { background: #0D140F; border: 1px solid rgba(212,175,55,0.2); padding: 24px; border-radius: 12px; margin-bottom: 20px; }
-          .chapter h3 { color: #FBBF24; margin-top: 0; font-size: 18px; }
-          .footer { text-align: center; color: #9CA3AF; font-size: 12px; margin-top: 40px; font-family: monospace; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>${book.title}</h1>
-          <div class="author">Author: ${book.author} | Trading With Jahid Official Academy</div>
-        </div>
-        <div class="desc"><strong>Overview:</strong> ${book.description}</div>
-        <div class="chapter">
-          <h3>Chapter 1: Institutional Price Action & Liquidity Mechanics</h3>
-          <p>Institutional market makers engineer liquidity sweeps at key resistance and support levels before expanding impulsively.</p>
-        </div>
-        <div class="footer">
-          &copy; 2026 Trading With Jahid Academy. All rights reserved.
-        </div>
-      </body>
-      </html>
-    `;
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    // Handle base64 PDFs
+    if (book.pdfUrl.startsWith('data:') && book.pdfUrl.includes('base64') && book.pdfUrl.toLowerCase().includes('pdf')) {
+      try {
+        const parts = book.pdfUrl.split('base64,');
+        if (parts.length === 2) {
+          const base64Part = parts[1];
+          const byteCharacters = atob(base64Part);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to open base64 PDF:', err);
+      }
+    }
+
+    // Default: Open URL
+    window.open(book.pdfUrl, '_blank');
   };
 
   const handleDownloadPdf = async (book: BookItem) => {
     if (book.pdfUrl && book.pdfUrl.trim() !== '') {
       try {
-        const response = await fetch(book.pdfUrl);
-        if (!response.ok) throw new Error('Failed to fetch PDF');
-        const blob = await response.blob();
+        let blob: Blob;
+        if (book.pdfUrl.startsWith('data:')) {
+          const parts = book.pdfUrl.split('base64,');
+          if (parts.length === 2) {
+            const base64Part = parts[1];
+            const byteCharacters = atob(base64Part);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            blob = new Blob([byteArray], { type: 'application/pdf' });
+          } else {
+            throw new Error('Invalid base64 PDF');
+          }
+        } else {
+          const response = await fetch(book.pdfUrl);
+          if (!response.ok) throw new Error('Failed to fetch PDF');
+          blob = await response.blob();
+        }
+        
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -69,7 +111,7 @@ export const BooksAndStrategySection: React.FC<BooksAndStrategySectionProps> = (
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
       } catch (error) {
         console.error('Download error:', error);
         window.open(book.pdfUrl, '_blank');

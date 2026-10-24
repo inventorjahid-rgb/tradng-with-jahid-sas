@@ -88,7 +88,17 @@ function compressImage(file: File): Promise<string> {
       setIsUploading(true);
       setErrorMsg('');
 
-      // 1. First priority: upload directly to server to get permanent lightweight URL
+      // New Logic: If the file is small enough (< 900KB), we prefer keeping it as a DataURL
+      // so it gets saved PERMANENTLY in Firestore instead of being lost on ephemeral disk.
+      if (file.size < 900 * 1024) {
+        console.log(`[Upload] File is small (${Math.round(file.size / 1024)} KB), using permanent database storage (base64).`);
+        const dataUrl = await compressImage(file);
+        onChange(dataUrl);
+        return;
+      }
+
+      // 1. For larger files (>900KB), we must upload to disk to avoid Firestore 1MB limit.
+      // Note: These files are ephemeral and will be lost on container restart.
       try {
         const uploadRes = await uploadImage(file);
         if (uploadRes && uploadRes.url) {
@@ -99,7 +109,7 @@ function compressImage(file: File): Promise<string> {
         console.warn('Direct upload notice, using compressed device preview fallback:', uploadErr);
       }
 
-      // 2. Fallback: compress and store base64 preview (server will auto-convert to file upon saving)
+      // 2. Fallback: compress and store base64 preview
       const compressedDataUrl = await compressImage(file);
       onChange(compressedDataUrl);
     } catch (err: any) {

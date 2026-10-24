@@ -11,7 +11,10 @@ import {
   ExternalLink,
   MessageCircle,
   Video,
-  ArrowUpRight
+  ArrowUpRight,
+  Globe,
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 
 interface SocialLinksSectionProps {
@@ -19,17 +22,44 @@ interface SocialLinksSectionProps {
 }
 
 export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({ links }) => {
-  const getIcon = (iconName: string, category: string) => {
-    const key = (iconName || category).toLowerCase();
-    if (key.includes('youtube')) return <Youtube className="w-5 h-5 text-red-500" />;
-    if (key.includes('facebook')) return <Facebook className="w-5 h-5 text-blue-500" />;
-    if (key.includes('whatsapp') || key.includes('phone')) return <PhoneCall className="w-5 h-5 text-emerald-400" />;
-    if (key.includes('telegram') || key.includes('send')) return <Send className="w-5 h-5 text-yellow-400" />;
-    if (key.includes('discord') || key.includes('users')) return <Users className="w-5 h-5 text-yellow-500" />;
-    if (key.includes('instagram')) return <Instagram className="w-5 h-5 text-pink-500" />;
-    if (key.includes('message') || key.includes('chat')) return <MessageCircle className="w-5 h-5 text-emerald-400" />;
-    if (key.includes('video')) return <Video className="w-5 h-5 text-yellow-400" />;
-    return <ExternalLink className="w-5 h-5 text-yellow-400" />;
+  const getIcon = (iconName: string, category: string, title: string = '') => {
+    const key = (iconName || category || title).toLowerCase();
+    
+    // Brand Specific
+    if (key.includes('youtube')) return <Youtube className="w-5 h-5 text-[#FF0000]" />;
+    if (key.includes('facebook') || key.includes('fb')) return <Facebook className="w-5 h-5 text-[#1877F2]" />;
+    if (key.includes('instagram') || key.includes('ig')) return <Instagram className="w-5 h-5 text-[#E4405F]" />;
+    if (key.includes('telegram') || key.includes('tg') || key.includes('send')) return <Send className="w-5 h-5 text-[#24A1DE]" />;
+    if (key.includes('whatsapp') || key.includes('wa')) return <PhoneCall className="w-5 h-5 text-[#25D366]" />;
+    if (key.includes('discord')) return <Users className="w-5 h-5 text-[#5865F2]" />;
+    
+    // Trading / Platform Specific
+    if (key.includes('jairat')) return <Zap className="w-5 h-5 text-yellow-400" />;
+    if (key.includes('trading') || key.includes('binary') || key.includes('forex')) return <TrendingUp className="w-5 h-5 text-emerald-400" />;
+    if (key.includes('pocket') || key.includes('quotex') || key.includes('deriv') || key.includes('exness')) return <ExternalLink className="w-5 h-5 text-emerald-400" />;
+    if (key.includes('register') || key.includes('account')) return <Globe className="w-5 h-5 text-emerald-400" />;
+    
+    // Icon Name Specific (Lucide mappings)
+    if (iconName === 'Youtube') return <Youtube className="w-5 h-5 text-[#FF0000]" />;
+    if (iconName === 'Facebook') return <Facebook className="w-5 h-5 text-[#1877F2]" />;
+    if (iconName === 'Instagram') return <Instagram className="w-5 h-5 text-[#E4405F]" />;
+    if (iconName === 'PhoneCall') return <PhoneCall className="w-5 h-5 text-[#25D366]" />;
+    if (iconName === 'Users') return <Users className="w-5 h-5 text-[#5865F2]" />;
+    if (iconName === 'MessageCircle') return <MessageCircle className="w-5 h-5 text-emerald-400" />;
+    if (iconName === 'Video') return <Video className="w-5 h-5 text-yellow-400" />;
+    if (iconName === 'ArrowUpRight') return <ArrowUpRight className="w-5 h-5 text-yellow-400" />;
+    if (iconName === 'Globe') return <Globe className="w-5 h-5 text-emerald-400" />;
+    if (iconName === 'Zap') return <Zap className="w-5 h-5 text-yellow-400" />;
+    
+    // Action/Category Specific
+    if (key.includes('message') || key.includes('chat') || key.includes('contact') || key.includes('admin')) return <MessageCircle className="w-5 h-5 text-emerald-400" />;
+    if (key.includes('video') || key.includes('live')) return <Video className="w-5 h-5 text-yellow-400" />;
+    if (key.includes('phone') || key.includes('call')) return <PhoneCall className="w-5 h-5 text-emerald-400" />;
+    if (key.includes('group') || key.includes('community')) return <Users className="w-5 h-5 text-yellow-400" />;
+    if (key.includes('link') || key.includes('register') || key.includes('external') || key.includes('open')) return <ExternalLink className="w-5 h-5 text-yellow-400" />;
+    
+    // Default
+    return <Send className="w-5 h-5 text-yellow-400" />;
   };
 
   const handleLinkClick = (link: SocialLink) => {
@@ -73,7 +103,7 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({ links })
               className="group flex items-center gap-3.5 p-4 glass-panel border border-yellow-500/20 rounded-2xl hover:border-yellow-500/60 transition-all duration-300 shadow-lg bg-black hover:bg-neutral-900 cursor-pointer"
             >
               <div className="w-10 h-10 rounded-xl bg-black border border-yellow-500/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                {getIcon(link.iconName, link.category)}
+                {getIcon(link.iconName, link.category, link.title)}
               </div>
               <div className="text-left min-w-0 flex-1">
                 <h3 className="text-xs font-bold text-white tracking-tight group-hover:text-yellow-400 transition-colors truncate">{link.title}</h3>
