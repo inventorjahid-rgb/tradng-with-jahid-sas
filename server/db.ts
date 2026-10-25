@@ -125,7 +125,9 @@ export function cleanForFirestore<T>(obj: T): T {
  * Save uploaded file / PDF to permanent Firestore chunks so it survives container restarts
  */
 export async function saveFileToFirestoreChunks(fileName: string, buffer: Buffer, mimeType: string = 'application/octet-stream'): Promise<void> {
-  if (!firestoreDb) return;
+  if (!firestoreDb) {
+    throw new Error('Firestore database is not connected. Media upload cancelled.');
+  }
   try {
     const safeKey = fileName.replace(/[^a-zA-Z0-9_-]/g, '_');
     const base64Data = buffer.toString('base64');
@@ -153,7 +155,8 @@ export async function saveFileToFirestoreChunks(fileName: string, buffer: Buffer
     }
     console.log(`[File Chunks] Saved ${fileName} (${Math.round(buffer.length / 1024)} KB, ${totalChunks} chunks) to Firestore permanently.`);
   } catch (err: any) {
-    console.warn(`[File Chunks] Could not write ${fileName} to Firestore chunks:`, err?.message || err);
+    console.error(`[File Chunks ERROR] Could not write ${fileName} to Firestore chunks:`, err?.message || err);
+    throw new Error(`Failed to persist media chunk to Cloud Firestore: ${err?.message || err}`);
   }
 }
 

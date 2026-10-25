@@ -118,7 +118,9 @@ function cleanForFirestore(obj) {
   return result;
 }
 async function saveFileToFirestoreChunks(fileName, buffer, mimeType = "application/octet-stream") {
-  if (!firestoreDb) return;
+  if (!firestoreDb) {
+    throw new Error("Firestore database is not connected. Media upload cancelled.");
+  }
   try {
     const safeKey = fileName.replace(/[^a-zA-Z0-9_-]/g, "_");
     const base64Data = buffer.toString("base64");
@@ -143,7 +145,8 @@ async function saveFileToFirestoreChunks(fileName, buffer, mimeType = "applicati
     }
     console.log(`[File Chunks] Saved ${fileName} (${Math.round(buffer.length / 1024)} KB, ${totalChunks} chunks) to Firestore permanently.`);
   } catch (err) {
-    console.warn(`[File Chunks] Could not write ${fileName} to Firestore chunks:`, err?.message || err);
+    console.error(`[File Chunks ERROR] Could not write ${fileName} to Firestore chunks:`, err?.message || err);
+    throw new Error(`Failed to persist media chunk to Cloud Firestore: ${err?.message || err}`);
   }
 }
 async function getFileFromFirestoreChunks(fileName) {
