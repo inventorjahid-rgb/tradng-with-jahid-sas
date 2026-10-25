@@ -1,0 +1,1339 @@
+# TRADING WITH JAHID
+# CRITICAL SECURITY, DATABASE, ADMIN PANEL & FULL-STACK REPAIR
+
+## YOUR ROLE
+
+Act as a Principal Full-Stack Software Engineer, TypeScript Expert, React Developer, Firebase Architect, Database Engineer, Application Security Specialist, and QA Automation Engineer.
+
+You are working on my existing production-oriented website:
+
+**TRADING WITH JAHID**
+
+I previously asked an AI assistant to fix this website. It reported that all issues had been resolved.
+
+However, an independent source-code inspection of the updated ZIP file identified several serious unresolved problems.
+
+Your responsibility is to **actually modify the existing source code**, not merely produce another audit report.
+
+You must preserve:
+
+- The existing website design.
+- All branding and logos.
+- All public pages.
+- The Admin Panel layout.
+- Existing courses, books, strategies, and portfolio content.
+- Existing submissions and user information.
+- Existing database records.
+- Existing website features.
+- Existing navigation and responsive behavior.
+
+Do not rebuild the application from scratch.
+
+Do not introduce unnecessary dependencies or unrelated features.
+
+**IMPORTANT: The line numbers below refer to the currently supplied ZIP. Locate functions by name as well, because line numbers may change after editing.**
+
+---
+
+# PHASE 1 — CRITICAL ADMIN AUTHENTICATION REPAIR
+
+## ISSUE 1.1 — Hardcoded Authentication Secret
+
+**File:** `server/app.ts`
+
+**Approximate line:** 95
+
+### Current problematic code
+
+```typescript
+const ADMIN_SECRET =
+  process.env.ADMIN_SECRET ||
+  'jahid_vip_master_secret_2026_trading';
+```
+
+### Problem
+
+The application contains a publicly predictable fallback secret.
+
+Anyone who obtains the source code can discover the secret.
+
+The application also uses this secret to sign administrator authentication tokens.
+
+This creates a serious authentication security risk.
+
+### Required changes
+
+1. Remove the hardcoded fallback secret.
+2. Require a strong secret from secure server-side configuration if continuing to use signed tokens.
+3. Reject missing or invalid security configuration during production startup.
+4. Never send signing secrets to the frontend.
+5. Never place secrets in client-side environment variables.
+6. Never print secrets in server logs.
+7. Ensure previously issued tokens signed using the exposed secret are rejected.
+8. Use a cryptographically secure token or session implementation.
+
+### Recommended implementation
+
+Prefer opaque random session tokens with server-side session validation and revocation.
+
+If signed tokens are retained, use a well-established session library and proper key management.
+
+Do not rely on the existing custom token implementation without addressing its security limitations.
+
+---
+
+## ISSUE 1.2 — Remove Master Secret Authentication Helper
+
+**File:** `server/app.ts`
+
+**Approximate lines:** 159–163
+
+### Current code
+
+```typescript
+function tokenMatchesMaster(authHeader?: string): boolean {
+  if (!authHeader) return false;
+
+  const t = authHeader.split(' ')[1];
+
+  return (
+    t === ADMIN_SECRET ||
+    t === 'jahid_vip_master_secret_2026_trading'
+  );
+}
+```
+
+### Required changes
+
+Remove this helper if unused.
+
+If it is referenced elsewhere, remove the master-secret authentication behavior from every call site.
+
+Search the entire project for:
+
+- `tokenMatchesMaster`
+- `ADMIN_SECRET`
+- `jahid_vip_master_secret_2026_trading`
+- Hardcoded bearer tokens
+- Authentication bypasses
+
+Ensure administrator API access requires a valid authenticated administrator session.
+
+Never allow a static master secret to act as an administrator session token.
+
+### Verification
+
+Requests using the old hardcoded secret must return HTTP 401.
+
+---
+
+## ISSUE 1.3 — Hardcoded Administrator Passwords
+
+**File:** `server/app.ts`
+
+**Approximate lines:** 456–485
+
+### Current problematic implementation
+
+The login handler contains:
+
+```typescript
+const storedHash =
+  data.adminAuth?.passwordHash || '888892';
+```
+
+It also creates an array of accepted passwords:
+
+```typescript
+const allowedPasswords = [
+  storedHash,
+  'jahidvip2026',
+  '888892',
+  'jahid2026'
+];
+```
+
+### Critical problem
+
+The application accepts multiple hardcoded passwords.
+
+Even after the administrator changes their password, older fallback passwords may still work.
+
+This is a critical vulnerability.
+
+### Required changes
+
+1. Remove every hardcoded password.
+2. Remove the `allowedPasswords` fallback mechanism.
+3. Remove hardcoded username-based authentication bypasses.
+4. Authenticate against a properly stored administrator account.
+5. Store passwords using Argon2id or another established password-hashing algorithm.
+6. Use secure password verification.
+7. Do not use plaintext string comparison.
+8. Implement login rate limiting.
+9. Return generic errors for invalid credentials.
+10. Never reveal which credential was incorrect.
+
+### Important migration requirement
+
+The existing database may contain a plaintext password.
+
+Do not permanently retain plaintext password compatibility.
+
+Implement a safe one-time migration or administrator password reset procedure.
+
+The migration must:
+
+- Require legitimate administrator authorization or a secure deployment-side recovery procedure.
+- Avoid publishing temporary credentials.
+- Avoid locking out the legitimate administrator without a recovery path.
+- Never log the plaintext password.
+- Remove plaintext credentials after successful migration.
+- Invalidate old sessions.
+
+Do not automatically reset the administrator password to a known default.
+
+---
+
+# PHASE 2 — FIX PASSWORD STORAGE
+
+## ISSUE 2.1 — Plaintext Password in Database Defaults
+
+**File:** `server/db.ts`
+
+**Approximate line:** 586
+
+### Current code
+
+```typescript
+adminAuth: {
+  username: "admin",
+  passwordHash: "888892",
+  sessionTokens: []
+}
+```
+
+### Problem
+
+The `passwordHash` property contains a plaintext password.
+
+Its name does not make the stored value secure.
+
+### Required changes
+
+1. Remove the default plaintext password.
+2. Define a secure administrator account initialization process.
+3. Never initialize production using public default credentials.
+4. Store only secure password hashes.
+5. Ensure password hashes are not included in public API responses.
+6. Protect authentication records from unauthorized Firestore access.
+7. Prevent existing legacy database values from restoring the insecure default.
+
+If the database contains legacy plaintext credentials, migrate them safely.
+
+---
+
+## ISSUE 2.2 — Insecure Password Change
+
+**File:** `server/app.ts`
+
+**Approximate lines:** 510–535
+
+### Current problematic code
+
+```typescript
+if (currentPassword !== data.adminAuth.passwordHash) {
+  res.status(400).json({
+    error: 'Current password is incorrect'
+  });
+  return;
+}
+```
+
+And:
+
+```typescript
+await db.update(d => {
+  d.adminAuth.passwordHash = newPassword;
+});
+```
+
+### Required changes
+
+Replace plaintext comparison with secure password verification.
+
+Replace plaintext storage with a secure password hash.
+
+After a successful password change:
+
+1. Persist the new hash in the authoritative database.
+2. Invalidate all previous administrator sessions.
+3. Require reauthentication.
+4. Ensure the old password no longer works.
+5. Ensure all legacy fallback passwords are rejected.
+6. Ensure the change survives application restart.
+
+Use appropriate password validation and avoid exposing sensitive data in logs.
+
+---
+
+# PHASE 3 — FIX ADMIN SESSION SECURITY
+
+## ISSUE 3.1 — Excessively Long Token Lifetime
+
+**File:** `server/app.ts`
+
+**Approximate lines:** 97–130
+
+### Current behavior
+
+The custom token implementation permits tokens for approximately 90 days.
+
+### Required changes
+
+Implement a secure, revocable administrator session system.
+
+Recommended behavior:
+
+- Short-lived sessions.
+- Secure random session identifiers.
+- Server-side expiration.
+- Explicit session revocation.
+- Logout invalidation.
+- Password-change invalidation.
+- Session validation against authoritative storage.
+
+Prefer HttpOnly, Secure, SameSite cookies where compatible with the deployment architecture.
+
+If switching from localStorage bearer tokens to cookies:
+
+- Update frontend authentication handling.
+- Implement CSRF protection.
+- Update CORS configuration where necessary.
+- Ensure login and logout work correctly.
+- Remove obsolete token storage code.
+
+### Frontend files
+
+Investigate:
+
+`src/api.ts`
+
+Especially:
+
+```typescript
+const ADMIN_TOKEN_KEY = 'jahid_admin_token';
+```
+
+And:
+
+```typescript
+getAdminToken()
+setAdminToken()
+clearAdminToken()
+authHeaders()
+```
+
+Also inspect all React components using these functions.
+
+Do not remove frontend authentication functions without updating their callers.
+
+### Required test cases
+
+1. Login succeeds with valid credentials.
+2. Login fails with invalid credentials.
+3. Old hardcoded passwords fail.
+4. Old exposed master secrets fail.
+5. Logout invalidates the session.
+6. Password changes invalidate previous sessions.
+7. Expired sessions are rejected.
+8. Forged tokens are rejected.
+9. Unauthorized users cannot access administrator APIs.
+10. Refreshing the page does not incorrectly bypass authentication.
+
+---
+
+# PHASE 4 — CRITICAL FIRESTORE SECURITY FIX
+
+## ISSUE 4.1 — Public Database Read/Write Access
+
+**File:** `firestore.rules`
+
+**Affected lines:** Approximately 27–67
+
+### Current vulnerable rules
+
+Multiple collections contain:
+
+```javascript
+allow read, write: if true;
+```
+
+Affected collections:
+
+- `app_config`
+- `items`
+- `file_chunks`
+- `app_state`
+- `submissions`
+- `audit_logs`
+
+### Problem
+
+These rules permit unauthenticated access to sensitive database operations.
+
+This can allow unauthorized reading, modification, or deletion of application records.
+
+### Required changes
+
+Remove public write permissions from every sensitive collection.
+
+Implement a secure access model.
+
+### Important architecture consideration
+
+The existing backend uses the Firebase JavaScript client SDK.
+
+Inspect:
+
+`server/db.ts`
+
+Especially imports involving:
+
+```typescript
+firebase/app
+firebase/firestore/lite
+```
+
+Do not assume that server-side execution automatically provides privileged Firestore access.
+
+The Firebase client SDK is subject to Firestore Security Rules.
+
+### Recommended architecture
+
+Use the Firebase Admin SDK for trusted backend database operations where appropriate.
+
+The backend should:
+
+1. Authenticate administrator requests.
+2. Authorize each requested operation.
+3. Perform privileged database operations using secure server-side credentials.
+4. Return only necessary data to the frontend.
+
+Never expose Firebase service account private keys to the browser.
+
+Use secure platform-provided credentials where possible.
+
+### Collection permissions
+
+#### `app_config`
+
+Administrator configuration and authentication information must not be publicly readable or writable.
+
+#### `items`
+
+Public users may access intentionally published course, book, strategy, portfolio, and link information through controlled public APIs.
+
+Only authorized administrators may create, update, or delete records.
+
+#### `file_chunks`
+
+Protect private files and uploaded media.
+
+Do not allow anonymous users to overwrite or delete stored chunks.
+
+#### `app_state`
+
+Restrict legacy application state.
+
+Prevent unauthorized changes and unintended restoration of deleted data.
+
+#### `submissions`
+
+Users may submit permitted public forms through validated server endpoints.
+
+Users must not be able to read other people's submissions.
+
+Only authorized administrators may review, modify, or delete submissions.
+
+#### `audit_logs`
+
+Only trusted backend operations may create audit logs.
+
+Only authorized administrators may read them.
+
+Audit logs must not be publicly writable.
+
+### Required verification
+
+Test the rules using the Firestore Emulator or another isolated test environment.
+
+Verify:
+
+- Anonymous reads are rejected for private collections.
+- Anonymous writes are rejected.
+- Unauthorized updates are rejected.
+- Unauthorized deletes are rejected.
+- Authorized administrator operations work.
+- Public website content remains accessible.
+- Public submission forms continue working.
+
+Do not claim Firestore is secure until these tests pass.
+
+---
+
+# PHASE 5 — PERMANENTLY FIX ADMIN DELETE
+
+## ISSUE 5.1 — Incorrect Delete Operation Order
+
+**File:** `server/db.ts`
+
+**Function:** `deleteItemDirect()`
+
+**Approximate lines:** 851–877
+
+### Current behavior
+
+The function first removes the item from local memory:
+
+```typescript
+this.data.courses =
+  (this.data.courses || []).filter(
+    c => c.id !== targetId
+  );
+```
+
+It also modifies:
+
+- Books
+- Strategies
+- Portfolio
+- Links
+
+Then it writes local data.
+
+Only afterward does it attempt:
+
+```typescript
+await deleteDoc(
+  doc(firestoreDb, 'items', targetId)
+);
+```
+
+### Problem
+
+If Firestore deletion fails:
+
+- Local data may already be deleted.
+- Persistent Firestore data may remain unchanged.
+- The API may report an error after local state was modified.
+- The item may reappear after synchronization or restart.
+
+### Required changes
+
+Redesign the deletion flow.
+
+#### Step 1 — Validate the ID
+
+Reject empty or malformed IDs.
+
+Use appropriate validation.
+
+#### Step 2 — Identify the expected entity
+
+Do not delete records from unrelated collections.
+
+For example:
+
+Deleting a course must not accidentally delete a book that happens to have the same ID.
+
+Use entity type and ID together where necessary.
+
+#### Step 3 — Check record existence
+
+Confirm that the requested item exists in the authoritative database.
+
+If it does not exist, return a meaningful not-found result.
+
+#### Step 4 — Perform the persistent deletion
+
+Delete the record from the authoritative database.
+
+Await the operation.
+
+Do not swallow errors.
+
+#### Step 5 — Update local state
+
+Only after the authoritative operation succeeds, update the in-memory representation.
+
+Persist local snapshots where appropriate.
+
+#### Step 6 — Verify the result
+
+Ensure subsequent reads reflect the deletion.
+
+Avoid stale cache restoration.
+
+#### Step 7 — Return success
+
+Only return success after the deletion has been durably committed.
+
+### Important
+
+If local storage is the authoritative database in a supported development mode, implement the equivalent durable deletion behavior for that mode.
+
+Do not pretend a local-only deletion is a successful production Firestore deletion.
+
+Avoid using Firestore read-after-delete checks as a substitute for correctly awaiting a successful commit.
+
+### Required tests
+
+Test:
+
+- Existing item deletion.
+- Missing item deletion.
+- Firestore permission errors.
+- Firestore network errors.
+- Concurrent deletion requests.
+- Server restart after deletion.
+- Browser refresh after deletion.
+- Multiple application instances.
+
+---
+
+## ISSUE 5.2 — Submission Deletion Has the Same Problem
+
+**File:** `server/db.ts`
+
+**Function:** `deleteSubmissionDirect()`
+
+**Approximate lines:** 907–923
+
+### Current behavior
+
+The function removes a submission from local memory before attempting Firestore deletion.
+
+### Required changes
+
+Apply the same persistence-first approach used for item deletion.
+
+Additional requirements:
+
+1. Verify the submission exists.
+2. Delete only the requested submission.
+3. Preserve unrelated submissions.
+4. Return an appropriate not-found result.
+5. Handle database errors.
+6. Prevent deleted submissions from reappearing.
+7. Preserve the confidentiality of submission data.
+
+---
+
+# PHASE 6 — FIX DELETE API HANDLERS
+
+## ISSUE 6.1 — Course Delete Handler
+
+**File:** `server/app.ts`
+
+**Approximate lines:** 817–832
+
+**Function:** `handleCourseDelete`
+
+### Current implementation
+
+The handler calls:
+
+```typescript
+await db.deleteItemDirect(targetId);
+```
+
+Then returns:
+
+```typescript
+res.json({
+  success: true,
+  deletedId: targetId,
+  courses: data.courses
+});
+```
+
+### Required changes
+
+1. Validate the requested ID.
+2. Confirm the record is a course.
+3. Check whether the record exists.
+4. Call the corrected database deletion function.
+5. Await persistent deletion.
+6. Return HTTP 404 for missing records.
+7. Return HTTP 400 for invalid IDs.
+8. Return HTTP 500 or an appropriate service error for database failures.
+9. Return HTTP 200 only after confirmed success.
+10. Ensure the response contains the correct deleted ID.
+
+Use a consistent response structure across all Delete endpoints.
+
+### Apply the same fixes to
+
+- Books
+- Strategies
+- Portfolio
+- Social Links
+- Submissions
+- Media Library
+
+Search all handlers rather than assuming they are identical.
+
+---
+
+## ISSUE 6.2 — Submission Delete Handler
+
+**File:** `server/app.ts`
+
+**Approximate lines:** 715–729
+
+**Function:** `handleSubmissionDelete`
+
+### Required changes
+
+Implement:
+
+- ID validation.
+- Existence checks.
+- Persistent deletion.
+- Proper error handling.
+- Accurate success responses.
+- Correct audit logging.
+
+Audit logs should record successful deletion operations.
+
+If audit logging fails after a successful deletion, do not incorrectly claim the record still exists.
+
+Handle this case explicitly and preserve enough information for troubleshooting.
+
+---
+
+# PHASE 7 — FIX FRONTEND DELETE REQUESTS
+
+**File:** `src/api.ts`
+
+Investigate:
+
+- `deleteCourse()`
+- `deleteBook()`
+- `deleteStrategy()`
+- `deletePortfolioItem()`
+- `deleteLink()`
+- `deleteSubmission()`
+- `deleteMediaFile()`
+
+### Current behavior
+
+Several functions send a DELETE request and retry using POST whenever the response is unsuccessful.
+
+Example:
+
+```typescript
+if (!res.ok) {
+  res = await fetch(
+    `/api/admin/courses/${encId}/delete`,
+    {
+      method: 'POST',
+      headers: authHeaders()
+    }
+  );
+}
+```
+
+### Problem
+
+Retrying every failed DELETE request with POST can:
+
+- Hide authentication errors.
+- Hide database errors.
+- Produce duplicate operations.
+- Make debugging difficult.
+- Create inconsistent responses.
+
+### Required changes
+
+1. Prefer one documented canonical DELETE endpoint.
+2. Remove unnecessary POST fallback routes.
+3. If compatibility routes are required, document them and test them.
+4. Never retry destructive operations blindly.
+5. Preserve HTTP status codes.
+6. Show meaningful errors to the administrator.
+7. Handle HTTP 401 by updating authentication state.
+8. Handle HTTP 404 as a missing record.
+9. Handle HTTP 500 as a server-side failure.
+10. Refresh the relevant data only after successful deletion.
+
+### React Admin Panel
+
+Investigate:
+
+`src/components/AdminPanel/AdminDashboard.tsx`
+
+Search for all Delete buttons and handlers.
+
+Ensure:
+
+- Delete confirmation works.
+- Correct IDs are passed.
+- Buttons are disabled while requests are pending.
+- Success notifications appear only after success.
+- Failure notifications explain the problem.
+- Deleted items disappear from the list.
+- Refreshing the page does not restore them.
+- Deleting one item does not remove unrelated items.
+
+---
+
+# PHASE 8 — FIX DATABASE UPDATE QUEUE
+
+**File:** `server/db.ts`
+
+**Approximate line:** 594
+
+**Function:** `update()`
+
+**Approximate lines:** 1039–1060
+
+### Current implementation
+
+The database uses:
+
+```typescript
+private updateQueue: Promise<any> =
+  Promise.resolve();
+```
+
+And chains update operations.
+
+### Required investigation
+
+Determine whether:
+
+1. A failed update blocks later updates.
+2. The queue handles rejection correctly.
+3. Concurrent operations can overwrite data.
+4. Direct database writes bypass the queue.
+5. Local snapshots become inconsistent.
+6. A failed Firestore write leaves memory modified.
+7. Multiple server instances can overwrite each other's changes.
+
+### Required fixes
+
+Use a reliable serialization strategy for local state updates.
+
+Do not assume an in-memory Promise queue coordinates multiple production server instances.
+
+For Firestore operations, use transactions or appropriate concurrency controls when needed.
+
+Ensure:
+
+- One failed operation does not permanently block future updates.
+- Failed operations do not silently corrupt local state.
+- Concurrent writes do not cause unintended data loss.
+- Persistence errors are propagated correctly.
+
+### Required tests
+
+Simulate:
+
+- Failed updates.
+- Repeated updates.
+- Concurrent updates.
+- Network failures.
+- Application restart.
+- Multiple instances where supported.
+
+---
+
+# PHASE 9 — FIX DATABASE SYNCHRONIZATION
+
+**File:** `server/db.ts`
+
+Investigate:
+
+- `syncFromFirestore()`
+- `saveToFirestore()`
+- `saveToLocalFile()`
+- `saveItemDirect()`
+- `saveSubmissionDirect()`
+- `saveConfigDirect()`
+- `deleteItemDirect()`
+- `deleteSubmissionDirect()`
+
+### Required changes
+
+1. Identify the authoritative database.
+2. Document the supported development and production storage modes.
+3. Prevent stale local snapshots from overwriting newer persistent records.
+4. Prevent deleted records from reappearing after synchronization.
+5. Prevent failed writes from producing false success responses.
+6. Avoid writing entire collections when only one document changes.
+7. Prevent accidental data restoration from seed files.
+8. Preserve legitimate existing production records.
+9. Ensure data remains consistent after redeployment.
+10. Make migration behavior explicit and safe.
+
+### Special requirement
+
+Do not run destructive migrations automatically.
+
+Create a backup and rollback procedure before changing the persistence architecture.
+
+---
+
+# PHASE 10 — FIX FILE UPLOAD SECURITY
+
+**File:** `server/app.ts`
+
+**Approximate line:** 16
+
+### Current code
+
+```typescript
+app.use(express.json({ limit: '500mb' }));
+```
+
+### Problem
+
+Allowing very large JSON request bodies can cause excessive memory consumption.
+
+This is especially risky for base64-encoded images and PDF files.
+
+### Required changes
+
+1. Determine the actual upload requirements.
+2. Use reasonable limits for ordinary JSON API requests.
+3. Implement dedicated upload endpoints.
+4. Prefer streaming or direct-to-storage uploads for large files.
+5. Use Firebase Storage or another suitable persistent object storage service.
+6. Validate file size and file type.
+7. Restrict upload access.
+8. Prevent path traversal.
+9. Prevent malicious filenames.
+10. Prevent unauthorized file deletion.
+11. Ensure uploaded files survive server restarts.
+12. Preserve existing file URLs where possible.
+
+Do not simply reduce the upload limit and break legitimate PDF uploads.
+
+Implement a proper upload architecture.
+
+---
+
+# PHASE 11 — FIX PAGINATION AND API RESPONSES
+
+**File:** `src/api.ts`
+
+Investigate:
+
+```typescript
+fetchAdminSubmissions()
+fetchAuditLogs()
+```
+
+### Required changes
+
+Ensure frontend response handling matches backend response structures.
+
+Support the documented API response format.
+
+Do not silently replace malformed server responses with empty arrays.
+
+Instead:
+
+1. Validate the response.
+2. Extract the expected data.
+3. Preserve pagination metadata where relevant.
+4. Report unexpected response structures.
+5. Avoid `filter is not a function` errors.
+6. Verify pagination controls work.
+7. Verify the correct total record count.
+8. Verify loading and empty states.
+
+Test with real paginated responses.
+
+---
+
+# PHASE 12 — FIX PRODUCTION BUILD CONSISTENCY
+
+**Files:**
+
+- `package.json`
+- `server.ts`
+- `server.js`
+- `server/app.ts`
+- `api/index.ts`
+
+### Current scripts
+
+```json
+{
+  "dev": "tsx server.ts",
+  "start": "node server.js",
+  "build": "vite build && npx esbuild server.ts --bundle --platform=node --format=esm --packages=external --outfile=server.js"
+}
+```
+
+### Required changes
+
+1. Keep TypeScript as the authoritative backend source.
+2. Ensure production JavaScript is generated from the latest source.
+3. Prevent stale generated files from being deployed.
+4. Verify the production entry point.
+5. Verify API route compatibility.
+6. Verify environment configuration.
+7. Ensure the production build succeeds.
+8. Ensure deployment starts the correct server.
+9. Ensure database connections initialize correctly.
+10. Ensure the deployment process does not reset data.
+
+### Required commands
+
+Run:
+
+```bash
+npm install
+npm run lint
+npm run build
+```
+
+Then run the production server in an isolated test environment.
+
+Report actual command output.
+
+Do not claim commands passed unless they were executed.
+
+---
+
+# PHASE 13 — CHECK ALL ADMIN PANEL FEATURES
+
+Perform a complete functionality audit.
+
+### Courses
+
+Test:
+
+- Create
+- Read
+- Update
+- Delete
+- Image Upload
+- Publish/Unpublish
+
+### Books
+
+Test:
+
+- Create
+- Read
+- Update
+- Delete
+- PDF Upload
+- Download
+- Visibility
+
+### Strategies
+
+Test:
+
+- Create
+- Read
+- Update
+- Delete
+- Image Upload
+- Visibility
+
+### Portfolio
+
+Test:
+
+- Create
+- Read
+- Update
+- Delete
+- Image Upload
+- Display Order
+
+### Social Links
+
+Test:
+
+- Create
+- Read
+- Update
+- Delete
+- URL Validation
+
+### Submissions
+
+Test:
+
+- Create
+- Review
+- Approve
+- Reject
+- Ban
+- Delete
+- Pagination
+
+### Settings
+
+Test:
+
+- Save Settings
+- Update Branding
+- Update Homepage Content
+- Update Animations
+- Data Persistence
+
+### Authentication
+
+Test:
+
+- Login
+- Logout
+- Session Verification
+- Password Change
+- Session Expiration
+- Unauthorized Access
+
+---
+
+# PHASE 14 — SECURITY TESTING
+
+Create automated tests for the following cases.
+
+### Authentication
+
+- Invalid password.
+- Old default password.
+- Old hardcoded master secret.
+- Expired session.
+- Revoked session.
+- Forged token.
+- Missing authorization.
+- Password change.
+- Logout.
+
+### Authorization
+
+- Anonymous course deletion.
+- Anonymous book deletion.
+- Anonymous strategy deletion.
+- Anonymous submission access.
+- Anonymous settings modification.
+- Anonymous media deletion.
+
+Every unauthorized operation must fail.
+
+### Firestore
+
+Verify:
+
+- Private data cannot be read anonymously.
+- Private data cannot be modified anonymously.
+- Unauthorized deletion fails.
+- Authorized backend operations succeed.
+- Public content remains accessible.
+
+### Database
+
+Verify:
+
+- Create persistence.
+- Update persistence.
+- Delete persistence.
+- Restart persistence.
+- Concurrent operations.
+- Database failure handling.
+
+### Frontend
+
+Verify:
+
+- Admin Login.
+- Delete Buttons.
+- Loading States.
+- Error Messages.
+- Public Website Updates.
+- Mobile Responsiveness.
+
+---
+
+# PHASE 15 — DATA SAFETY
+
+This website contains existing content and potentially real user information.
+
+Follow these requirements:
+
+1. Never reset the production database.
+2. Never delete existing production records during testing.
+3. Never replace production data with sample records.
+4. Never expose private credentials.
+5. Never overwrite existing administrator credentials without a secure recovery process.
+6. Never remove existing website features unnecessarily.
+7. Never change the website's branding.
+8. Never change the visual design without authorization.
+9. Never deploy untested Firestore rules.
+10. Never run destructive migrations without a verified backup.
+
+Use an isolated test database for destructive tests.
+
+---
+
+# PHASE 16 — REQUIRED IMPLEMENTATION WORKFLOW
+
+Follow this exact workflow.
+
+## Step 1 — Inspect
+
+Read the complete relevant source code.
+
+Identify all affected functions and their dependencies.
+
+## Step 2 — Create a Repair Plan
+
+Briefly identify:
+
+- Confirmed vulnerabilities.
+- Confirmed functional bugs.
+- Suspected problems requiring tests.
+- Required source files.
+- Database migration requirements.
+
+## Step 3 — Apply Code Changes
+
+Modify the actual project files.
+
+Do not stop after writing the repair plan.
+
+## Step 4 — Add Tests
+
+Create meaningful automated tests for all critical fixes.
+
+## Step 5 — Execute Tests
+
+Run the available tests.
+
+Capture the results.
+
+## Step 6 — Verify Production Build
+
+Build the production application.
+
+Check for TypeScript errors and runtime errors.
+
+## Step 7 — Review Security
+
+Verify that:
+
+- No hardcoded admin passwords remain.
+- No hardcoded authentication secrets remain.
+- No master-secret authentication bypass remains.
+- No private Firestore collection is publicly writable.
+- Administrator sessions are revocable.
+- Unauthorized deletion is rejected.
+
+## Step 8 — Verify Data Persistence
+
+Use isolated test records to verify deletion and restart behavior.
+
+## Step 9 — Produce Final Report
+
+Provide evidence of actual code modifications.
+
+---
+
+# PHASE 17 — REQUIRED FINAL OUTPUT
+
+Your final response must include:
+
+## A. Modified Files
+
+List every modified file.
+
+## B. Exact Changes
+
+For each modified file, show:
+
+- Original problem.
+- Original function.
+- New implementation.
+- Explanation of the fix.
+
+## C. Code Diff
+
+Provide the actual changes made.
+
+Do not invent diffs.
+
+## D. Testing Evidence
+
+Provide:
+
+- Commands executed.
+- Test results.
+- Build results.
+- Failed tests.
+- Tests that could not be executed.
+
+## E. Firestore Security
+
+Show the final security rules.
+
+Explain how authorized backend access works.
+
+## F. Administrator Migration
+
+Explain how to securely migrate the existing administrator account without losing access.
+
+## G. Deployment
+
+Provide deployment instructions appropriate to the actual hosting platform.
+
+## H. Remaining Issues
+
+Clearly identify anything not fully resolved.
+
+Never claim 100% success without evidence.
+
+---
+
+# MOST IMPORTANT REQUIREMENTS
+
+This is not a request for another written audit.
+
+**I WANT YOU TO FIX THE ACTUAL WEBSITE SOURCE CODE.**
+
+You must:
+
+1. Remove hardcoded administrator passwords.
+2. Remove exposed authentication secrets.
+3. Implement secure administrator authentication.
+4. Secure Firestore access.
+5. Permanently fix Admin Panel deletion.
+6. Fix database synchronization.
+7. Fix unsafe update behavior.
+8. Fix frontend Delete API handling.
+9. Fix production build inconsistencies.
+10. Fix unsafe file upload handling.
+11. Test the complete Admin Panel.
+12. Preserve all existing data.
+13. Preserve the current website design.
+14. Provide actual code changes.
+15. Report verified results honestly.
+
+If secure production deployment requires credentials or platform configuration unavailable in Google AI Studio, implement the safe code changes and provide the required configuration instructions.
+
+Do not invent credentials.
+
+Do not disable security to make tests pass.
+
+Do not claim live deployment verification when only local tests were performed.
+
+**Complete the implementation and provide the corrected, buildable project.**

@@ -15,11 +15,11 @@ export function clearAdminToken() {
 }
 
 function authHeaders(): HeadersInit {
-  const token = getAdminToken() || 'jahid_vip_master_secret_2026_trading';
+  const token = getAdminToken();
+  if (!token) throw new Error('No admin token found');
   return {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-    'x-admin-secret': 'jahid_vip_master_secret_2026_trading'
+    Authorization: `Bearer ${token}`
   };
 }
 
@@ -252,16 +252,10 @@ export async function updateCourse(id: string, data: Partial<CourseService>): Pr
 
 export async function deleteCourse(id: string): Promise<any> {
   const encId = encodeURIComponent(id);
-  let res = await fetch(`/api/admin/courses/${encId}?_t=${Date.now()}`, {
+  const res = await fetch(`/api/admin/courses/${encId}?_t=${Date.now()}`, {
     method: 'DELETE',
     headers: authHeaders()
   });
-  if (!res.ok) {
-    res = await fetch(`/api/admin/courses/${encId}/delete?_t=${Date.now()}`, {
-      method: 'POST',
-      headers: authHeaders()
-    });
-  }
   await checkAdminResponse(res, 'Failed to delete course');
   return res.json();
 }

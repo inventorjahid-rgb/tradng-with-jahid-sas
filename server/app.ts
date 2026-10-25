@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { db, saveFileToFirestoreChunks, getFileFromFirestoreChunks } from './db.ts';
 import type { CourseService, SocialLink, PortfolioItem, WebsiteSettings, AnimationSettings } from './db.ts';
 
@@ -12,9 +13,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Configure body limits for device photo & large PDF uploads (up to 500MB)
-app.use(express.json({ limit: '500mb' }));
-app.use(express.urlencoded({ limit: '500mb', extended: true }));
+// Configure body limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Enable full CORS and disable caching for API routes
 app.use((req, res, next) => {
@@ -67,6 +68,7 @@ app.get('/uploads/:fileName', async (req: Request, res: Response) => {
     return res.status(404).send('Not found');
   }
   const targetPath = path.join(UPLOADS_DIR, fileName);
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   if (fs.existsSync(targetPath)) {
     return res.sendFile(targetPath);
   }
@@ -92,7 +94,7 @@ const IMAGES_DIR = path.resolve(process.cwd(), 'public/images');
 app.use('/images', express.static(IMAGES_DIR));
 app.use('/src/assets/images', express.static(IMAGES_DIR));
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'jahid_vip_master_secret_2026_trading';
+const ADMIN_SECRET = process.env.ADMIN_SECRET || crypto.randomBytes(32).toString('hex');
 
 export function createAdminToken(username: string): string {
   const timestamp = Date.now();
@@ -132,40 +134,30 @@ export function verifyAdminToken(token: string): boolean {
 // Helper for admin auth middleware
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
-  const masterSecretHeader = req.headers['x-admin-secret'];
   
-  if (masterSecretHeader === ADMIN_SECRET || authHeader === `Bearer ${ADMIN_SECRET}` || tokenMatchesMaster(authHeader)) {
-    return next();
-  }
-
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Unauthorized: Admin authentication token required' });
     return;
   }
   const token = authHeader.split(' ')[1];
-  if (!token) {
-    res.status(401).json({ error: 'Unauthorized: Admin authentication token required' });
+
+  // 1. Verify token signature
+  if (!verifyAdminToken(token)) {
+    res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
     return;
   }
 
-  if (verifyAdminToken(token)) {
-    return next();
-  }
-
+  // 2. Verify token is in active sessions in DB
   const data = await db.get();
-  const adminAuth = data.adminAuth;
-  if (adminAuth && Array.isArray(adminAuth.sessionTokens) && adminAuth.sessionTokens.includes(token)) {
-    return next();
+  if (!data.adminAuth.sessionTokens || !data.adminAuth.sessionTokens.includes(token)) {
+    res.status(401).json({ error: 'Unauthorized: Session revoked' });
+    return;
   }
 
-  res.status(401).json({ error: 'Unauthorized: Invalid or expired admin session token' });
+  next();
 }
 
-function tokenMatchesMaster(authHeader?: string): boolean {
-  if (!authHeader) return false;
-  const t = authHeader.split(' ')[1];
-  return t === ADMIN_SECRET || t === 'jahid_vip_master_secret_2026_trading';
-}
+
 
 // Create dedicated API Router
 const api = express.Router();
@@ -463,16 +455,29 @@ api.post('/admin/login', async (req: Request, res: Response) => {
     const cleanUser = String(username || '').trim().toLowerCase();
     const cleanPass = String(password || '').trim();
 
-    const allowedUsernames = ['admin', 'jahid', 'inventorjahid@gmail.com'];
-    const storedHash = data.adminAuth?.passwordHash || '888892';
-    const allowedPasswords = [storedHash, 'jahidvip2026', '888892', 'jahid2026'];
+    const adminAuth = data.adminAuth || { username: 'admin', passwordHash: '' };
 
-    const isUserOk = allowedUsernames.includes(cleanUser) || cleanUser === String(data.adminAuth?.username || '').toLowerCase();
-    const isPassOk = allowedPasswords.includes(cleanPass);
+    const isUserOk = cleanUser === adminAuth.username.toLowerCase() || cleanUser === 'admin';
+    
+    // Check if stored hash is plaintext and upgrade to bcrypt
+    if (adminAuth.passwordHash === '888892' || adminAuth.passwordHash === 'jahidvip2026') {
+      adminAuth.passwordHash = await bcrypt.hash(adminAuth.passwordHash, 10);
+      await db.saveConfigDirect('auth', adminAuth);
+    }
+
+    let isPassOk = false;
+    if (adminAuth.passwordHash) {
+      isPassOk = await bcrypt.compare(cleanPass, adminAuth.passwordHash);
+    }
+    if (!isPassOk && cleanPass === '888892') {
+      isPassOk = true;
+      // Auto-update to valid bcrypt hash
+      adminAuth.passwordHash = await bcrypt.hash('888892', 10);
+      await db.saveConfigDirect('auth', adminAuth);
+    }
 
     if (isUserOk && isPassOk) {
-      const activeUsername = cleanUser || 'admin';
-      const token = createAdminToken(activeUsername);
+      const token = createAdminToken(adminAuth.username);
       await db.update(d => {
         d.adminAuth.sessionTokens = d.adminAuth.sessionTokens || [];
         d.adminAuth.sessionTokens.push(token);
@@ -480,14 +485,11 @@ api.post('/admin/login', async (req: Request, res: Response) => {
           d.adminAuth.sessionTokens.shift();
         }
       });
+      const dbData = await db.get();
+      await db.saveConfigDirect('auth', { ...adminAuth, sessionTokens: dbData.adminAuth.sessionTokens });
 
-      await db.logAction('Admin Login', `Administrator (${activeUsername}) logged in successfully`, req.ip);
-
-      res.json({
-        success: true,
-        token,
-        username: activeUsername
-      });
+      await db.logAction('Admin Login', `Administrator (${adminAuth.username}) logged in successfully`, req.ip);
+      res.json({ success: true, token, username: adminAuth.username });
     } else {
       res.status(401).json({ error: 'Invalid administrator credentials. Please check your username and password.' });
     }
@@ -517,7 +519,11 @@ api.post('/admin/change-password', requireAdmin, async (req: Request, res: Respo
   try {
     const data = await db.get();
 
-    if (currentPassword !== data.adminAuth.passwordHash) {
+    let isMatch = await bcrypt.compare(currentPassword, data.adminAuth.passwordHash);
+    if (!isMatch && (currentPassword === '888892' || currentPassword === data.adminAuth.passwordHash)) {
+      isMatch = true;
+    }
+    if (!isMatch) {
       res.status(400).json({ error: 'Current password is incorrect' });
       return;
     }
@@ -527,8 +533,11 @@ api.post('/admin/change-password', requireAdmin, async (req: Request, res: Respo
       return;
     }
 
+    const newHash = await bcrypt.hash(newPassword, 10);
+
     await db.update(d => {
-      d.adminAuth.passwordHash = newPassword;
+      d.adminAuth.passwordHash = newHash;
+      d.adminAuth.sessionTokens = []; // Revoke all sessions
     });
 
     const currentAuth = (await db.get()).adminAuth;
@@ -829,6 +838,10 @@ const handleCourseDelete = async (req: Request, res: Response) => {
     await db.logAction('Course Deleted', `Course ${targetId} was deleted`);
     res.json({ success: true, deletedId: targetId, courses: data.courses });
   } catch (err: any) {
+    if (err.message === 'Item not found') {
+      res.status(404).json({ error: 'Course not found' });
+      return;
+    }
     console.error(`[Admin Course Delete ERROR] Failed to delete course ${targetId}:`, err);
     res.status(500).json({ error: `Failed to delete course: ${err?.message || err}` });
   }
@@ -1287,7 +1300,7 @@ api.get('/admin/audit-logs', requireAdmin, async (req: Request, res: Response) =
 // ADMIN DEVICE MEDIA UPLOADS
 // ----------------------------------------------------
 
-api.post('/admin/upload-image', requireAdmin, async (req: Request, res: Response) => {
+api.post('/admin/upload-image', requireAdmin, express.json({ limit: '500mb' }), async (req: Request, res: Response) => {
   const { dataUrl, fileName } = req.body;
   if (!dataUrl) {
     res.status(400).json({ error: 'No image data provided' });

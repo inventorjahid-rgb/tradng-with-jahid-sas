@@ -2,16 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ----------------------------------------------------
-    // GLOBAL HELPERS
-    // ----------------------------------------------------
-    
+    // Helper: Is the user authenticated?
     function isSignedIn() {
       return request.auth != null;
-    }
-    
-    function isValidId(id) {
-      return id is string && id.size() <= 128;
     }
 
     // Default Deny
@@ -20,52 +13,44 @@ service cloud.firestore {
     }
 
     // ----------------------------------------------------
-    // APP CONFIG (Settings, Animations, Auth)
+    // APP CONFIG
     // ----------------------------------------------------
-    
     match /app_config/{configId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
 
     // ----------------------------------------------------
-    // ITEMS (Courses, Books, Strategies, Portfolio, Links)
+    // ITEMS
     // ----------------------------------------------------
-    
     match /items/{itemId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     // ----------------------------------------------------
-    // FILE CHUNKS (Permanent Large Media & PDF Chunks)
+    // FILE CHUNKS
     // ----------------------------------------------------
-
     match /file_chunks/{chunkId} {
-      allow read, write: if true;
-    }
-
-    // ----------------------------------------------------
-    // APP STATE (Legacy migration support)
-    // ----------------------------------------------------
-
-    match /app_state/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     // ----------------------------------------------------
     // SUBMISSIONS
     // ----------------------------------------------------
-    
     match /submissions/{subId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if true; // Public can submit
+      allow update, delete: if isSignedIn();
     }
 
     // ----------------------------------------------------
     // AUDIT LOGS
     // ----------------------------------------------------
-    
     match /audit_logs/{logId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
   }
 }
-

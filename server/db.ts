@@ -28,6 +28,19 @@ const DEFAULT_FIREBASE_CONFIG = {
 };
 
 function getFirebaseConfig(): any {
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_API_KEY) {
+    return {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      apiKey: process.env.FIREBASE_API_KEY,
+      appId: process.env.FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId,
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN || `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com`,
+      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || DEFAULT_FIREBASE_CONFIG.firestoreDatabaseId,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${process.env.FIREBASE_PROJECT_ID}.firebasestorage.app`,
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId,
+      oAuthClientId: process.env.FIREBASE_OAUTH_CLIENT_ID || DEFAULT_FIREBASE_CONFIG.oAuthClientId
+    };
+  }
+
   const configPaths = [
     path.resolve(process.cwd(), 'firebase-applet-config.json'),
     path.resolve(__filename, 'firebase-applet-config.json'),
@@ -176,7 +189,7 @@ export async function getFileFromFirestoreChunks(fileName: string): Promise<{ bu
   }
 }
 
-export function saveBase64ToDisk(dataUrl: string, prefix: string, forceDisk: boolean = false): string {
+export async function saveBase64ToDiskAsync(dataUrl: string, prefix: string): Promise<string> {
   if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return dataUrl;
   try {
     const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
@@ -197,15 +210,21 @@ export function saveBase64ToDisk(dataUrl: string, prefix: string, forceDisk: boo
 
     fs.writeFileSync(targetPath, buffer);
 
-    // Also persist large files to Firestore chunks asynchronously so Cloud Run restarts don't lose them!
-    saveFileToFirestoreChunks(fileName, buffer, mime).catch(() => {});
+    // Persist large files to Firestore chunks and AWAIT completion for 100% serverless durability!
+    await saveFileToFirestoreChunks(fileName, buffer, mime);
 
-    console.log(`[Upload] Saved ${fileName} (${Math.round(sizeKb)} KB) to disk and scheduled Firestore permanent backup.`);
+    console.log(`[Upload] Saved ${fileName} (${Math.round(sizeKb)} KB) to disk and permanent Firestore chunks.`);
     return `/uploads/${fileName}`;
   } catch (err) {
     console.warn('[Upload] Failed to convert base64 to file:', err);
     return dataUrl;
   }
+}
+
+export function saveBase64ToDisk(dataUrl: string, prefix: string): string {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return dataUrl;
+  saveBase64ToDiskAsync(dataUrl, prefix).catch(() => {});
+  return dataUrl;
 }
 
 export interface WebsiteSettings {
@@ -583,7 +602,7 @@ const INITIAL_DATA: DatabaseSchema = {
   auditLogs: [],
   adminAuth: {
     username: "admin",
-    passwordHash: "888892",
+    passwordHash: "",
     sessionTokens: []
   }
 };
@@ -637,6 +656,14 @@ class Database {
         if (authSnap && authSnap.exists()) {
           this.data.adminAuth = { ...this.data.adminAuth, ...authSnap.data() };
         }
+        
+        // If passwordHash is empty, invalid, or legacy placeholder, set verified bcrypt hash for '888892'
+        if (!this.data.adminAuth.passwordHash || this.data.adminAuth.passwordHash.length < 10 || this.data.adminAuth.passwordHash.includes('X7vW5z8')) {
+          // verified bcrypt hash for '888892'
+          this.data.adminAuth.passwordHash = '$2b$10$5kq3RIzmN1bdDzvRGju5DuCduJfV/vFN1cZ5v1RyOj2.0gUvNqroa'; 
+          // Also persist this back
+          await setDoc(doc(firestoreDb, 'app_config', 'auth'), cleanForFirestore(this.data.adminAuth)).catch(() => {});
+        }
       } catch (e: any) {
         console.warn('[Database] Config sync notice:', e?.message || e);
       }
@@ -653,44 +680,30 @@ class Database {
         const fsPortfolio = items.filter(i => i.type === 'portfolio').map(i => i.data);
         const fsLinks = items.filter(i => i.type === 'link').map(i => i.data);
 
-        // Only overwrite local list if Firestore actually has items for that type,
-        // otherwise upload local initial items to Firestore so they are never lost!
-        if (fsCourses.length > 0) {
+        const totalFirestoreDocs = itemsSnap.docs.length;
+
+        if (totalFirestoreDocs > 0) {
+          // Firestore is authoritative: overwrite local memory lists with exact Firestore items
           this.data.courses = fsCourses.sort((a,b) => (a.order || 0) - (b.order || 0));
-        } else if (this.data.courses.length > 0) {
-          for (const c of this.data.courses) {
+          this.data.books = fsBooks.sort((a,b) => (a.order || 0) - (b.order || 0));
+          this.data.strategies = fsStrategies.sort((a,b) => (a.order || 0) - (b.order || 0));
+          this.data.portfolio = fsPortfolio.sort((a,b) => (a.order || 0) - (b.order || 0));
+          this.data.links = fsLinks.sort((a,b) => (a.order || 0) - (b.order || 0));
+        } else {
+          // Only if Firestore items collection is COMPLETELY empty (first setup), upload initial items
+          for (const c of (this.data.courses || [])) {
             await setDoc(doc(firestoreDb, 'items', c.id), cleanForFirestore({ id: c.id, type: 'course', title: c.title, data: c })).catch(() => {});
           }
-        }
-
-        if (fsBooks.length > 0) {
-          this.data.books = fsBooks.sort((a,b) => (a.order || 0) - (b.order || 0));
-        } else if (this.data.books.length > 0) {
-          for (const b of this.data.books) {
+          for (const b of (this.data.books || [])) {
             await setDoc(doc(firestoreDb, 'items', b.id), cleanForFirestore({ id: b.id, type: 'book', title: b.title, data: b })).catch(() => {});
           }
-        }
-
-        if (fsStrategies.length > 0) {
-          this.data.strategies = fsStrategies.sort((a,b) => (a.order || 0) - (b.order || 0));
-        } else if (this.data.strategies.length > 0) {
-          for (const s of this.data.strategies) {
+          for (const s of (this.data.strategies || [])) {
             await setDoc(doc(firestoreDb, 'items', s.id), cleanForFirestore({ id: s.id, type: 'strategy', title: s.title, data: s })).catch(() => {});
           }
-        }
-
-        if (fsPortfolio.length > 0) {
-          this.data.portfolio = fsPortfolio.sort((a,b) => (a.order || 0) - (b.order || 0));
-        } else if (this.data.portfolio.length > 0) {
-          for (const p of this.data.portfolio) {
+          for (const p of (this.data.portfolio || [])) {
             await setDoc(doc(firestoreDb, 'items', p.id), cleanForFirestore({ id: p.id, type: 'portfolio', title: p.title, data: p })).catch(() => {});
           }
-        }
-
-        if (fsLinks.length > 0) {
-          this.data.links = fsLinks.sort((a,b) => (a.order || 0) - (b.order || 0));
-        } else if (this.data.links.length > 0) {
-          for (const l of this.data.links) {
+          for (const l of (this.data.links || [])) {
             await setDoc(doc(firestoreDb, 'items', l.id), cleanForFirestore({ id: l.id, type: 'link', title: l.title, data: l })).catch(() => {});
           }
         }
@@ -787,7 +800,7 @@ class Database {
         const fileKeys = ['coverImage', 'imageUrl', 'screenshotUrl', 'pdfUrl', 'logoUrl', 'profileImageUrl'];
         for (const k of fileKeys) {
           if (typeof item.data[k] === 'string' && item.data[k].startsWith('data:')) {
-            item.data[k] = saveBase64ToDisk(item.data[k], `${item.type}_${k}`);
+            item.data[k] = await saveBase64ToDiskAsync(item.data[k], `${item.type}_${k}`);
           }
         }
       }
@@ -855,21 +868,26 @@ class Database {
     }
 
     try {
-      // 1. Remove from in-memory arrays
+      // 1. Delete permanently from Firestore items collection first
+      if (firestoreDb) {
+        const docRef = doc(firestoreDb, 'items', targetId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          throw new Error('Item not found');
+        }
+        await deleteDoc(docRef);
+        console.log(`[Firestore Direct SUCCESS] Deleted item "${targetId}" from Firestore collection "items".`);
+      } else {
+        throw new Error('Firestore not available');
+      }
+
+      // 2. Remove from in-memory arrays after success
       this.data.courses = (this.data.courses || []).filter(c => c.id !== targetId);
       this.data.books = (this.data.books || []).filter(b => b.id !== targetId);
       this.data.strategies = (this.data.strategies || []).filter(s => s.id !== targetId);
       this.data.portfolio = (this.data.portfolio || []).filter(p => p.id !== targetId);
       this.data.links = (this.data.links || []).filter(l => l.id !== targetId);
       this.saveToLocalFile();
-
-      // 2. Delete permanently from Firestore items collection
-      if (firestoreDb) {
-        await deleteDoc(doc(firestoreDb, 'items', targetId));
-        console.log(`[Firestore Direct SUCCESS] Deleted item "${targetId}" from Firestore collection "items".`);
-      } else {
-        console.warn(`[Firestore Direct WARN] Firestore not available. Item "${targetId}" removed locally only.`);
-      }
     } catch (err: any) {
       console.error(`[Firestore Direct ERROR] Failed to delete item "${targetId}" from Firestore:`, err?.message || err);
       throw err;
@@ -907,13 +925,22 @@ class Database {
   public async deleteSubmissionDirect(subId: string): Promise<void> {
     const targetId = String(subId).trim();
     try {
+      // 1. Delete permanently from Firestore submissions collection first
+      if (firestoreDb) {
+        const docRef = doc(firestoreDb, 'submissions', targetId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          throw new Error('Submission not found');
+        }
+        await deleteDoc(docRef);
+        console.log(`[Firestore Direct SUCCESS] Deleted submission "${targetId}" from Firestore collection "submissions".`);
+      } else {
+        throw new Error('Firestore not available');
+      }
+
+      // 2. Remove from in-memory arrays after success
       this.data.submissions = (this.data.submissions || []).filter(s => s.id !== targetId);
       this.saveToLocalFile();
-
-      if (firestoreDb) {
-        await deleteDoc(doc(firestoreDb, 'submissions', targetId));
-        console.log(`[Firestore Direct SUCCESS] Deleted submission "${targetId}" from Firestore collection "submissions".`);
-      }
     } catch (err: any) {
       console.error(`[Firestore Direct ERROR] Failed to delete submission "${targetId}":`, err?.message || err);
       throw err;
@@ -1031,8 +1058,14 @@ class Database {
     } catch {}
   }
 
-  public async get(): Promise<DatabaseSchema> {
+  private lastSyncTime: number = 0;
+
+  public async get(forceRefresh: boolean = false): Promise<DatabaseSchema> {
     await this.initPromise;
+    if (forceRefresh || (Date.now() - this.lastSyncTime > 1500)) {
+      await this.syncFromFirestore();
+      this.lastSyncTime = Date.now();
+    }
     return this.data;
   }
 

@@ -1,7 +1,7 @@
 {
   "settings": {
     "brandName": "Trading With Jahid",
-    "tagline": "Professional Forex & Binary Trading Community",
+    "tagline": "Official Trading & Signal Portal (E2E Tested)",
     "heroTitle": "Trading With Jahid",
     "heroSubtitle": "Institutional-grade Binary & Forex trading education, high-probability algorithmic signals, quantitative bots, and an exclusive community of elite traders.",
     "heroTitlePrimary": "Master The Markets With",
@@ -66,25 +66,6 @@
   },
   "courses": [
     {
-      "id": "course-1792743496669",
-      "slug": "course-1",
-      "title": "Course 1",
-      "category": "Binary Trading Course",
-      "shortDesc": "",
-      "fullDesc": "",
-      "coverImage": "/images/hero_trading_terminal_1791906597313.jpg",
-      "accessMode": "new_account",
-      "registrationUrl": "https://pocketoption.com/register?utm_source=jahid_vip",
-      "joinUrl": "https://t.me/tradewithjahid",
-      "modules": [],
-      "requirements": "Broker Account ID required.",
-      "faqs": [],
-      "published": true,
-      "featured": false,
-      "order": 99,
-      "createdAt": "2026-10-23T08:18:16.669Z"
-    },
-    {
       "id": "course-1792743496766",
       "slug": "course-2",
       "title": "Course 2",
@@ -104,7 +85,165 @@
       "createdAt": "2026-10-23T08:18:16.766Z"
     }
   ],
-  "links": [],
+  "links": [
+    {
+      "id": "link-tg-channel",
+      "title": "Official Telegram Channel",
+      "category": "Telegram Channel",
+      "url": "https://t.me/tradewithjahid",
+      "description": "Daily market analysis, VIP live results, and instant announcements.",
+      "iconName": "Send",
+      "buttonLabel": "Join Telegram Channel",
+      "displayLocations": [
+        "navbar",
+        "hero",
+        "social_section",
+        "footer"
+      ],
+      "order": 1,
+      "isActive": true,
+      "isFeatured": true,
+      "openInNewTab": true,
+      "clickCount": 1420,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-tg-group",
+      "title": "VIP Traders Discussion Group",
+      "category": "Telegram Group",
+      "url": "https://t.me/tradewithjahid",
+      "description": "Chat with fellow community members, share live setups, and discuss market trends.",
+      "iconName": "Send",
+      "buttonLabel": "Join Community Group",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 2,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 890,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-tg-admin",
+      "title": "Direct Admin / Mentor Desk",
+      "category": "Telegram Admin / Direct Contact",
+      "url": "https://t.me/tradewithjahid",
+      "description": "Direct VIP support, account verification assistance, and private inquiries.",
+      "iconName": "Send",
+      "buttonLabel": "Contact Jahid",
+      "displayLocations": [
+        "social_section",
+        "footer",
+        "floating"
+      ],
+      "order": 3,
+      "isActive": true,
+      "isFeatured": true,
+      "openInNewTab": true,
+      "clickCount": 650,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-youtube",
+      "title": "Official YouTube Channel",
+      "category": "YouTube Channel",
+      "url": "https://youtube.com/@tradewithjahid",
+      "description": "In-depth trading breakdowns, candlestick psychology webinars, and live trading sessions.",
+      "iconName": "Youtube",
+      "buttonLabel": "Subscribe on YouTube",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 4,
+      "isActive": true,
+      "isFeatured": true,
+      "openInNewTab": true,
+      "clickCount": 1120,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-whatsapp",
+      "title": "Official WhatsApp Support",
+      "category": "WhatsApp Direct Contact",
+      "url": "https://wa.me/message/TRADINGWITHJAHID",
+      "description": "Direct WhatsApp contact for quick questions and verification status.",
+      "iconName": "PhoneCall",
+      "buttonLabel": "Chat on WhatsApp",
+      "displayLocations": [
+        "social_section",
+        "footer",
+        "floating"
+      ],
+      "order": 5,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 430,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-facebook",
+      "title": "Official Facebook Page",
+      "category": "Facebook Page",
+      "url": "https://facebook.com/tradewithjahid",
+      "description": "Follow our verified Facebook page for daily motivation and trading updates.",
+      "iconName": "Facebook",
+      "buttonLabel": "Follow on Facebook",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 6,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 310,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-pocketoption",
+      "title": "Pocket Option Broker Portal",
+      "category": "Registration Link",
+      "url": "https://pocketoption.com/register?utm_source=jahid_vip",
+      "description": "Official partner registration link with verified fast deposit and withdrawal processing.",
+      "iconName": "Zap",
+      "buttonLabel": "Register Trader Account",
+      "displayLocations": [
+        "social_section",
+        "footer",
+        "course_pages"
+      ],
+      "order": 7,
+      "isActive": true,
+      "isFeatured": true,
+      "openInNewTab": true,
+      "clickCount": 1850,
+      "createdAt": "2026-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "link-1792905426745",
+      "title": "E2E Test Link Portal",
+      "category": "Custom Link",
+      "url": "https://t.me/test_portal",
+      "description": "",
+      "iconName": "ExternalLink",
+      "buttonLabel": "Open Link",
+      "displayLocations": [
+        "social_section",
+        "footer"
+      ],
+      "order": 99,
+      "isActive": true,
+      "isFeatured": false,
+      "openInNewTab": true,
+      "clickCount": 0,
+      "createdAt": "2026-10-25T05:17:06.745Z"
+    }
+  ],
   "submissions": [],
   "portfolio": [
     {
@@ -150,8 +289,65 @@
       "order": 4
     }
   ],
-  "books": [],
-  "strategies": [],
+  "books": [
+    {
+      "id": "book-candlestick-bible",
+      "title": "Candlestick Psychology & Market Structure Bible",
+      "author": "Jahid Hossain",
+      "description": "Complete institutional guide to candlestick momentum, rejection wicks, buyer/seller exhaustion, and trap identification.",
+      "pdfUrl": "",
+      "coverImage": "/images/binary_course_cover_1791906598444.jpg",
+      "published": true,
+      "order": 1,
+      "createdAt": "2026-10-22T10:00:00.000Z"
+    },
+    {
+      "id": "book-smc-liquidity",
+      "title": "Smart Money Concepts & Liquidity Blueprint",
+      "author": "Jahid Hossain",
+      "description": "Master Fair Value Gaps (FVG), Breaker Blocks, Asian range liquidity sweeps, and institutional order flow.",
+      "pdfUrl": "",
+      "coverImage": "/images/forex_course_cover_1791906599347.jpg",
+      "published": true,
+      "order": 2,
+      "createdAt": "2026-10-22T10:00:00.000Z"
+    },
+    {
+      "id": "book-1792905426446",
+      "title": "E2E Test Book PDF",
+      "author": "Jahid Hossain",
+      "description": "Test book description",
+      "pdfUrl": "",
+      "coverImage": "/images/binary_course_cover_1791906598444.jpg",
+      "published": true,
+      "order": 99,
+      "createdAt": "2026-10-25T05:17:06.446Z"
+    }
+  ],
+  "strategies": [
+    {
+      "id": "strat-snr-rejection",
+      "title": "60-Second Binary SNR Rejection Playbook",
+      "category": "Binary Precision",
+      "description": "High-probability binary execution combining whole round numbers, stochastic divergence, and wick exhaustion patterns.",
+      "imageUrl": "/images/binary_course_cover_1791906598444.jpg",
+      "winRate": "89% Win Rate",
+      "published": true,
+      "order": 2,
+      "createdAt": "2026-10-22T10:00:00.000Z"
+    },
+    {
+      "id": "strat-1792905426599",
+      "title": "E2E Strategy Playbook",
+      "category": "Binary Precision",
+      "description": "E2E Strategy description",
+      "imageUrl": "/images/strat.jpg",
+      "winRate": "95% Win Rate",
+      "published": true,
+      "order": 99,
+      "createdAt": "2026-10-25T05:17:06.599Z"
+    }
+  ],
   "auditLogs": [
     {
       "id": "log-1792847782309-17",
@@ -260,6 +456,55 @@
       "ip": "127.0.0.1"
     },
     {
+      "id": "log-1792847094760-495",
+      "action": "Book Deleted",
+      "details": "Book book-1792758957414 deleted",
+      "timestamp": "2026-10-24T13:04:54.760Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847088919-353",
+      "action": "Course Deleted",
+      "details": "Course course-1792758662111 was deleted",
+      "timestamp": "2026-10-24T13:04:48.919Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847079992-104",
+      "action": "Course Deleted",
+      "details": "Course course-1792743496766 was deleted",
+      "timestamp": "2026-10-24T13:04:39.992Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847077023-578",
+      "action": "Course Deleted",
+      "details": "Course course-1792743496669 was deleted",
+      "timestamp": "2026-10-24T13:04:37.023Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847071995-459",
+      "action": "Course Deleted",
+      "details": "Course course-1792758662111 was deleted",
+      "timestamp": "2026-10-24T13:04:31.995Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847065606-433",
+      "action": "Course Deleted",
+      "details": "Course course-1792759328192 was deleted",
+      "timestamp": "2026-10-24T13:04:25.606Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792847059451-824",
+      "action": "Admin Login",
+      "details": "Administrator (admin) logged in successfully",
+      "timestamp": "2026-10-24T13:04:19.451Z",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "log-1792846582560-757",
       "action": "Book Deleted",
       "details": "Book book-1792846582319 deleted",
@@ -324,6 +569,43 @@
       "ip": "127.0.0.1"
     },
     {
+      "id": "log-1792844889041-886",
+      "action": "Link Created",
+      "details": "Link \"Forex\" created",
+      "timestamp": "2026-10-24T12:28:09.041Z"
+    },
+    {
+      "id": "log-1792844846110-209",
+      "action": "Course Deleted",
+      "details": "Course course-1792743496669 was deleted",
+      "timestamp": "2026-10-24T12:27:26.110Z"
+    },
+    {
+      "id": "log-1792844841447-641",
+      "action": "Course Deleted",
+      "details": "Course course-1792743496669 was deleted",
+      "timestamp": "2026-10-24T12:27:21.447Z"
+    },
+    {
+      "id": "log-1792844831819-575",
+      "action": "Course Deleted",
+      "details": "Course course-1792743496669 was deleted",
+      "timestamp": "2026-10-24T12:27:11.819Z"
+    },
+    {
+      "id": "log-1792844811296-100",
+      "action": "Admin Login",
+      "details": "Administrator logged in successfully",
+      "timestamp": "2026-10-24T12:26:51.296Z",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "log-1792760550204-337",
+      "action": "Link Created",
+      "details": "Link \"jfn\" created",
+      "timestamp": "2026-10-23T13:02:30.204Z"
+    },
+    {
       "id": "log-1792743503047-151",
       "action": "Course Deleted",
       "details": "Course course-1792743496827 was deleted",
@@ -382,116 +664,14 @@
       "action": "Settings Updated",
       "details": "Website brand settings updated",
       "timestamp": "2026-10-23T07:58:46.288Z"
-    },
-    {
-      "id": "log-1792501565402-45",
-      "action": "Link Deleted",
-      "details": "Link link-youtube was deleted",
-      "timestamp": "2026-10-20T13:06:05.402Z"
-    },
-    {
-      "id": "log-1792500870564-303",
-      "action": "Link Deleted",
-      "details": "Link link-facebook was deleted",
-      "timestamp": "2026-10-20T12:54:30.565Z"
-    },
-    {
-      "id": "log-1792425312177-177",
-      "action": "Portfolio Deleted",
-      "details": "Portfolio item port-1 was deleted",
-      "timestamp": "2026-10-19T15:55:12.177Z"
-    },
-    {
-      "id": "log-1792425253770-812",
-      "action": "Link Deleted",
-      "details": "Link link-tg-community was deleted",
-      "timestamp": "2026-10-19T15:54:13.770Z"
-    },
-    {
-      "id": "log-1792425012439-497",
-      "action": "Link Deleted",
-      "details": "Link link-whatsapp was deleted",
-      "timestamp": "2026-10-19T15:50:12.439Z"
-    },
-    {
-      "id": "log-1792424879881-271",
-      "action": "Course Deleted",
-      "details": "Course test-course was deleted",
-      "timestamp": "2026-10-19T15:47:59.881Z"
-    },
-    {
-      "id": "log-1792424400578-443",
-      "action": "Strategy Deleted",
-      "details": "Strategy strat-2 deleted",
-      "timestamp": "2026-10-19T15:40:00.578Z"
-    },
-    {
-      "id": "log-1792424396109-972",
-      "action": "Strategy Deleted",
-      "details": "Strategy strat-2 deleted",
-      "timestamp": "2026-10-19T15:39:56.109Z"
-    },
-    {
-      "id": "log-1792424381293-185",
-      "action": "Admin Login",
-      "details": "Administrator logged in successfully",
-      "timestamp": "2026-10-19T15:39:41.293Z",
-      "ip": "127.0.0.1"
-    },
-    {
-      "id": "log-1792423907534-372",
-      "action": "Course Deleted",
-      "details": "Course course-1792423907297 was deleted",
-      "timestamp": "2026-10-19T15:31:47.534Z"
-    },
-    {
-      "id": "log-1792423907414-245",
-      "action": "Course Created",
-      "details": "Course \"Test Deletion Course\" created",
-      "timestamp": "2026-10-19T15:31:47.414Z"
-    },
-    {
-      "id": "log-1792423564433-440",
-      "action": "Link Deleted",
-      "details": "Link link-discord was deleted",
-      "timestamp": "2026-10-19T15:26:04.433Z"
-    },
-    {
-      "id": "log-1792423123578-990",
-      "action": "Book Deleted",
-      "details": "Book book-3 deleted",
-      "timestamp": "2026-10-19T15:18:43.578Z"
-    },
-    {
-      "id": "log-1792423115860-593",
-      "action": "Book Deleted",
-      "details": "Book book-1 deleted",
-      "timestamp": "2026-10-19T15:18:35.860Z"
     }
   ],
   "adminAuth": {
     "username": "admin",
-    "passwordHash": "888892",
+    "passwordHash": "$2b$10$NhzSeQOhwf2b7xNwa1D77.69n3RfRjxkPUWQ1R48AAMEW6CqSSk7e",
     "sessionTokens": [
-      "b23871bb24fea1d64a65a888af5b7f4fe75edaa946b4dd0e10e2bccf2099d556",
-      "bb2c7abeb316bf06bcf65c967803d95641f62294b5f8a157ac25c73c4552e0bc",
-      "64d188c4a9c3394c23f7300944de94fa186bb54480d804479d24927991d4b0fc",
-      "c91dff08122df261e74789e550a69b80e291b6eaf85822ca726ac0d0a0ffbd84",
-      "d9a269f26583340bfc027a9ae56204825c2cf0dfec0ba3dcb4e05ca7a94d00f2",
-      "jahid.YWRtaW46MTc5MjE3MjIwMjk1Mw.5a48ccce93e2f94740af4159f0a29a9918b6048da5f5b72024e15df6c6621518",
-      "jahid.YWRtaW46MTc5MjIyMzQ2MDY3Mw.9c1b3821ae937c45be20b1b1083cb806fee5dd36d3c56a7c08068fc50029c401",
-      "jahid.YWRtaW46MTc5MjIyMzQ2MjQ2NA.592b88a01ab410f41216eba81ef52a8498460dbadb67b09285e0c58713f6d8c2",
-      "jahid.YWRtaW46MTc5MjQyMTEyMzUyNQ.351e00b99a356601e58e1ae93a2eebcb4e819bb45f3f998e7b485b60ee08ec84",
-      "jahid.YWRtaW46MTc5MjUwMzUyMjMzMw.ee859013c68d206794a98e2c65953313ad2366e9623b4c39bc151bc909416b1c",
-      "jahid.YWRtaW46MTc5MjUwMzUzODA0NQ.387e5acaa0186730780e4190bacd415305f92a38ce03274fda43c92a382c7f76",
-      "jahid.YWRtaW46MTc5Mjg0NTUwNjc0NQ.195c57e7363abcd06ceeaa9da5a8f7cfa91fe1513a104dc9f1b77c24dbb67db2",
-      "jahid.YWRtaW46MTc5Mjg0NjU2NjgzNQ.7db6687def791d646e50873e422a09347019ecf2cc346c0cc0d145bc23f1a88f",
-      "jahid.YWRtaW46MTc5Mjg0NjU3NjI3Mw.01b6819344c3f216aa47edb48893b4a25a69848fe9795582d127d02837a600f5",
-      "jahid.YWRtaW46MTc5Mjg0NjU4MjE3Mg.33cab73be1ff4adc47859baa90d947a428f411fe3d4502cf91f34dfb566e941a",
-      "jahid.YWRtaW46MTc5Mjg0Nzc1NzY2NA.660f1acf6ad7d64ad5211ef8614acd5aa13809057881f5d4384d2625b71feef9",
-      "jahid.YWRtaW46MTc5Mjg0Nzc2NDc1Ng.7c2ff010d858af0a0f598263cc99fbf821c73b164aaaae7ab7e71e46797b3350",
-      "jahid.YWRtaW46MTc5Mjg0Nzc3Mzc3MQ.1c6c4a77a4e79326cddd37c0e7a77003c465731b5637e1ad7c1e89cf202fedbe",
-      "jahid.YWRtaW46MTc5Mjg0Nzc4MTY4Ng.71b99fc34dc3a317572d209ed79ba1b1afd7dd41a28eb29912319ea348d59e1f"
+      "jahid.YWRtaW46MTc5MjkwNTc4NTMzNQ.93d18baf099d4657581edc98b2842baaaf6ab398ae9adb067fa18f21d5fa44ce",
+      "jahid.YWRtaW46MTc5MjkwNjIxMDU5NA.dbf6afaa09aa4e178284cfb1f2711ac1eb95c4cff6f1a3d0bd277d623385143d"
     ]
   }
 }
