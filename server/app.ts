@@ -61,7 +61,6 @@ export const UPLOADS_DIR = (() => {
 })();
 
 // Serve static uploads, with automatic fallback recovery from Firestore chunks if ephemeral disk was cleared
-app.use('/uploads', express.static(UPLOADS_DIR));
 app.get('/uploads/:fileName', async (req: Request, res: Response) => {
   const fileName = path.basename(req.params.fileName || '');
   if (!fileName) {
@@ -70,6 +69,8 @@ app.get('/uploads/:fileName', async (req: Request, res: Response) => {
   const targetPath = path.join(UPLOADS_DIR, fileName);
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   if (fs.existsSync(targetPath)) {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename="${fileName.replace(/["\\]/g, '_')}"`);
     return res.sendFile(targetPath);
   }
 
@@ -81,6 +82,8 @@ app.get('/uploads/:fileName', async (req: Request, res: Response) => {
         fs.writeFileSync(targetPath, restored.buffer);
       } catch {}
       res.setHeader('Content-Type', restored.mimeType || 'application/octet-stream');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename=\"${fileName.replace(/[\"\\]/g, '_')}\"`);
       return res.send(restored.buffer);
     }
   } catch (err) {
@@ -449,6 +452,7 @@ api.post('/public/track-link-click', async (req: Request, res: Response) => {
 // ----------------------------------------------------
 
 api.post('/admin/login', async (req: Request, res: Response) => {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) return res.status(503).json({ error: 'Firebase Admin credentials are not configured' });
   const { username, password } = req.body;
   try {
     const data = await db.get();
@@ -460,20 +464,10 @@ api.post('/admin/login', async (req: Request, res: Response) => {
     const isUserOk = cleanUser === adminAuth.username.toLowerCase() || cleanUser === 'admin';
     
     // Check if stored hash is plaintext and upgrade to bcrypt
-    if (adminAuth.passwordHash === '888892' || adminAuth.passwordHash === 'jahidvip2026') {
-      adminAuth.passwordHash = await bcrypt.hash(adminAuth.passwordHash, 10);
-      await db.saveConfigDirect('auth', adminAuth);
-    }
 
     let isPassOk = false;
     if (adminAuth.passwordHash) {
       isPassOk = await bcrypt.compare(cleanPass, adminAuth.passwordHash);
-    }
-    if (!isPassOk && cleanPass === '888892') {
-      isPassOk = true;
-      // Auto-update to valid bcrypt hash
-      adminAuth.passwordHash = await bcrypt.hash('888892', 10);
-      await db.saveConfigDirect('auth', adminAuth);
     }
 
     if (isUserOk && isPassOk) {
@@ -520,9 +514,7 @@ api.post('/admin/change-password', requireAdmin, async (req: Request, res: Respo
     const data = await db.get();
 
     let isMatch = await bcrypt.compare(currentPassword, data.adminAuth.passwordHash);
-    if (!isMatch && (currentPassword === '888892' || currentPassword === data.adminAuth.passwordHash)) {
-      isMatch = true;
-    }
+
     if (!isMatch) {
       res.status(400).json({ error: 'Current password is incorrect' });
       return;
