@@ -80,42 +80,38 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
             <p className="text-sm text-gray-400">No courses currently available in this category.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 lg:gap-8 min-w-0">
             {filteredCourses.map(course => {
               const isExpanded = expandedCourseId === course.id;
 
             return (
               <div
                 key={course.id}
-                className="group relative glass-panel rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
+                className="group relative min-w-0 glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
               >
                 {/* Visual Thumbnail */}
-                <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   <img
                     src={course.coverImage}
                     alt={course.title}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 
-                  {/* Metadata Badge */}
-                  <div className="absolute top-3 left-3 text-xs text-yellow-300 bg-[#040604]/85 px-3 py-1 rounded-xl backdrop-blur-md border border-yellow-500/30 font-mono">
-                    {course.category}
-                  </div>
+                </div>
 
-                  <div className="absolute top-3 right-3 text-[11px] text-emerald-300 bg-emerald-500/20 px-2.5 py-1 rounded-xl border border-emerald-500/40 font-medium backdrop-blur-md">
-                    {course.accessMode === 'new_account' ? 'Partner Setup' : 'Existing ID'}
-                  </div>
+                <div className="flex flex-wrap items-center gap-1.5 px-2.5 pt-2.5 text-[10px] sm:text-xs">
+                  <span className="max-w-full break-words rounded-md bg-yellow-500/10 px-2 py-1 text-yellow-300 border border-yellow-500/20">{course.category}</span>
+                  <span className="max-w-full break-words rounded-md bg-emerald-500/10 px-2 py-1 text-emerald-300 border border-emerald-500/20">{course.accessMode === 'new_account' ? 'Partner Setup' : 'Existing ID'}</span>
                 </div>
 
                 {/* Body Content */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="min-w-0 p-2.5 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-3 text-left">
-                    <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+                    <h3 className="text-sm sm:text-xl font-bold text-white group-hover:text-yellow-400 transition-colors break-words">
                       {course.title}
                     </h3>
                     <p className="text-xs text-gray-300 line-clamp-2 leading-relaxed">

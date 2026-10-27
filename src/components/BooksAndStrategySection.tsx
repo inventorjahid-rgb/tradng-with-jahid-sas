@@ -136,19 +136,19 @@ Official Telegram Community: https://t.me/tradewithjahid
               <p className="text-sm text-gray-400">No books or guides published yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 lg:gap-8 min-w-0">
               {books.map(book => (
               <div
                 key={book.id}
-                className="group relative glass-panel rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
+                className="group relative min-w-0 glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
               >
-                <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   {book.coverImage ? (
                     <img
                       src={book.coverImage}
                       alt={book.title}
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-contain transition-transform duration-500"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
                       }}
@@ -158,35 +158,34 @@ Official Telegram Community: https://t.me/tradewithjahid
                       <BookOpen className="w-12 h-12" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-mono bg-[#040604]/85 text-yellow-300 border border-yellow-500/30 backdrop-blur-md">
-                    {(book as any).category || 'E-Book'}
-                  </div>
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="px-2.5 pt-2.5 text-[10px] sm:text-xs">
+                  <span className="inline-block max-w-full break-words rounded-md bg-yellow-500/10 px-2 py-1 text-yellow-300 border border-yellow-500/20">{(book as any).category || 'E-Book'}</span>
+                </div>
+                <div className="min-w-0 p-2.5 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2 text-left">
-                    <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+                    <h3 className="text-sm sm:text-xl font-bold text-white group-hover:text-yellow-400 transition-colors break-words">
                       {book.title}
                     </h3>
-                    <div className="text-xs text-emerald-400 font-mono">By {book.author}</div>
+                    <div className="text-[11px] sm:text-xs text-emerald-400 font-mono break-words">By {book.author}</div>
                     <p className="text-xs text-gray-300 line-clamp-3 leading-relaxed">
                       {book.description}
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-yellow-500/15 grid grid-cols-2 gap-3">
+                  <div className="pt-3 border-t border-yellow-500/15 grid grid-cols-2 gap-1.5 sm:gap-3 min-w-0">
                     <button
                       onClick={() => handleSeePdf(book)}
-                      className="py-2.5 px-3 bg-lux-gradient hover:opacity-95 text-black text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
+                      className="min-w-0 py-2.5 px-1 sm:px-3 bg-lux-gradient hover:opacity-95 text-black text-[10px] sm:text-xs font-bold rounded-lg sm:rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all shadow cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5 text-black" />
                       <span className="text-black font-bold">Read / Open</span>
                     </button>
                     <button
                       onClick={() => handleDownloadPdf(book)}
-                      className="py-2.5 px-3 bg-[#040604] hover:bg-white/10 text-yellow-300 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all border border-yellow-500/25 cursor-pointer"
+                      className="min-w-0 py-2.5 px-1 sm:px-3 bg-[#040604] hover:bg-white/10 text-yellow-300 text-[10px] sm:text-xs font-bold rounded-lg sm:rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all border border-yellow-500/25 cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download</span>
@@ -207,40 +206,33 @@ Official Telegram Community: https://t.me/tradewithjahid
               <p className="text-sm text-gray-400">No strategy playbooks published yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 lg:gap-8 min-w-0">
               {strategies.map(strat => (
               <div
                 key={strat.id}
                 onClick={() => setSelectedImage(strat)}
-                className="group relative glass-panel rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F] cursor-pointer"
+                className="group relative min-w-0 glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F] cursor-pointer"
               >
-                <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   <img
                     src={strat.imageUrl}
                     alt={strat.title}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/images/hero_trading_terminal_1791906597313.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-mono bg-[#040604]/85 text-yellow-300 border border-yellow-500/30 backdrop-blur-md">
-                    {strat.category}
-                  </div>
-
-                  {strat.winRate && (
-                    <div className="absolute top-3 right-3 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold backdrop-blur-md flex items-center gap-1 shadow-sm">
-                      <Award className="w-3 h-3 text-emerald-400" />
-                      <span>{strat.winRate}</span>
-                    </div>
-                  )}
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="flex flex-wrap items-center gap-1.5 px-2.5 pt-2.5 text-[10px] sm:text-xs">
+                  <span className="max-w-full break-words rounded-md bg-yellow-500/10 px-2 py-1 text-yellow-300 border border-yellow-500/20">{strat.category}</span>
+                  {strat.winRate && <span className="max-w-full break-words rounded-md bg-emerald-500/10 px-2 py-1 text-emerald-300 border border-emerald-500/20">{strat.winRate}</span>}
+                </div>
+                <div className="min-w-0 p-2.5 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2 text-left">
-                    <h3 className="text-lg font-bold text-white group-hover:text-yellow-400 transition-colors leading-snug">
+                    <h3 className="text-sm sm:text-lg font-bold text-white group-hover:text-yellow-400 transition-colors leading-snug break-words">
                       {strat.title}
                     </h3>
                     <p className="text-xs text-gray-300 line-clamp-3 leading-relaxed">
@@ -360,7 +352,7 @@ Official Telegram Community: https://t.me/tradewithjahid
                         Institutional Edition
                       </span>
                       <h2 className="text-xl sm:text-2xl font-bold text-white">{selectedPdf.title}</h2>
-                      <p className="text-xs text-emerald-400 font-mono">Authored by {selectedPdf.author} • Verified Trading Academy</p>
+                      <p className="text-[11px] sm:text-xs text-emerald-400 font-mono break-words">Authored by {selectedPdf.author} • Verified Trading Academy</p>
                       <p className="text-xs text-gray-300 leading-relaxed">{selectedPdf.description}</p>
                     </div>
                   </div>
@@ -426,7 +418,7 @@ Official Telegram Community: https://t.me/tradewithjahid
                 <ImageIcon className="w-5 h-5 text-yellow-400" />
                 <div className="text-left">
                   <h3 className="text-sm font-bold text-white">{selectedImage.title}</h3>
-                  <span className="text-xs text-emerald-400 font-mono">{selectedImage.category} • {selectedImage.winRate}</span>
+                  <span className="text-[11px] sm:text-xs text-emerald-400 font-mono break-words">{selectedImage.category} • {selectedImage.winRate}</span>
                 </div>
               </div>
 

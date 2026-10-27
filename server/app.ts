@@ -5,7 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { db, saveFileToFirestoreChunks, getFileFromFirestoreChunks } from './db.ts';
+import { db, saveFileToFirestoreChunks, getFileFromFirestoreChunks, createPersistentAdminSession, hasPersistentAdminSession, deletePersistentAdminSession } from './db.ts';
 import type { CourseService, SocialLink, PortfolioItem, WebsiteSettings, AnimationSettings } from './db.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,7 +61,6 @@ export const UPLOADS_DIR = (() => {
 })();
 
 // Serve static uploads, with automatic fallback recovery from Firestore chunks if ephemeral disk was cleared
-app.use('/uploads', express.static(UPLOADS_DIR));
 app.get('/uploads/:fileName', async (req: Request, res: Response) => {
   const fileName = path.basename(req.params.fileName || '');
   if (!fileName) {
@@ -70,6 +69,8 @@ app.get('/uploads/:fileName', async (req: Request, res: Response) => {
   const targetPath = path.join(UPLOADS_DIR, fileName);
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   if (fs.existsSync(targetPath)) {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename="${fileName.replace(/["\\]/g, '_')}"`);
     return res.sendFile(targetPath);
   }
 
@@ -81,6 +82,8 @@ app.get('/uploads/:fileName', async (req: Request, res: Response) => {
         fs.writeFileSync(targetPath, restored.buffer);
       } catch {}
       res.setHeader('Content-Type', restored.mimeType || 'application/octet-stream');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename=\"${fileName.replace(/[\"\\]/g, '_')}\"`);
       return res.send(restored.buffer);
     }
   } catch (err) {
@@ -147,10 +150,15 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return;
   }
 
-  // 2. Verify token is in active sessions in DB
-  const data = await db.get();
-  if (!data.adminAuth.sessionTokens || !data.adminAuth.sessionTokens.includes(token)) {
-    res.status(401).json({ error: 'Unauthorized: Session revoked' });
+  // 2. Verify session in Firestore, not a per-instance in-memory cache.
+  try {
+    if (!await hasPersistentAdminSession(token)) {
+      res.status(401).json({ error: 'Unauthorized: Session revoked or expired' });
+      return;
+    }
+  } catch (err) {
+    console.error('[Admin Session] Verification failed:', err);
+    res.status(503).json({ error: 'Unable to verify admin session. Please retry.' });
     return;
   }
 
@@ -449,6 +457,7 @@ api.post('/public/track-link-click', async (req: Request, res: Response) => {
 // ----------------------------------------------------
 
 api.post('/admin/login', async (req: Request, res: Response) => {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) return res.status(503).json({ error: 'Firebase Admin credentials are not configured' });
   const { username, password } = req.body;
   try {
     const data = await db.get();
@@ -460,33 +469,16 @@ api.post('/admin/login', async (req: Request, res: Response) => {
     const isUserOk = cleanUser === adminAuth.username.toLowerCase() || cleanUser === 'admin';
     
     // Check if stored hash is plaintext and upgrade to bcrypt
-    if (adminAuth.passwordHash === '888892' || adminAuth.passwordHash === 'jahidvip2026') {
-      adminAuth.passwordHash = await bcrypt.hash(adminAuth.passwordHash, 10);
-      await db.saveConfigDirect('auth', adminAuth);
-    }
 
     let isPassOk = false;
     if (adminAuth.passwordHash) {
       isPassOk = await bcrypt.compare(cleanPass, adminAuth.passwordHash);
     }
-    if (!isPassOk && cleanPass === '888892') {
-      isPassOk = true;
-      // Auto-update to valid bcrypt hash
-      adminAuth.passwordHash = await bcrypt.hash('888892', 10);
-      await db.saveConfigDirect('auth', adminAuth);
-    }
 
     if (isUserOk && isPassOk) {
       const token = createAdminToken(adminAuth.username);
-      await db.update(d => {
-        d.adminAuth.sessionTokens = d.adminAuth.sessionTokens || [];
-        d.adminAuth.sessionTokens.push(token);
-        if (d.adminAuth.sessionTokens.length > 20) {
-          d.adminAuth.sessionTokens.shift();
-        }
-      });
-      const dbData = await db.get();
-      await db.saveConfigDirect('auth', { ...adminAuth, sessionTokens: dbData.adminAuth.sessionTokens });
+      // Durable session survives requests routed to other Vercel instances.
+      await createPersistentAdminSession(token);
 
       await db.logAction('Admin Login', `Administrator (${adminAuth.username}) logged in successfully`, req.ip);
       res.json({ success: true, token, username: adminAuth.username });
@@ -505,9 +497,7 @@ api.get('/admin/verify-session', requireAdmin, async (_req: Request, res: Respon
 api.post('/admin/logout', requireAdmin, async (req: Request, res: Response) => {
   const token = req.headers.authorization!.split(' ')[1];
   try {
-    await db.update(d => {
-      d.adminAuth.sessionTokens = d.adminAuth.sessionTokens.filter(t => t !== token);
-    });
+    await deletePersistentAdminSession(token);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process logout' });
@@ -520,9 +510,7 @@ api.post('/admin/change-password', requireAdmin, async (req: Request, res: Respo
     const data = await db.get();
 
     let isMatch = await bcrypt.compare(currentPassword, data.adminAuth.passwordHash);
-    if (!isMatch && (currentPassword === '888892' || currentPassword === data.adminAuth.passwordHash)) {
-      isMatch = true;
-    }
+
     if (!isMatch) {
       res.status(400).json({ error: 'Current password is incorrect' });
       return;

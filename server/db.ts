@@ -1,78 +1,70 @@
 import fs from 'fs';
+import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initializeApp, getApps } from 'firebase/app';
-import { 
-  getFirestore, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  getDocs, 
-  collection, 
-  query, 
-  limit, 
-  deleteDoc
-} from 'firebase/firestore/lite';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore, type Firestore, type DocumentReference, type CollectionReference, type Query } from 'firebase-admin/firestore';
 
-const DEFAULT_FIREBASE_CONFIG = {
-  projectId: "gen-lang-client-0845142804",
-  appId: "1:667788705815:web:a5758ace8d5ff2754b5c52",
-  apiKey: "AIzaSyAaYi9AxoKZGnYKRY3p20Ce0aflSGCIYtE",
-  authDomain: "gen-lang-client-0845142804.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-tradingwithjahid-84b3e1d0-7172-4d83-bf69-4db6867ea1a0",
-  storageBucket: "gen-lang-client-0845142804.firebasestorage.app",
-  messagingSenderId: "667788705815",
-  measurementId: "",
-  oAuthClientId: "667788705815-5c6nfgf1r11cr2mkqodri0c2rjs9i1i8.apps.googleusercontent.com",
-  recaptchaSiteKey: ""
-};
-
-function getFirebaseConfig(): any {
-  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_API_KEY) {
-    return {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      apiKey: process.env.FIREBASE_API_KEY,
-      appId: process.env.FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId,
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com`,
-      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || DEFAULT_FIREBASE_CONFIG.firestoreDatabaseId,
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${process.env.FIREBASE_PROJECT_ID}.firebasestorage.app`,
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId,
-      oAuthClientId: process.env.FIREBASE_OAUTH_CLIENT_ID || DEFAULT_FIREBASE_CONFIG.oAuthClientId
-    };
-  }
-
-  const configPaths = [
-    path.resolve(process.cwd(), 'firebase-applet-config.json'),
-    path.resolve(__filename, 'firebase-applet-config.json'),
-    path.resolve(__dirname, '../firebase-applet-config.json')
-  ];
-  for (const configPath of configPaths) {
-    try {
-      if (fs.existsSync(configPath)) {
-        const parsed = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-        if (parsed && parsed.projectId && parsed.apiKey) {
-          return parsed;
-        }
-      }
-    } catch {}
-  }
-  return DEFAULT_FIREBASE_CONFIG;
-}
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export let firestoreDb: any = null;
+// Server-side Admin SDK bypasses Firestore client security rules securely.
+// Configure FIREBASE_SERVICE_ACCOUNT_JSON as the COMPLETE service-account JSON in Vercel.
+// Do not expose this variable through VITE_* or commit the JSON file.
+export let firestoreDb: Firestore | null = null;
+const projectId = process.env.FIREBASE_PROJECT_ID;
+const databaseId = process.env.FIREBASE_FIRESTORE_DATABASE_ID || '(default)';
 try {
-  const configData = getFirebaseConfig();
-  if (configData && configData.apiKey && configData.projectId) {
-    const app = getApps().find(a => a.name === 'server-app-db') || initializeApp(configData, 'server-app-db');
-    firestoreDb = getFirestore(app, configData.firestoreDatabaseId || '(default)');
-    console.log('[Database] Firestore successfully connected to project:', configData.projectId);
-  }
+  if (!projectId) throw new Error('FIREBASE_PROJECT_ID is required');
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is required for server access');
+  const serviceAccount = JSON.parse(raw);
+  if (serviceAccount.project_id !== projectId) throw new Error('Service account project does not match FIREBASE_PROJECT_ID');
+  if (!serviceAccount.private_key || !serviceAccount.client_email) throw new Error('Incomplete Firebase service account');
+  const app = getApps().find(a => a.name === 'server-app-db') || initializeApp({
+    credential: cert(serviceAccount), projectId
+  }, 'server-app-db');
+  firestoreDb = getFirestore(app, databaseId);
+  console.log('[Database] Firebase Admin initialized:', projectId, databaseId);
 } catch (e: any) {
-  console.warn('Warning: Could not initialize Firebase in server/db.ts:', e?.message || e);
+  console.error('[Database] Firebase Admin configuration error:', e?.message || e);
 }
+
+// Persist admin sessions independently of each serverless instance's in-memory cache.
+// Store only a SHA-256 digest, never the bearer token itself.
+function adminSessionRef(token: string) {
+  if (!firestoreDb) throw new Error('Firestore is required for admin sessions');
+  const id = (awaitlessSha256(token));
+  return firestoreDb.collection('admin_sessions').doc(id);
+}
+
+function awaitlessSha256(value: string): string {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+export async function createPersistentAdminSession(token: string): Promise<void> {
+  await adminSessionRef(token).set({ createdAt: Date.now(), expiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000 });
+}
+
+export async function hasPersistentAdminSession(token: string): Promise<boolean> {
+  const snapshot = await adminSessionRef(token).get();
+  return snapshot.exists && Number(snapshot.data()?.expiresAt) > Date.now();
+}
+
+export async function deletePersistentAdminSession(token: string): Promise<void> {
+  await adminSessionRef(token).delete();
+}
+
+// Small compatibility layer for the existing Lite SDK call sites.
+function doc(db: Firestore, collectionName: string, id: string): DocumentReference {
+  return db.collection(collectionName).doc(id);
+}
+function collection(db: Firestore, collectionName: string): CollectionReference {
+  return db.collection(collectionName);
+}
+function limit(count: number) { return count; }
+function query(ref: CollectionReference, count: number): Query { return ref.limit(count); }
+async function getDoc(ref: DocumentReference) { return ref.get(); }
+async function getDocs(ref: CollectionReference | Query) { return ref.get(); }
+async function setDoc(ref: DocumentReference, data: any) { await ref.set(data); }
+async function deleteDoc(ref: DocumentReference) { await ref.delete(); }
 
 const LOCAL_DATA_PATH = path.resolve(process.cwd(), 'data/db.json');
 const TMP_DATA_PATH = path.resolve('/tmp', 'trading_jahid_db.json');
@@ -168,19 +160,20 @@ export async function getFileFromFirestoreChunks(fileName: string): Promise<{ bu
   try {
     const safeKey = fileName.replace(/[^a-zA-Z0-9_-]/g, '_');
     const metaSnap = await getDoc(doc(firestoreDb, 'file_chunks', `${safeKey}_meta`));
-    if (!metaSnap.exists()) return null;
+    if (!metaSnap.exists) return null;
     const meta = metaSnap.data();
+    if (!meta) return null;
     const totalChunks = meta.totalChunks || 1;
     const mimeType = meta.mimeType || 'application/octet-stream';
 
     const parts: string[] = [];
     for (let i = 0; i < totalChunks; i++) {
       const chunkSnap = await getDoc(doc(firestoreDb, 'file_chunks', `${safeKey}_part_${i}`));
-      if (!chunkSnap.exists()) {
+      if (!chunkSnap.exists) {
         console.warn(`[File Chunks] Missing chunk ${i} for ${fileName}`);
         return null;
       }
-      parts.push(chunkSnap.data().data || '');
+      parts.push(chunkSnap.data()?.data || '');
     }
 
     const fullBase64 = parts.join('');
@@ -629,7 +622,7 @@ class Database {
       try {
         const legacyRef = doc(firestoreDb, 'app_state', 'main');
         const legacySnap = await getDoc(legacyRef);
-        if (legacySnap.exists()) {
+        if (legacySnap.exists) {
           const raw = legacySnap.data();
           if (raw && raw.payloadString) {
             console.log('[Database] Found legacy data. Migrating to new structure...');
@@ -650,23 +643,21 @@ class Database {
           getDoc(doc(firestoreDb, 'app_config', 'auth')).catch(() => null)
         ]);
 
-        if (settingsSnap && settingsSnap.exists()) {
+        if (settingsSnap && settingsSnap.exists) {
           this.data.settings = { ...this.data.settings, ...settingsSnap.data() };
         }
-        if (animationsSnap && animationsSnap.exists()) {
+        if (animationsSnap && animationsSnap.exists) {
           this.data.animations = { ...this.data.animations, ...animationsSnap.data() };
         }
-        if (authSnap && authSnap.exists()) {
+        if (authSnap && authSnap.exists) {
           this.data.adminAuth = { ...this.data.adminAuth, ...authSnap.data() };
+        } else if (process.env.ADMIN_INITIAL_PASSWORD) {
+          const bcrypt = await import('bcryptjs');
+          if (process.env.ADMIN_INITIAL_PASSWORD.length < 12) throw new Error('ADMIN_INITIAL_PASSWORD must be at least 12 characters');
+          this.data.adminAuth = { username: 'admin', passwordHash: await bcrypt.default.hash(process.env.ADMIN_INITIAL_PASSWORD, 12), sessionTokens: [] };
+          await setDoc(doc(firestoreDb, 'app_config', 'auth'), cleanForFirestore(this.data.adminAuth));
         }
         
-        // If passwordHash is empty, invalid, or legacy placeholder, set verified bcrypt hash for '888892'
-        if (!this.data.adminAuth.passwordHash || this.data.adminAuth.passwordHash.length < 10 || this.data.adminAuth.passwordHash.includes('X7vW5z8')) {
-          // verified bcrypt hash for '888892'
-          this.data.adminAuth.passwordHash = '$2b$10$5kq3RIzmN1bdDzvRGju5DuCduJfV/vFN1cZ5v1RyOj2.0gUvNqroa'; 
-          // Also persist this back
-          await setDoc(doc(firestoreDb, 'app_config', 'auth'), cleanForFirestore(this.data.adminAuth)).catch(() => {});
-        }
       } catch (e: any) {
         console.warn('[Database] Config sync notice:', e?.message || e);
       }
@@ -729,6 +720,7 @@ class Database {
         }
       } catch {}
 
+      this.lastSyncTime = Date.now();
       this.saveToLocalFile();
       console.log('[Database] Firestore synchronization complete.');
     } catch (e: any) {
@@ -737,18 +729,19 @@ class Database {
   }
 
   private async migrateLegacyData(legacyData: any) {
-    if (!firestoreDb) return;
+    const db = firestoreDb;
+    if (!db) return;
     try {
       const tasks: Promise<void>[] = [];
-      if (legacyData.settings) tasks.push(setDoc(doc(firestoreDb, 'app_config', 'settings'), cleanForFirestore(legacyData.settings)));
-      if (legacyData.animations) tasks.push(setDoc(doc(firestoreDb, 'app_config', 'animations'), cleanForFirestore(legacyData.animations)));
-      if (legacyData.adminAuth) tasks.push(setDoc(doc(firestoreDb, 'app_config', 'auth'), cleanForFirestore(legacyData.adminAuth)));
+      if (legacyData.settings) tasks.push(setDoc(doc(db, 'app_config', 'settings'), cleanForFirestore(legacyData.settings)));
+      if (legacyData.animations) tasks.push(setDoc(doc(db, 'app_config', 'animations'), cleanForFirestore(legacyData.animations)));
+      if (legacyData.adminAuth) tasks.push(setDoc(doc(db, 'app_config', 'auth'), cleanForFirestore(legacyData.adminAuth)));
 
       const processList = (list: any[], type: string) => {
         if (Array.isArray(list)) {
           list.forEach(item => {
             const id = item.id || `${type}-${Date.now()}-${Math.random()}`;
-            tasks.push(setDoc(doc(firestoreDb, 'items', id), cleanForFirestore({ id, type, title: item.title || 'Untitled', data: item })));
+            tasks.push(setDoc(doc(db, 'items', id), cleanForFirestore({ id, type, title: item.title || 'Untitled', data: item })));
           });
         }
       };
@@ -875,7 +868,7 @@ class Database {
       if (firestoreDb) {
         const docRef = doc(firestoreDb, 'items', targetId);
         const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) {
+        if (!docSnap.exists) {
           throw new Error('Item not found');
         }
         await deleteDoc(docRef);
@@ -932,7 +925,7 @@ class Database {
       if (firestoreDb) {
         const docRef = doc(firestoreDb, 'submissions', targetId);
         const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) {
+        if (!docSnap.exists) {
           throw new Error('Submission not found');
         }
         await deleteDoc(docRef);
@@ -1065,7 +1058,7 @@ class Database {
 
   public async get(forceRefresh: boolean = false): Promise<DatabaseSchema> {
     await this.initPromise;
-    if (forceRefresh || (Date.now() - this.lastSyncTime > 1500)) {
+    if (forceRefresh || (Date.now() - this.lastSyncTime > 60000)) {
       await this.syncFromFirestore();
       this.lastSyncTime = Date.now();
     }
