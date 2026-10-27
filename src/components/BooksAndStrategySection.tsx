@@ -136,11 +136,11 @@ Official Telegram Community: https://t.me/tradewithjahid
               <p className="text-sm text-gray-400">No books or guides published yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
               {books.map(book => (
               <div
                 key={book.id}
-                className="group relative glass-panel rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
+                className="group relative glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
               >
                 <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   {book.coverImage ? (
@@ -165,9 +165,9 @@ Official Telegram Community: https://t.me/tradewithjahid
                   </div>
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-3 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2 text-left">
-                    <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+                    <h3 className="text-sm sm:text-xl font-bold text-white group-hover:text-yellow-400 transition-colors break-words">
                       {book.title}
                     </h3>
                     <div className="text-xs text-emerald-400 font-mono">By {book.author}</div>
@@ -207,12 +207,12 @@ Official Telegram Community: https://t.me/tradewithjahid
               <p className="text-sm text-gray-400">No strategy playbooks published yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
               {strategies.map(strat => (
               <div
                 key={strat.id}
                 onClick={() => setSelectedImage(strat)}
-                className="group relative glass-panel rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F] cursor-pointer"
+                className="group relative glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F] cursor-pointer"
               >
                 <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   <img
@@ -238,9 +238,9 @@ Official Telegram Community: https://t.me/tradewithjahid
                   )}
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-3 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2 text-left">
-                    <h3 className="text-lg font-bold text-white group-hover:text-yellow-400 transition-colors leading-snug">
+                    <h3 className="text-sm sm:text-lg font-bold text-white group-hover:text-yellow-400 transition-colors leading-snug break-words">
                       {strat.title}
                     </h3>
                     <p className="text-xs text-gray-300 line-clamp-3 leading-relaxed">
