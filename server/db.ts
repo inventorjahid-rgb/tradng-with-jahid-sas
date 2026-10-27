@@ -1,4 +1,5 @@
 import fs from 'fs';
+import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
@@ -24,6 +25,31 @@ try {
   console.log('[Database] Firebase Admin initialized:', projectId, databaseId);
 } catch (e: any) {
   console.error('[Database] Firebase Admin configuration error:', e?.message || e);
+}
+
+// Persist admin sessions independently of each serverless instance's in-memory cache.
+// Store only a SHA-256 digest, never the bearer token itself.
+function adminSessionRef(token: string) {
+  if (!firestoreDb) throw new Error('Firestore is required for admin sessions');
+  const id = (awaitlessSha256(token));
+  return firestoreDb.collection('admin_sessions').doc(id);
+}
+
+function awaitlessSha256(value: string): string {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+export async function createPersistentAdminSession(token: string): Promise<void> {
+  await adminSessionRef(token).set({ createdAt: Date.now(), expiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000 });
+}
+
+export async function hasPersistentAdminSession(token: string): Promise<boolean> {
+  const snapshot = await adminSessionRef(token).get();
+  return snapshot.exists && Number(snapshot.data()?.expiresAt) > Date.now();
+}
+
+export async function deletePersistentAdminSession(token: string): Promise<void> {
+  await adminSessionRef(token).delete();
 }
 
 // Small compatibility layer for the existing Lite SDK call sites.

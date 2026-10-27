@@ -5,7 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { db, saveFileToFirestoreChunks, getFileFromFirestoreChunks } from './db.ts';
+import { db, saveFileToFirestoreChunks, getFileFromFirestoreChunks, createPersistentAdminSession, hasPersistentAdminSession, deletePersistentAdminSession } from './db.ts';
 import type { CourseService, SocialLink, PortfolioItem, WebsiteSettings, AnimationSettings } from './db.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -150,10 +150,15 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return;
   }
 
-  // 2. Verify token is in active sessions in DB
-  const data = await db.get();
-  if (!data.adminAuth.sessionTokens || !data.adminAuth.sessionTokens.includes(token)) {
-    res.status(401).json({ error: 'Unauthorized: Session revoked' });
+  // 2. Verify session in Firestore, not a per-instance in-memory cache.
+  try {
+    if (!await hasPersistentAdminSession(token)) {
+      res.status(401).json({ error: 'Unauthorized: Session revoked or expired' });
+      return;
+    }
+  } catch (err) {
+    console.error('[Admin Session] Verification failed:', err);
+    res.status(503).json({ error: 'Unable to verify admin session. Please retry.' });
     return;
   }
 
@@ -472,15 +477,8 @@ api.post('/admin/login', async (req: Request, res: Response) => {
 
     if (isUserOk && isPassOk) {
       const token = createAdminToken(adminAuth.username);
-      await db.update(d => {
-        d.adminAuth.sessionTokens = d.adminAuth.sessionTokens || [];
-        d.adminAuth.sessionTokens.push(token);
-        if (d.adminAuth.sessionTokens.length > 20) {
-          d.adminAuth.sessionTokens.shift();
-        }
-      });
-      const dbData = await db.get();
-      await db.saveConfigDirect('auth', { ...adminAuth, sessionTokens: dbData.adminAuth.sessionTokens });
+      // Durable session survives requests routed to other Vercel instances.
+      await createPersistentAdminSession(token);
 
       await db.logAction('Admin Login', `Administrator (${adminAuth.username}) logged in successfully`, req.ip);
       res.json({ success: true, token, username: adminAuth.username });
@@ -499,9 +497,7 @@ api.get('/admin/verify-session', requireAdmin, async (_req: Request, res: Respon
 api.post('/admin/logout', requireAdmin, async (req: Request, res: Response) => {
   const token = req.headers.authorization!.split(' ')[1];
   try {
-    await db.update(d => {
-      d.adminAuth.sessionTokens = d.adminAuth.sessionTokens.filter(t => t !== token);
-    });
+    await deletePersistentAdminSession(token);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process logout' });
