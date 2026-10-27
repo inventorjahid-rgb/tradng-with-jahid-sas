@@ -142,13 +142,13 @@ Official Telegram Community: https://t.me/tradewithjahid
                 key={book.id}
                 className="group relative min-w-0 glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
               >
-                <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   {book.coverImage ? (
                     <img
                       src={book.coverImage}
                       alt={book.title}
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-contain transition-transform duration-500"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
                       }}
@@ -158,13 +158,12 @@ Official Telegram Community: https://t.me/tradewithjahid
                       <BookOpen className="w-12 h-12" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-mono bg-[#040604]/85 text-yellow-300 border border-yellow-500/30 backdrop-blur-md">
-                    {(book as any).category || 'E-Book'}
-                  </div>
                 </div>
 
+                <div className="px-2.5 pt-2.5 text-[10px] sm:text-xs">
+                  <span className="inline-block max-w-full break-words rounded-md bg-yellow-500/10 px-2 py-1 text-yellow-300 border border-yellow-500/20">{(book as any).category || 'E-Book'}</span>
+                </div>
                 <div className="min-w-0 p-2.5 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2 text-left">
                     <h3 className="text-sm sm:text-xl font-bold text-white group-hover:text-yellow-400 transition-colors break-words">
@@ -214,30 +213,23 @@ Official Telegram Community: https://t.me/tradewithjahid
                 onClick={() => setSelectedImage(strat)}
                 className="group relative min-w-0 glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F] cursor-pointer"
               >
-                <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   <img
                     src={strat.imageUrl}
                     alt={strat.title}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/images/hero_trading_terminal_1791906597313.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-xl text-xs font-mono bg-[#040604]/85 text-yellow-300 border border-yellow-500/30 backdrop-blur-md">
-                    {strat.category}
-                  </div>
-
-                  {strat.winRate && (
-                    <div className="absolute top-3 right-3 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold backdrop-blur-md flex items-center gap-1 shadow-sm">
-                      <Award className="w-3 h-3 text-emerald-400" />
-                      <span>{strat.winRate}</span>
-                    </div>
-                  )}
                 </div>
 
+                <div className="flex flex-wrap items-center gap-1.5 px-2.5 pt-2.5 text-[10px] sm:text-xs">
+                  <span className="max-w-full break-words rounded-md bg-yellow-500/10 px-2 py-1 text-yellow-300 border border-yellow-500/20">{strat.category}</span>
+                  {strat.winRate && <span className="max-w-full break-words rounded-md bg-emerald-500/10 px-2 py-1 text-emerald-300 border border-emerald-500/20">{strat.winRate}</span>}
+                </div>
                 <div className="min-w-0 p-2.5 sm:p-6 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2 text-left">
                     <h3 className="text-sm sm:text-lg font-bold text-white group-hover:text-yellow-400 transition-colors leading-snug break-words">

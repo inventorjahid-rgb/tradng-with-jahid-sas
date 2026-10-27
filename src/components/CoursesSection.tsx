@@ -90,26 +90,22 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
                 className="group relative min-w-0 glass-panel rounded-xl sm:rounded-3xl overflow-hidden flex flex-col justify-between border border-yellow-500/20 hover:border-yellow-500/60 transition-all shadow-xl bg-[#0D140F]"
               >
                 {/* Visual Thumbnail */}
-                <div className="relative aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full bg-[#040604] overflow-hidden border-b border-yellow-500/15">
                   <img
                     src={course.coverImage}
                     alt={course.title}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/images/binary_course_cover_1791906598444.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D140F] via-transparent to-transparent opacity-80" />
 
-                  {/* Metadata Badge */}
-                  <div className="absolute top-3 left-3 text-xs text-yellow-300 bg-[#040604]/85 px-3 py-1 rounded-xl backdrop-blur-md border border-yellow-500/30 font-mono">
-                    {course.category}
-                  </div>
+                </div>
 
-                  <div className="absolute top-3 right-3 text-[11px] text-emerald-300 bg-emerald-500/20 px-2.5 py-1 rounded-xl border border-emerald-500/40 font-medium backdrop-blur-md">
-                    {course.accessMode === 'new_account' ? 'Partner Setup' : 'Existing ID'}
-                  </div>
+                <div className="flex flex-wrap items-center gap-1.5 px-2.5 pt-2.5 text-[10px] sm:text-xs">
+                  <span className="max-w-full break-words rounded-md bg-yellow-500/10 px-2 py-1 text-yellow-300 border border-yellow-500/20">{course.category}</span>
+                  <span className="max-w-full break-words rounded-md bg-emerald-500/10 px-2 py-1 text-emerald-300 border border-emerald-500/20">{course.accessMode === 'new_account' ? 'Partner Setup' : 'Existing ID'}</span>
                 </div>
 
                 {/* Body Content */}
